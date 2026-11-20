@@ -17,6 +17,7 @@ final class MenuBarController: NSObject {
     private let ocrCoordinator: OCRCoordinator
     private let desktopIconsCover: DesktopIconsCover
     private let onShowPreferences: () -> Void
+    private let helpWindow = HelpWindow()
 
     init(settings: AppSettings, captureCoordinator: CaptureCoordinator, recordingCoordinator: RecordingCoordinator, ocrCoordinator: OCRCoordinator, desktopIconsCover: DesktopIconsCover, onShowPreferences: @escaping () -> Void) {
         self.settings = settings
@@ -149,6 +150,7 @@ final class MenuBarController: NSObject {
         menu.addItem(.separator())
 
         menu.addItem(menuItem(String(localized: "Preferences..."), action: #selector(openPreferences), key: ",", modifiers: [.command]))
+        menu.addItem(menuItem(String(localized: "Knippi Help"), action: #selector(openHelp), key: "?", modifiers: [.command]))
         menu.addItem(menuItem(String(localized: "About Knippi"), action: #selector(openAbout)))
         menu.addItem(.separator())
         menu.addItem(menuItem(String(localized: "Quit Knippi"), action: #selector(quitApp), key: "q", modifiers: [.command]))
@@ -288,6 +290,10 @@ final class MenuBarController: NSObject {
 
     @objc private func openPreferences() {
         onShowPreferences()
+    }
+
+    @objc private func openHelp() {
+        helpWindow.show()
     }
 
     @objc private func openAbout() {

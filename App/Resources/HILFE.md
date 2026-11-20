@@ -1,0 +1,78 @@
+# Knippi
+
+Knippi wohnt in der Menüleiste. Ein Klick auf das Symbol öffnet das Menü mit allen Aufnahmearten, die Tastenkürzel funktionieren überall.
+
+## Erste Schritte
+
+Beim ersten Bildschirmfoto fragt macOS nach der Freigabe **Bildschirm- und Systemaudioaufnahme**. Ohne sie kann Knippi nichts aufnehmen und zeigt einen Hinweis mit „Einstellungen öffnen“. Die Freigabe findest du unter Systemeinstellungen → Datenschutz & Sicherheit → Bildschirm- und Systemaudioaufnahme.
+
+## Tastenkürzel ab Werk
+
+| Kürzel | Aktion |
+|---|---|
+| option + shift + 1 | Bereich aufnehmen |
+| option + shift + 2 | Vollbild aufnehmen |
+| option + shift + 3 | Fenster aufnehmen |
+| option + shift + 4 | Text erfassen (Texterkennung) |
+| option + shift + 7 | Bereich in die Zwischenablage |
+| option + shift + 8 | Bereich aufnehmen & annotieren |
+| option + shift + 9 | Farbe aufnehmen (Color Picker) |
+| option + shift + 0 | Aufnehmen und in Cloud teilen |
+
+Alle Kürzel änderst du unter Einstellungen → Tastenkürzel.
+
+**command + shift + 3, 4 und 5 für Knippi:** Diese Kürzel gehören ab Werk macOS. Schalte sie unter Systemeinstellungen → Tastatur → Tastaturkurzbefehle → Bildschirmfotos aus. Danach bietet Knippi unter Einstellungen → Tastenkürzel den Knopf „⇧⌘3 / ⇧⌘4 / ⇧⌘5 verwenden“ an: Vollbild, Bereich und „Alles in einem“.
+
+## Nach der Aufnahme
+
+Unter Einstellungen → Bildschirmfotos → „Nach der Aufnahme“ wählst du:
+
+- **Vorschau zeigen:** Ein Vorschaubild erscheint in der Ecke (der **Schnellzugriff**). Von dort kopierst, sicherst, teilst, annotierst oder heftest du die Aufnahme an.
+- **Editor öffnen:** Die Aufnahme öffnet sich sofort im Editor.
+- **Still:** Knippi kopiert und sichert, ohne etwas anzuzeigen.
+
+Ab Werk wird jede Aufnahme gleich in die Zwischenablage kopiert.
+
+## Speichern
+
+Bildschirmfotos landen ab Werk in **Bilder/Knippi**, als „Knippi JJJJ-MM-TT um HH.MM.SS“. Speicherort und Dateiname stellst du unter Einstellungen → Exportieren ein, das Bildformat unter Einstellungen → Bildschirmfotos. Knippi überschreibt nie eine fremde Datei. Kann eine Aufnahme nicht gesichert werden, sagt Knippi das sichtbar.
+
+## Editor
+
+Pfeil, Linie, Rechteck, Ellipse, Text, Freihand, Textmarker, Zähler, Spotlight und Verpixeln. command + Z widerruft den letzten Schritt. Mit „Kopieren“ (command + C) landet das fertige Bild in der Zwischenablage, mit „Sichern“ im Ausgabeordner.
+
+**Hintergrund:** Im Editor unter „Hintergrund“ legst du einen Rahmen um die Aufnahme: einen der Verläufe Polarlicht, Abendglut oder Graphit, eine Farbe oder ein eigenes Bild. Die Formate 16:9, 1:1 und 4:5 passen für Folien und soziale Netzwerke. Fenster-Aufnahmen können „Transparent mit Schatten“ bleiben.
+
+## Vertrauliches finden
+
+Der Knopf **„Vertrauliches finden“** im Schnellzugriff und im Editor sucht E-Mail-Adressen, Telefonnummern, IBAN, Kartennummern und Zugangsschlüssel und legt schwarze Balken darüber. „Alle schwärzen“ übernimmt alle Vorschläge. Ein gestrichelter Balken ist ein unsicherer Treffer: Klicken behält ihn oder lässt ihn aus.
+
+Offene Vorschläge werden vor jedem Kopieren, Sichern und Teilen geschwärzt. Die Suche läuft vollständig auf deinem Mac.
+
+Von Hand schwärzt das Werkzeug **Verpixeln**. Sein Schwärzungsmodus ist ab Werk **Schwarzer Balken**; daneben gibt es Verpixeln und Weichzeichnen. Der schwarze Balken deckt vollständig ab, verpixelter Text lässt sich manchmal zurückrechnen.
+
+## Farbe aufnehmen
+
+option + shift + 9 zeigt eine Lupe unter dem Zeiger. Die Pfeiltasten verschieben pixelgenau, ein Klick kopiert die Farbe. Das Format (zum Beispiel HEX oder RGB) wählst du unter Einstellungen → Bildschirmfotos → Farbformat. Die zuletzt aufgenommenen Farben stehen im Menü unter „Letzte Farben“.
+
+## Texterkennung
+
+option + shift + 4 und einen Bereich aufziehen: Knippi erkennt den Text darin und kopiert ihn. Das funktioniert auch bei Text, den man sonst nicht markieren kann, etwa in Bildern oder Videos. Die Erkennung läuft auf deinem Mac.
+
+## Teilen und Anheften
+
+Im Schnellzugriff öffnet „Teilen“ das Teilen-Menü von macOS: AirDrop, Nachrichten, Mail und mehr. command + P heftet die Aufnahme als schwebendes Fenster an den Bildschirm.
+
+**Cloud-Freigabe** (optional): Knippi lädt in **deinen eigenen** Cloud-Speicher hoch, zum Beispiel einen Cloudflare-R2-Bucket, nie auf fremde Server. Einrichten unter Einstellungen → Cloud-Freigabe.
+
+## Updates
+
+Knippi sucht im Hintergrund nach neuen Versionen. Von Hand: Einstellungen → Allgemein → „Nach Updates suchen“. Updates sind signiert; Knippi installiert nur Versionen, deren Signatur stimmt.
+
+## Datenschutz
+
+Aufnahmen, Texterkennung und die Suche nach Vertraulichem bleiben auf deinem Mac. Ins Netz geht Knippi nur für die Update-Suche und, wenn du sie einrichtest, für die Cloud-Freigabe.
+
+## Fehler melden
+
+Probleme und Wünsche: Einstellungen → Allgemein → „Fehler melden“ bzw. „Funktion vorschlagen“, oder direkt auf github.com/miwixyz/Knippi.

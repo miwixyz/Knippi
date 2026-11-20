@@ -11,8 +11,8 @@ Erste Fassung. Knippi ist eine schlanke Screenshot-App für die Menüleiste, ent
 
 - **Aufnehmen:** Bereich, Fenster oder ganzer Bildschirm. Eigene Kürzel ab Werk, auf Wunsch
   auch command + shift + 3, 4 und 5.
-- **Vorschaubild in der Ecke** nach jeder Aufnahme. Alternativ öffnet sich gleich der Editor,
-  oder Knippi sichert still. Einstellbar unter „Nach der Aufnahme“.
+- **Schnellzugriff:** Nach jeder Aufnahme erscheint ein Vorschaubild in der Ecke. Alternativ
+  öffnet sich gleich der Editor, oder Knippi sichert still. Einstellbar unter „Nach der Aufnahme“.
 - **Editor** mit Pfeilen, Text, Markierungen, Zählern und Verpixeln.
 - **Vertrauliches finden:** Knippi schlägt E-Mail-Adressen, Telefonnummern, IBAN,
   Kartennummern und Zugangsschlüssel zum Schwärzen vor. Offene Vorschläge werden vor jedem
@@ -24,7 +24,7 @@ Erste Fassung. Knippi ist eine schlanke Screenshot-App für die Menüleiste, ent
   16:9, 1:1 und 4:5. Fenster-Aufnahmen behalten auf Wunsch einen durchsichtigen Hintergrund
   mit Schatten.
 - **Texterkennung:** Text aus einem Bildschirmbereich kopieren.
-- **Teilen-Menü** im Vorschaubild (AirDrop, Nachrichten und mehr). command + P heftet die
+- **Teilen-Menü** im Schnellzugriff (AirDrop, Nachrichten und mehr). command + P heftet die
   Aufnahme an.
 - **Speichern:** Ordner wählbar, ab Werk `Bilder/Knippi`, Dateiname „Knippi JJJJ-MM-TT um
   HH.MM.SS“. Knippi überschreibt nie eine fremde Datei und meldet Speicherfehler sichtbar.

@@ -52532,6 +52532,56 @@
         }
       },
       "comment" : "Accessibility hint of the Quick Access overflow button."
+    },
+    "Knippi Help" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knippi-Hilfe"
+          }
+        }
+      }
+    },
+    "Help" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilfe"
+          }
+        }
+      }
+    },
+    "What's New" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuigkeiten"
+          }
+        }
+      }
+    },
+    "Third-Party Notices" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fremdcode"
+          }
+        }
+      }
+    },
+    "Version %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
