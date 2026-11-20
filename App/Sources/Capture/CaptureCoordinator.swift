@@ -717,7 +717,7 @@ final class CaptureCoordinator {
             self.captureWindow()
         }
         toolbar.onScrolling = { [weak self] rect in
-            guard let self else { return }
+            guard let self, FeatureFlags.scrollingCapture else { return }
             self.dismissAllInOneToolbar()
             self.dismissFreezeWindows()
             self.settings.lastCaptureSelection = .area(rect: rect, screenID: screen.displayID)
@@ -757,7 +757,7 @@ final class CaptureCoordinator {
             self.ocrCoordinator?.startVisualOCR(image: image, anchorScreen: screen)
         }
         toolbar.onRecording = { [weak self] rect in
-            guard let self else { return }
+            guard let self, FeatureFlags.screenRecording else { return }
             self.dismissAllInOneToolbar()
             self.dismissFreezeWindows()
             self.settings.lastCaptureSelection = .area(rect: rect, screenID: screen.displayID)

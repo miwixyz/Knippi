@@ -24,6 +24,15 @@ struct PermissionSettingsView: View {
                         subtitle: "Required for screenshots and recording",
                         isGranted: viewModel.screenRecordingGranted
                     )
+                    if FeatureFlags.screenRecording || FeatureFlags.scrollingCapture {
+                        permissionRow(
+                            kind: .accessibility,
+                            title: "Accessibility",
+                            subtitle: "Required to cancel recording and scrolling capture with Esc",
+                            isGranted: viewModel.accessibilityGranted,
+                            showDivider: true
+                        )
+                    }
                     if FeatureFlags.screenRecording {
                         permissionRow(
                             kind: .inputMonitoring,

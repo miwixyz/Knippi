@@ -22,7 +22,7 @@ final class AnnotationStylePresetTests: XCTestCase {
     func testTitleNamesToolAndWidth() {
         let preset = AnnotationStylePreset(tool: "rectangle", color: .red, lineWidth: 4.6, filled: true, pattern: .solid,
                                            arrowHead: .standard, textFill: false, textOutline: false, textStroke: true)
-        XCTAssertEqual(preset.title, "Rectangle · 5 pt")
+        XCTAssertEqual(preset.title, "\(AnnotationTool.rectangle.localizedToolName) · 5 pt")
         XCTAssertEqual(AnnotationStylePreset(tool: "gone", color: .red, lineWidth: 1, filled: false, pattern: .solid,
                                              arrowHead: .standard, textFill: false, textOutline: false, textStroke: false).annotationTool, .arrow)
     }

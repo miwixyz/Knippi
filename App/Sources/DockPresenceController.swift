@@ -1,7 +1,7 @@
 import AppKit
 
 /// Shows Capso in the Dock and the Cmd+Tab switcher while an editor-style
-/// window (Annotate, Screenshot History, Settings, the recording editor) is
+/// window (Annotate, Settings, the recording editor) is
 /// open, and returns to a menu-bar-only app once the last one closes.
 ///
 /// Windows opt in by setting `identifier` to `windowIdentifier`, so auxiliary

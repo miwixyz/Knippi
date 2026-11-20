@@ -78,7 +78,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         captureCoordinator!.recordingCoordinator = recordingCoordinator
         captureCoordinator!.shareCoordinator = shareCoordinator
         recordingCoordinator!.desktopIconsCover = desktopIconsCover
-        recordingCoordinator!.recoverInterruptedRecording()
+        if FeatureFlags.screenRecording {
+            recordingCoordinator!.recoverInterruptedRecording()
+        }
         preferencesWindow = PreferencesWindow(settings: settings, permissionManager: permissionManager, updateManager: updateManager)
         dockPresenceController = DockPresenceController()
         if settings.diagnosticLoggingEnabled {
@@ -329,7 +331,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         logAutomationURL("Rejected hidden feature \(String(describing: action))")
         featureUnavailableToast?.orderOut(nil)
         featureUnavailableToast = ToastWindow(
-            message: "Diese Funktion ist in dieser Version nicht verfügbar.",
+            message: String(localized: "This feature is not available in this version."),
             icon: "exclamationmark.triangle.fill",
             iconColor: .systemOrange
         )
