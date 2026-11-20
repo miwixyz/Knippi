@@ -39,6 +39,8 @@ struct QuickAccessView: View {
     @State private var preparedDragFileURL: URL?
     @State private var dragPreparationTask: Task<Void, Never>?
     @State private var dragError: QuickAccessDragFileStoreError?
+    @State private var shareAnchor = SystemShareAnchor()
+    @State private var shareFailureToast: ToastWindow?
     @FocusState private var isFocused: Bool
 
     private typealias DragPreparationResult = Result<URL, QuickAccessDragFileStoreError>
@@ -51,7 +53,7 @@ struct QuickAccessView: View {
     }
 
     private enum HoverAction: Hashable {
-        case copy, save, drag, annotate, findSensitive, ocr, pin, upload, linkCopied, overflow
+        case copy, save, drag, systemShare, annotate, findSensitive, ocr, pin, upload, linkCopied, overflow
     }
 
     private var isRevealed: Bool { isHovering || isFocused }
@@ -217,9 +219,9 @@ struct QuickAccessView: View {
 
     private func startsNewGroup(_ action: QuickAccessActionKind) -> Bool {
         switch action {
-        case .upload, .annotate, .pin:
+        case .upload, .annotate:
             return true
-        case .drag, .copy, .save, .ocr, .findSensitive:
+        case .drag, .copy, .save, .systemShare, .ocr, .findSensitive, .pin:
             return false
         }
     }
@@ -235,6 +237,9 @@ struct QuickAccessView: View {
             toolButton(.save, icon: "square.and.arrow.down", isPrimary: true) {
                 NSEvent.modifierFlags.contains(.option) ? onSaveAs() : onSave()
             }
+        case .systemShare:
+            toolButton(.systemShare, icon: "square.and.arrow.up", action: performSystemShare)
+                .background(SystemShareAnchorView(anchor: shareAnchor))
         case .upload:
             if shareCoordinator != nil {
                 uploadButton
@@ -243,9 +248,7 @@ struct QuickAccessView: View {
             toolButton(.annotate, icon: "pencil.tip.crop.circle", action: onAnnotate)
         case .findSensitive:
             toolButton(.findSensitive, icon: "eye.slash", action: onFindSensitive)
-        case .pin:
-            toolButton(.pin, icon: "pin", action: onPin)
-        case .ocr:
+        case .pin, .ocr:
             EmptyView()
         }
     }
@@ -273,12 +276,17 @@ struct QuickAccessView: View {
     @ViewBuilder
     private func overflowTool(_ action: QuickAccessActionKind) -> some View {
         switch action {
+        case .pin:
+            Button(action: onPin) {
+                Label("Pin", systemImage: "pin")
+            }
+            .keyboardShortcut("p", modifiers: [.command])
         case .ocr:
             Button(action: onOCR) {
                 Label("Extract Text", systemImage: "text.viewfinder")
             }
             .keyboardShortcut("o", modifiers: [.command, .shift])
-        case .drag, .copy, .save, .upload, .annotate, .findSensitive, .pin:
+        case .drag, .copy, .save, .systemShare, .upload, .annotate, .findSensitive:
             EmptyView()
         }
     }
@@ -442,6 +450,31 @@ struct QuickAccessView: View {
         try? dragFileStore.removeFile(for: dragFileID)
     }
 
+    /// Reuses the temp file prepared for drag-out; writes it first if it is missing.
+    private func performSystemShare() {
+        guard let fileURL = dragFileURL() else {
+            showShareFailure()
+            return
+        }
+        // Keep the card on screen while the share menu is open.
+        onHoverChanged(true)
+        let presented = shareAnchor.present(fileURL: fileURL) { onHoverChanged(false) }
+        if !presented {
+            onHoverChanged(false)
+            showShareFailure()
+        }
+    }
+
+    private func showShareFailure() {
+        let toast = ToastWindow(
+            message: String(localized: "Could not prepare the screenshot for sharing"),
+            icon: "exclamationmark.triangle.fill",
+            iconColor: .systemOrange
+        )
+        shareFailureToast = toast
+        toast.show(autoDismissAfter: 3)
+    }
+
     private func performUpload() async {
         guard let coord = shareCoordinator else { return }
         guard uploadAttemptGate.begin() else { return }
@@ -556,7 +589,7 @@ struct QuickAccessView: View {
         case .findSensitive: return nil
         case .ocr:       return ("o", [.command, .shift])
         case .pin:       return ("p", [.command])
-        case .upload, .linkCopied, .overflow: return nil
+        case .systemShare, .upload, .linkCopied, .overflow: return nil
         }
     }
 
@@ -587,7 +620,8 @@ struct QuickAccessView: View {
         case .findSensitive: return String(localized: "Find Sensitive Data")
         case .ocr: return String(localized: "Extract Text")
         case .pin: return String(localized: "Pin")
-        case .upload: return String(localized: "Upload to Cloud")
+        case .systemShare: return String(localized: "Share")
+        case .upload: return String(localized: "Share to Cloud")
         case .linkCopied: return String(localized: "Link Copied!")
         case .overflow: return String(localized: "More actions")
         }
@@ -602,9 +636,10 @@ struct QuickAccessView: View {
         case .findSensitive: return String(localized: "Open the editor and suggest black bars for email addresses, phone numbers, IBANs, card numbers and secrets")
         case .ocr: return String(localized: "Extract text from screenshot")
         case .pin: return String(localized: "Pin to screen")
+        case .systemShare: return String(localized: "Share screenshot using the macOS share menu")
         case .upload: return String(localized: "Upload screenshot to cloud and copy link")
         case .linkCopied: return String(localized: "Link has been copied to clipboard")
-        case .overflow: return String(localized: "Show extract text action")
+        case .overflow: return String(localized: "Show pin and extract text actions")
         }
     }
 }

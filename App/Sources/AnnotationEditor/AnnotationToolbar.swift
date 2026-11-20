@@ -4,6 +4,7 @@ import SwiftUI
 import AnnotationKit
 
 struct AnnotationToolbar: View {
+    @State private var shareAnchor = SystemShareAnchor()
     @Binding var currentTool: AnnotationTool
     @Binding var currentColor: AnnotationColor
     @Binding var lineWidth: CGFloat
@@ -27,6 +28,8 @@ struct AnnotationToolbar: View {
     let onSave: () -> Void
     let onCopy: () -> Void
     let onPin: () -> Void
+    /// Renders the edited image and opens the macOS share menu anchored to `anchor`.
+    var onShare: (SystemShareAnchor) -> Void = { _ in }
     let dragThumbnail: NSImage
     let onPrepareDrag: () -> Void
     let onDragFileURL: () -> URL?
@@ -362,6 +365,10 @@ struct AnnotationToolbar: View {
 
             actionButton(icon: "pin", help: "Pin", action: onPin)
                 .keyboardShortcut("p", modifiers: .command)
+
+            actionButton(icon: "square.and.arrow.up", help: "Share", action: { onShare(shareAnchor) })
+                .background(SystemShareAnchorView(anchor: shareAnchor))
+                .disabled(isEditingText)
 
             actionButton(icon: "square.and.arrow.down", help: "Save", isPrimary: true, action: onSave)
                 .keyboardShortcut("s", modifiers: .command)

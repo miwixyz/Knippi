@@ -1609,17 +1609,6 @@
         }
       }
     },
-    "Show extract text action" : {
-      "comment" : "Accessibility hint of the Quick Access overflow button.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktion „Text extrahieren“ anzeigen"
-          }
-        }
-      }
-    },
     "This feature is not available in this version." : {
       "comment" : "Toast shown when an automation URL asks for a feature hidden in this version.",
       "localizations" : {
@@ -52402,6 +52391,77 @@
           }
         }
       }
+    },
+    "Share" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen"
+          }
+        }
+      }
+    },
+    "Share to Cloud" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Cloud teilen"
+          }
+        }
+      }
+    },
+    "Share screenshot using the macOS share menu" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmfoto über das Teilen-Menü von macOS weitergeben"
+          }
+        }
+      }
+    },
+    "Share image using the macOS share menu" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bild über das Teilen-Menü von macOS weitergeben"
+          }
+        }
+      }
+    },
+    "Could not prepare the screenshot for sharing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Bildschirmfoto konnte nicht zum Teilen vorbereitet werden"
+          }
+        }
+      }
+    },
+    "Could not prepare the image for sharing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Bild konnte nicht zum Teilen vorbereitet werden"
+          }
+        }
+      }
+    },
+    "Show pin and extract text actions" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktionen Anheften und Text extrahieren anzeigen"
+          }
+        }
+      },
+      "comment" : "Accessibility hint of the Quick Access overflow button."
     }
   },
   "version" : "1.1"

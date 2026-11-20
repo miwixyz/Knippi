@@ -9,10 +9,18 @@ struct QuickAccessActionLayoutTests {
             .drag,
             .copy,
             .save,
+            .systemShare,
             .annotate,
             .findSensitive,
-            .pin,
         ])
+    }
+
+    @Test("System share is always one click, cloud upload stays optional")
+    func systemShareAlwaysVisible() {
+        for sharing in [false, true] {
+            #expect(QuickAccessActionLayout.visibleActions(sharingAvailable: sharing).contains(.systemShare))
+        }
+        #expect(!QuickAccessActionLayout.visibleActions(sharingAvailable: false).contains(.upload))
     }
 
     @Test("Find Sensitive Data is one click, never in overflow")
@@ -29,11 +37,11 @@ struct QuickAccessActionLayoutTests {
             .drag,
             .copy,
             .save,
+            .systemShare,
             .upload,
             .annotate,
             .findSensitive,
-            .pin,
         ])
-        #expect(QuickAccessActionLayout.overflowActions == [.ocr])
+        #expect(QuickAccessActionLayout.overflowActions == [.pin, .ocr])
     }
 }

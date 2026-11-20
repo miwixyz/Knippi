@@ -390,6 +390,7 @@ struct AnnotationEditorView: View {
             onSave: { save() },
             onCopy: { copy() },
             onPin: { pin() },
+            onShare: { share(from: $0) },
             dragThumbnail: dragFallbackImage,
             onPrepareDrag: prepareDragFile,
             onDragFileURL: dragFileURL,
@@ -895,6 +896,26 @@ struct AnnotationEditorView: View {
         DispatchQueue.main.async {
             if let rendered = renderedOutputImage() {
                 onCopy(rendered)
+            }
+        }
+    }
+
+    /// Renders through `renderForExport` (applies pending sensitive-data suggestions),
+    /// writes the temp file via the drag file store (pruned after 24 h) and opens the share menu.
+    private func share(from anchor: SystemShareAnchor) {
+        commitEditingTrigger += 1
+        DispatchQueue.main.async {
+            // Never reuse a cached render: suggestions may have arrived since it was made.
+            invalidateDragCache()
+            guard let fileURL = dragFileURL(), anchor.present(fileURL: fileURL) else {
+                SensitiveSuggestionsToast.show(
+                    String(localized: "Could not prepare the image for sharing"),
+                    icon: "exclamationmark.triangle.fill",
+                    color: .systemOrange,
+                    screen: NSApp.keyWindow?.screen,
+                    duration: 3
+                )
+                return
             }
         }
     }
