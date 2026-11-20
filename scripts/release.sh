@@ -100,6 +100,10 @@ PLIST="App/Resources/Info.plist"
     || fail "SUFeedURL in ${PLIST} zeigt nicht auf ${REPO}/main/appcast.xml"
 [ "$(/usr/libexec/PlistBuddy -c 'Print SURequireSignedFeed' "${PLIST}" 2>/dev/null)" = "true" ] \
     || fail "SURequireSignedFeed fehlt in ${PLIST}"
+# Sparkle 2 verlangt beide Schalter zusammen, sonst bricht der Updater beim Start mit
+# „Fatal updater error (5)“ ab und die App sucht nie wieder nach Updates (Knippi 0.1.0).
+[ "$(/usr/libexec/PlistBuddy -c 'Print SUVerifyUpdateBeforeExtraction' "${PLIST}" 2>/dev/null)" = "true" ] \
+    || fail "SUVerifyUpdateBeforeExtraction fehlt in ${PLIST} (Pflicht zusammen mit SURequireSignedFeed)"
 /usr/libexec/PlistBuddy -c 'Print SUPublicEDKey' "${PLIST}" >/dev/null 2>&1 || fail "SUPublicEDKey fehlt in ${PLIST}"
 
 # Zertifikat prüfen statt voraussetzen: sonst signiert xcodebuild still ad hoc.
@@ -198,6 +202,8 @@ BUILT_PLIST="${APP_PATH}/Contents/Info.plist"
     || fail "Gebaute App trägt nicht Build ${BUILD_NUMBER}"
 [ "$(/usr/libexec/PlistBuddy -c 'Print SURequireSignedFeed' "${BUILT_PLIST}")" = "true" ] \
     || fail "Gebaute App verlangt keinen signierten Feed"
+[ "$(/usr/libexec/PlistBuddy -c 'Print SUVerifyUpdateBeforeExtraction' "${BUILT_PLIST}" 2>/dev/null)" = "true" ] \
+    || fail "Gebaute App ohne SUVerifyUpdateBeforeExtraction, Sparkle würde mit Fatal error 5 abbrechen"
 echo "  ✓ Developer ID (Team ${TEAM}) + Hardened Runtime, Berechtigungen wie erwartet, Version ${VERSION} (${BUILD_NUMBER})"
 
 # ---------------------------------------------------------------------------

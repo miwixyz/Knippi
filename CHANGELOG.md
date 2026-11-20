@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.1.1] — unveröffentlicht
+
+### Behoben
+
+- **Updates:** In 0.1.0 startete die Update-Suche nicht („Update nicht erfolgreich“). Ab 0.1.1
+  sucht Knippi wieder selbst nach neuen Versionen. Wer 0.1.0 installiert hat, lädt 0.1.1 einmal
+  von Hand, danach kommen Updates automatisch.
+
 ## [0.1.0] — 2026-11-20
 
 Erste Fassung. Knippi ist eine schlanke Screenshot-App für die Menüleiste, entstanden aus

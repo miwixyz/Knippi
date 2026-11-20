@@ -66,6 +66,8 @@
     <string>https://raw.githubusercontent.com/miwixyz/Knippi/main/appcast.xml</string>
     <key>SUPublicEDKey</key>
     <string>iE2bazGoslgGEsgo2MJUwphVYlEKkeRcsWdzwbGge4w=</string>
+    <key>SUVerifyUpdateBeforeExtraction</key>
+    <true/>
     <key>SURequireSignedFeed</key>
     <true/>
     <key>SUEnableAutomaticChecks</key>
