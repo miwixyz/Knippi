@@ -87,11 +87,23 @@ final class SensitiveSuggestionsModel {
         phase = .idle
     }
 
-    /// Black bars for the selected suggestions, ready for `addObjects`.
-    func takeSelectedRedactions() -> [any AnnotationObject] {
-        let objects: [any AnnotationObject] = selectedRects.map { PixelateObject(rect: $0, mode: .solid) }
+    /// Shows suggestions directly (tests; no OCR).
+    func show(_ suggestions: [RedactionSuggestion]) {
         cancel()
-        return objects
+        items = suggestions.map { Item(rect: $0.rect, isVerified: $0.isVerified) }
+        phase = items.isEmpty ? .idle : .showing
+    }
+
+    /// Adds solid black bars for the selected suggestions in one undo step and
+    /// clears all suggestions. Returns true when bars were added.
+    @discardableResult
+    func applyPendingRedactions(to document: AnnotationDocument) -> Bool {
+        guard isShowing else { return false }
+        let bars: [any AnnotationObject] = selectedRects.map { PixelateObject(rect: $0, mode: .solid) }
+        cancel()
+        guard !bars.isEmpty else { return false }
+        document.addObjects(bars)
+        return true
     }
 }
 
@@ -195,7 +207,7 @@ struct SensitiveSuggestionsBar: View {
 }
 
 @MainActor
-private enum SensitiveSuggestionsToast {
+enum SensitiveSuggestionsToast {
     private static var current: ToastWindow?
 
     static func show(_ message: String, icon: String, color: NSColor, screen: NSScreen?, duration: TimeInterval = 2) {

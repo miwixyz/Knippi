@@ -386,6 +386,8 @@ struct AnnotationEditorView: View {
                 }
             }
             .animation(.easeOut(duration: 0.2), value: sensitiveSuggestions.isShowing)
+            // A drag file rendered before the suggestions appeared would skip them.
+            .onChange(of: sensitiveSuggestions.isShowing) { _, _ in invalidateDragCache() }
             .onAppear { handleCanvasAppear(size: geo.size) }
             .onChange(of: currentTool, handleToolChange)
             .onChange(of: currentColor) { _, _ in updateSelectedStyle() }
@@ -539,10 +541,9 @@ struct AnnotationEditorView: View {
     }
 
     private func blackOutSensitiveData() {
-        let bars = sensitiveSuggestions.takeSelectedRedactions()
-        guard !bars.isEmpty else { return }
-        document.addObjects(bars)
-        handleDocumentChanged()
+        if sensitiveSuggestions.applyPendingRedactions(to: document) {
+            handleDocumentChanged()
+        }
     }
 
     private func handleCanvasAppear(size: CGSize) {
@@ -701,7 +702,39 @@ struct AnnotationEditorView: View {
         }
     }
 
+    /// Every export (save, save as, copy, Return, pin, drag) renders through here.
     private func renderedOutputImage() -> CGImage? {
+        Self.renderForExport(
+            sourceImage: sourceImage,
+            document: document,
+            suggestions: sensitiveSuggestions,
+            beautifySettings: beautifySettings,
+            outputSize: outputSize,
+            onSuggestionsApplied: {
+                handleDocumentChanged()
+                SensitiveSuggestionsToast.show(
+                    String(localized: "Selected suggestions were blacked out"),
+                    icon: "eye.slash.fill",
+                    color: .systemGreen,
+                    screen: NSApp.keyWindow?.screen
+                )
+            }
+        )
+    }
+
+    /// The single export entry. Pending sensitive-data suggestions are blacked
+    /// out first ("over-redact, never leak"), exactly like Black Out All.
+    static func renderForExport(
+        sourceImage: CGImage,
+        document: AnnotationDocument,
+        suggestions: SensitiveSuggestionsModel,
+        beautifySettings: BeautifySettings,
+        outputSize: CGSize?,
+        onSuggestionsApplied: () -> Void = {}
+    ) -> CGImage? {
+        if suggestions.applyPendingRedactions(to: document) {
+            onSuggestionsApplied()
+        }
         guard let annotated = AnnotationRenderer.render(
             sourceImage: sourceImage,
             objects: document.objects,
