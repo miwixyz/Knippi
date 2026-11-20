@@ -541,8 +541,10 @@ public final class AppSettings: @unchecked Sendable {
         set { defaults.set(newValue, forKey: "screenshotShowPreview") }
     }
 
+    /// Defaults on: Quick Access auto-closes after a few seconds, and the
+    /// image must still be reachable then (spec §7.6). A stored value wins.
     public var screenshotAutoCopy: Bool {
-        get { defaults.object(forKey: "screenshotAutoCopy") as? Bool ?? false }
+        get { defaults.object(forKey: "screenshotAutoCopy") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "screenshotAutoCopy") }
     }
 

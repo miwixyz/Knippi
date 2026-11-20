@@ -115,6 +115,19 @@ struct AppSettingsTests {
         #expect(!AppSettings(defaults: defaults).quickAccessAutoClose)
     }
 
+    @Test("Screenshot auto-copy defaults on (auto-closed previews keep the image), a stored value wins")
+    func screenshotAutoCopyDefaultsOn() {
+        let suite = "test.screenshotAutoCopy.default"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        let first = AppSettings(defaults: defaults)
+        #expect(first.screenshotAutoCopy)
+
+        first.screenshotAutoCopy = false
+        #expect(!AppSettings(defaults: defaults).screenshotAutoCopy, "an existing install's choice is kept")
+        defaults.removePersistentDomain(forName: suite)
+    }
+
     @Test("After-capture mode defaults to preview and round-trips")
     func afterCaptureModeRoundTrip() {
         let suite = "test.afterCaptureMode.roundtrip"
