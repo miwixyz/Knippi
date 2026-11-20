@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="de" class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Erst erhöhen, wenn diese Seite gegen das Release gelesen wurde (Release-Profil app-release/references/knippi.md). -->
+<meta name="knippi:documented-version" content="0.1.0">
+<title>Knippi: Bildschirmfotos aus der Menüleiste für macOS, schnell und schlank</title>
+<meta name="description" content="Knippi nimmt Bereich, Fenster oder Bildschirm auf, schwärzt E&#8209;Mail&#8209;Adressen und IBAN auf Knopfdruck und bleibt dabei 12 MB klein. Kostenlos, Open Source, ohne Konto.">
+<link rel="canonical" href="https://knippi.mwlr.dev/">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#F3F5F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D1019" media="(prefers-color-scheme: dark)">
+
+<meta property="og:site_name" content="Knippi">
+<meta property="og:title" content="Knippi: Bildschirmfotos aus der Menüleiste, schnell und schlank">
+<meta property="og:description" content="Bereich, Fenster oder Bildschirm aufnehmen, Vertrauliches auf Knopfdruck schwärzen, kommentieren und teilen. Kostenlos und Open Source für macOS.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://knippi.mwlr.dev/og-image.png">
+<meta property="og:url" content="https://knippi.mwlr.dev/">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Knippi-Symbol neben dem Satz: Bildschirmfotos aus der Menüleiste, schnell und schlank.">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preload" href="fonts/PlusJakartaSans-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script>document.documentElement.classList.replace("no-js", "js");</script>
+</head>
+<body>
+
+<!-- Linien-Piktogramme (keine Emojis), einmal definiert, per <use> eingesetzt -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M2 2l20 20"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-cloudoff" viewBox="0 0 24 24"><path d="M2 2l20 20"/><path d="M5.78 5.78A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.31-.2"/><path d="M21.53 15.8A4.5 4.5 0 0 0 17.5 10h-1.79A7 7 0 0 0 9.5 5.06"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
+  <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol>
+  <symbol id="i-thumb" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="12" width="8" height="6" rx="1"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+  <symbol id="i-pipette" viewBox="0 0 24 24"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
+  <symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+</svg>
+
+<a class="skip-link" href="#content">Zum Inhalt springen</a>
+
+<nav class="top" aria-label="Hauptnavigation">
+  <div class="wrap nav-inner">
+    <a class="brand" href="./" aria-current="page">
+      <img src="knippi-icon-224.png" alt="" width="30" height="30">
+      <span>Knippi</span>
+    </a>
+    <div class="nav-links">
+      <a class="anchor" href="#funktionen">Funktionen</a>
+      <a class="anchor" href="#datenschutz">Datenschutz</a>
+      <a class="anchor" href="#fragen">Fragen</a>
+      <a href="https://github.com/miwixyz/Knippi"><svg class="ico" aria-hidden="true"><use href="#i-github"/></svg><span class="anchor">GitHub</span><span class="visually-hidden">Knippi auf GitHub</span></a>
+      <a class="nav-cta" href="https://github.com/miwixyz/Knippi/releases/latest">Laden</a>
+    </div>
+  </div>
+</nav>
+
+<main id="content">
+
+<header class="hero">
+  <div class="wrap">
+    <img class="app-icon" src="knippi-icon-224.png" alt="Knippi-Symbol" width="112" height="112">
+    <h1>Bildschirmfotos aus der Menüleiste.<br><span class="accent">Schnell, schlank, verschwiegen.</span></h1>
+    <p class="sub">Knippi nimmt Bereich, Fenster oder Bildschirm auf, schwärzt E&#8209;Mail&#8209;Adressen und IBAN auf Knopfdruck und braucht dafür 12 MB. Kostenlos und Open Source.</p>
+    <div class="cta-group">
+      <a class="btn" href="https://github.com/miwixyz/Knippi/releases/latest"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg>Knippi kostenlos laden</a>
+    </div>
+    <p class="proof">
+      <span><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg>Von Apple notarisiert</span>
+      <span><svg class="ico" aria-hidden="true"><use href="#i-github"/></svg>Open Source (MIT)</span>
+      <span><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg>Ohne Konto</span>
+    </p>
+
+    <figure class="stage">
+      <div class="desk" role="img" aria-label="Nachbildung: Eine Aufnahme einer Nachricht, in der Knippi E-Mail-Adresse und IBAN schwarz überdeckt hat. Unten links das Vorschaubild mit Kopieren, Sichern und Teilen.">
+        <span class="found"><svg class="ico" aria-hidden="true"><use href="#i-eyeoff"/></svg>Vertrauliches finden: 2 geschwärzt</span>
+        <div class="mail" aria-hidden="true">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <p><span class="label">Von:</span> Buchhaltung <span class="redact">rechnung@beispiel.de</span></p>
+          <p>Hallo, bitte überweise den Betrag bis Freitag auf folgendes Konto:</p>
+          <p><span class="label">IBAN:</span> <span class="redact">DE89 3704 0044 0532 0130 00</span></p>
+          <p>Danke und viele Grüße</p>
+        </div>
+        <div class="qa" aria-hidden="true">
+          <div class="thumb"><i></i><i class="b"></i><i></i><i class="b"></i></div>
+          <div class="acts">
+            <span class="act"><svg class="ico"><use href="#i-copy"/></svg><span>Kopieren</span></span>
+            <span class="act"><svg class="ico"><use href="#i-download"/></svg><span>Sichern</span></span>
+            <span class="act"><svg class="ico"><use href="#i-share"/></svg><span>Teilen</span></span>
+          </div>
+        </div>
+      </div>
+      <figcaption>Vereinfachte Nachbildung. Die Balken sind deckend, nicht verpixelt.</figcaption>
+    </figure>
+  </div>
+</header>
+
+<section class="tagline" aria-label="Kurz gesagt">
+  <div class="wrap">
+    <p data-words>Was du aufnimmst, bleibt auf deinem Mac. So lange, bis du es selbst weitergibst.</p>
+  </div>
+</section>
+
+<section id="funktionen" class="reveal">
+  <div class="wrap">
+    <span class="eyebrow">Funktionen</span>
+    <h2>Was Knippi kann</h2>
+    <p class="lead">Ein Kürzel, und das Bild liegt in der Zwischenablage. Wer mehr will, findet es einen Klick weiter.</p>
+    <div class="features">
+      <article class="card feature">
+        <div class="icon"><svg class="ico" aria-hidden="true"><use href="#i-scan"/></svg></div>
+        <h3>Aufnehmen per Kürzel</h3>
+        <p>Bereich, Fenster oder ganzer Bildschirm. Ab Werk option + shift + 1 bis 3, auf Wunsch übernimmt Knippi command + shift + 3, 4 und 5.</p>
+      </article>
+      <article class="card feature">
+        <div class="icon"><svg class="ico" aria-hidden="true"><use href="#i-thumb"/></svg></div>
+        <h3>Schnellzugriff</h3>
+        <p>Nach der Aufnahme wartet ein Vorschaubild in der Ecke: kopieren, sichern, teilen oder anheften. Oder der Editor öffnet sich sofort.</p>
+      </article>
+      <article class="card feature">
+        <div class="icon"><svg class="ico" aria-hidden="true"><use href="#i-eyeoff"/></svg></div>
+        <h3>Vertrauliches finden</h3>
+        <p>Ein Klick sucht E&#8209;Mail&#8209;Adressen, Telefonnummern, IBAN, Kartennummern und Zugangsschlüssel und legt schwarze Balken darüber.</p>
+      </article>
+      <article class="card feature">
+        <div class="icon"><svg class="ico" aria-hidden="true"><use href="#i-pen"/></svg></div>
+        <h3>Editor</h3>
+        <p>Pfeil, Text, Formen, Textmarker, Zähler, Spotlight und Verpixeln. Mit command + C ist das fertige Bild kopiert.</p>
+      </article>
+      <article class="card feature">
+        <div class="icon"><svg class="ico" aria-hidden="true"><use href="#i-pipette"/></svg></div>
+        <h3>Farbe aufnehmen</h3>
+        <p>Eine Lupe zeigt jeden Pixel, ein Klick kopiert die Farbe als HEX, RGB oder in anderen Formaten. Die letzten Farben stehen im Menü.</p>
+      </article>
+      <article class="card feature">
+        <div class="icon"><svg class="ico" aria-hidden="true"><use href="#i-image"/></svg></div>
+        <h3>Hintergründe</h3>
+        <p>Drei Verläufe, eine Farbe oder ein eigenes Bild als Rahmen, in 16:9, 1:1 oder 4:5. Fenster bleiben auf Wunsch durchsichtig mit Schatten.</p>
+      </article>
+      <article class="card feature">
+        <div class="icon"><svg class="ico" aria-hidden="true"><use href="#i-type"/></svg></div>
+        <h3>Texterkennung</h3>
+        <p>Bereich aufziehen, Text ist kopiert. Auch aus Bildern, Videos und Fenstern, in denen sich nichts markieren lässt.</p>
+      </article>
+      <article class="card feature">
+        <div class="icon"><svg class="ico" aria-hidden="true"><use href="#i-share"/></svg></div>
+        <h3>Teilen und Anheften</h3>
+        <p>AirDrop, Nachrichten und Mail über das Teilen-Menü von macOS. command + P heftet eine Aufnahme schwebend an den Bildschirm.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="schlank" class="reveal">
+  <div class="wrap">
+    <span class="eyebrow">Schlank</span>
+    <h2>Klein genug, um es zu vergessen</h2>
+    <p class="lead">Knippi wartet in der Menüleiste und braucht dabei fast nichts. Die Zahlen stammen aus einer Messung am fertigen Build.</p>
+    <div class="numbers">
+      <div class="card number"><strong>12 MB</strong><span>Größe der App</span></div>
+      <div class="card number"><strong>15 MB</strong><span>Arbeitsspeicher im Leerlauf</span></div>
+      <div class="card number"><strong>0 %</strong><span>Prozessorlast im Leerlauf</span></div>
+    </div>
+    <p class="source">Gemessen am 20. November 2026 am Release-Build für Apple Silicon.</p>
+  </div>
+</section>
+
+<section id="datenschutz" class="reveal">
+  <div class="wrap">
+    <span class="eyebrow">Datenschutz</span>
+    <h2>Deine Bilder bleiben bei dir</h2>
+    <p class="lead">Aufnahmen, Texterkennung und die Suche nach Vertraulichem laufen auf deinem Mac. Es gibt keinen Server, an den Knippi etwas schickt.</p>
+    <div class="privacy-grid">
+      <div class="privacy-item"><div class="check"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg></div><p><strong>Kein Konto</strong>Du lädst Knippi und legst los. Eine Anmeldung oder E-Mail-Adresse brauchst du nicht.</p></div>
+      <div class="privacy-item"><div class="check"><svg class="ico" aria-hidden="true"><use href="#i-cloudoff"/></svg></div><p><strong>Keine Analyse</strong>Knippi zählt nichts mit und schickt keine Nutzungsdaten oder Absturzberichte.</p></div>
+      <div class="privacy-item"><div class="check"><svg class="ico" aria-hidden="true"><use href="#i-refresh"/></svg></div><p><strong>Netz nur für Updates</strong>Einmal am Tag fragt Knippi bei GitHub nach einer neuen Version. Sonst geht es nur ins Netz, wenn du die Cloud-Freigabe einrichtest.</p></div>
+      <div class="privacy-item"><div class="check"><svg class="ico" aria-hidden="true"><use href="#i-github"/></svg></div><p><strong>Offener Quellcode</strong>Jede Zeile liegt auf GitHub. Was Knippi tut, kann jeder nachlesen.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="installieren" class="reveal">
+  <div class="wrap">
+    <span class="eyebrow">Installieren</span>
+    <h2>In einer Minute bereit</h2>
+    <p class="lead">Es gibt keinen Installationsassistenten, und neu starten musst du auch nicht.</p>
+    <div class="steps">
+      <div class="card step"><div class="n">1</div><h3>Laden</h3><p>Die neueste Version von GitHub laden und per Doppelklick entpacken.</p></div>
+      <div class="card step"><div class="n">2</div><h3>In Programme ziehen</h3><p>Knippi in den Ordner Programme legen und starten. Das Symbol erscheint in der Menüleiste.</p></div>
+      <div class="card step"><div class="n">3</div><h3>Freigabe erteilen</h3><p>Beim ersten Bildschirmfoto fragt macOS nach der Bildschirmaufnahme. Einmal erlauben, fertig.</p></div>
+    </div>
+    <p class="req">Braucht macOS 26 oder neuer und einen Mac mit Apple Silicon.</p>
+  </div>
+</section>
+
+<section id="fragen" class="reveal">
+  <div class="wrap">
+    <span class="eyebrow">Fragen</span>
+    <h2>Häufige Fragen</h2>
+    <div class="faq">
+      <details>
+        <summary>Was kostet Knippi?</summary>
+        <p>Nichts. Knippi ist kostenlos und steht unter der MIT-Lizenz. Es gibt keine Bezahlversion und keine Werbung.</p>
+      </details>
+      <details>
+        <summary>Warum fragt macOS nach der Bildschirmaufnahme?</summary>
+        <p>Ohne diese Freigabe darf keine App den Bildschirminhalt lesen. Fehlt sie, zeigt Knippi einen Hinweis mit dem Weg in die Systemeinstellungen, statt ein leeres Bild zu liefern.</p>
+      </details>
+      <details>
+        <summary>Läuft Knippi auf meinem Mac?</summary>
+        <p>Knippi braucht macOS 26 oder neuer und einen Mac mit Apple Silicon (M1 oder neuer). Macs mit Intel-Prozessor werden nicht unterstützt.</p>
+      </details>
+      <details>
+        <summary>Kann ich command + shift + 4 für Knippi nutzen?</summary>
+        <p>Ja. Schalte die Kurzbefehle für Bildschirmfotos in den macOS-Einstellungen unter Tastatur aus. Danach übernimmt Knippi command + shift + 3, 4 und 5 mit einem Knopf in den Einstellungen.</p>
+      </details>
+      <details>
+        <summary>Findet Knippi wirklich alles Vertrauliche?</summary>
+        <p>Nein, und das behauptet Knippi auch nicht. Es schlägt Treffer vor, unsichere Treffer sind gestrichelt markiert. Schau dir das Bild vor dem Teilen an und schwärze von Hand nach, was fehlt.</p>
+      </details>
+      <details>
+        <summary>Kann Knippi Videos oder GIFs aufnehmen?</summary>
+        <p>Noch nicht. Knippi nimmt derzeit Bilder auf.</p>
+      </details>
+      <details>
+        <summary>Wie bekomme ich Updates?</summary>
+        <p>Knippi sucht einmal am Tag nach einer neuen Version und installiert sie auf Wunsch. Jedes Update ist signiert, Knippi nimmt nichts an, dessen Signatur nicht stimmt.</p>
+      </details>
+      <details>
+        <summary>Woher kommt Knippi?</summary>
+        <p>Knippi baut auf <a href="https://github.com/lzhgus/Capso">Capso</a> von lzhgus auf, einer Screenshot-App unter MIT-Lizenz. Knippi ist schlanker und bringt eigene Funktionen mit, etwa „Vertrauliches finden“.</p>
+      </details>
+      <details>
+        <summary>Wo melde ich einen Fehler?</summary>
+        <p>Am besten als <a href="https://github.com/miwixyz/Knippi/issues">Issue auf GitHub</a>. In der App geht das unter Einstellungen, Allgemein, „Fehler melden“.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="final reveal">
+  <div class="wrap">
+    <img class="app-icon" src="knippi-icon-224.png" alt="" width="72" height="72">
+    <h2>Probier Knippi aus</h2>
+    <p class="lead">Kostenlos, ohne Konto, in einer Minute eingerichtet.</p>
+    <div class="cta-group">
+      <a class="btn" href="https://github.com/miwixyz/Knippi/releases/latest"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg>Knippi kostenlos laden</a>
+      <a class="btn ghost" href="https://github.com/miwixyz/Knippi"><svg class="ico" aria-hidden="true"><use href="#i-github"/></svg>Quellcode ansehen</a>
+    </div>
+    <p class="family">Aus derselben App-Familie: <a href="https://tippi.mwlr.dev/">Tippi</a>, der Schreibassistent, und <a href="https://kalli.mwlr.dev/">Kalli</a>, der Kalender in der Menüleiste.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Knippi von Michael Wildenauer · Open Source unter der MIT-Lizenz · <a href="https://github.com/miwixyz/Knippi">GitHub</a></p>
+    <p><a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Abschnitte einmal einblenden (kein Scroll-Listener, nur IntersectionObserver).
+  const reveals = document.querySelectorAll(".reveal");
+  if (reduce || !("IntersectionObserver" in window)) {
+    reveals.forEach(el => el.classList.add("in"));
+  } else {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -10% 0px" });
+    reveals.forEach(el => io.observe(el));
+  }
+
+  // Leitsatz: jedes Wort wird einzeln dunkel, sobald es die Linie bei 60 % der Höhe kreuzt.
+  const line = document.querySelector("[data-words]");
+  if (!line) return;
+  const words = line.textContent.trim().split(/\s+/);
+  line.setAttribute("aria-label", line.textContent.trim());
+  line.textContent = "";
+  words.forEach((w, i) => {
+    const s = document.createElement("span");
+    s.className = "w";
+    s.setAttribute("aria-hidden", "true");
+    s.textContent = w;
+    line.append(s);
+    if (i < words.length - 1) line.append(" ");
+  });
+  const spans = line.querySelectorAll(".w");
+  if (reduce || !("IntersectionObserver" in window)) {
+    spans.forEach(s => s.classList.add("on"));
+    return;
+  }
+  const wo = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); wo.unobserve(e.target); } });
+  }, { rootMargin: "0px 0px -40% 0px" });
+  spans.forEach(s => wo.observe(s));
+})();
+</script>
+
+</body>
+</html>
