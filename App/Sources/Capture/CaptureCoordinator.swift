@@ -1396,7 +1396,7 @@ final class CaptureCoordinator {
     }
 
     private func cancelScrollingCapture() {
-        scrollCaptureController?.stop()
+        scrollCaptureController?.cancel()
         scrollCaptureOverlay?.close()
         scrollCaptureOverlay = nil
         scrollCaptureController = nil

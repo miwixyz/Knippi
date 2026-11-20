@@ -38,6 +38,7 @@ public final class ScrollCaptureController: @unchecked Sendable {
     private let config: ScrollCaptureConfig
     private let stitcher = ScrollStitcher()
     private var isCancelled = false
+    private var userCancelled = false
     private var frameCount = 0
 
     /// A/B frame model. `shotA` is the last frame that was stitched.
@@ -60,11 +61,22 @@ public final class ScrollCaptureController: @unchecked Sendable {
     ) {
         Task.detached(priority: .utility) { [self] in
             let result = await self.runCaptureLoop(onProgress: onProgress)
-            onComplete(result)
+            onComplete(Self.completionImage(result, userCancelled: self.userCancelled))
         }
     }
 
+    static func completionImage(_ result: CGImage?, userCancelled: Bool) -> CGImage? {
+        userCancelled ? nil : result
+    }
+
+    /// Beendet die Aufnahme und liefert das bisher zusammengesetzte Bild.
     public func stop() {
+        isCancelled = true
+    }
+
+    /// Bricht ab; `onComplete` bekommt `nil`.
+    public func cancel() {
+        userCancelled = true
         isCancelled = true
     }
 
