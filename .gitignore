@@ -40,3 +40,7 @@ scripts/
 .omx/
 build-dev/
 build-rel/
+
+# Release (scripts/release.sh)
+dist/
+release.env
