@@ -1813,6 +1813,7 @@ final class CaptureCoordinator {
                     entryID: entryID,
                     autoUpload: shouldAutoUpload,
                     preferredFileURL: savedFileURL,
+                    autoSavedFile: savedFileURL.flatMap { SavedScreenshotFile(url: $0) },
                     animationSourceFrame: quickAccessAnimationSourceFrame(for: outputResult)
                 )
             } else if shouldAutoUpload, let coord = shareCoordinator {
@@ -1840,14 +1841,16 @@ final class CaptureCoordinator {
         return NSSound(named: "Pop")
     }()
 
-    /// `preferredFileURL`: the file auto-saved for this capture. Editing from the
-    /// preview replaces exactly that file on save.
+    /// `preferredFileURL`: the file auto-saved for this capture. `autoSavedFile`: that file
+    /// with its identity right after the write — editing from the preview replaces exactly
+    /// that file on save, never another file that later took its path.
     @discardableResult
     func showQuickAccess(
         for result: CaptureResult,
         entryID: UUID,
         autoUpload: Bool,
         preferredFileURL: URL? = nil,
+        autoSavedFile: SavedScreenshotFile? = nil,
         pasteboard: NSPasteboard = .general,
         animationSourceFrame: NSRect? = nil
     ) -> QuickAccessWindow {
@@ -1937,7 +1940,7 @@ final class CaptureCoordinator {
             guard let self, let window else { return }
             let anchor = window.targetScreen
             self.dismissQuickAccessWindow(window)
-            self.openAnnotationEditor(result, anchorScreen: anchor, autoSavedFileURL: preferredFileURL)
+            self.openAnnotationEditor(result, anchorScreen: anchor, autoSavedFile: autoSavedFile)
         }
         window.onFindSensitive = { [weak self, weak window] in
             guard let self, let window else { return }
@@ -1946,7 +1949,7 @@ final class CaptureCoordinator {
             self.openAnnotationEditor(
                 result,
                 anchorScreen: anchor,
-                autoSavedFileURL: preferredFileURL,
+                autoSavedFile: autoSavedFile,
                 findsSensitiveDataOnOpen: true
             )
         }
@@ -1968,7 +1971,7 @@ final class CaptureCoordinator {
         }
         window.onDismissedUnused = { [weak self] in
             self?.reopenLastClosedQuickAccess = { [weak self] in
-                self?.showQuickAccess(for: result, entryID: entryID, autoUpload: false, preferredFileURL: preferredFileURL, pasteboard: pasteboard)
+                self?.showQuickAccess(for: result, entryID: entryID, autoUpload: false, preferredFileURL: preferredFileURL, autoSavedFile: autoSavedFile, pasteboard: pasteboard)
             }
         }
         window.onClose = { [weak self, weak window] in
@@ -2051,13 +2054,13 @@ final class CaptureCoordinator {
         _ result: CaptureResult,
         anchorScreen: NSScreen? = nil,
         openedFileURL: URL? = nil,
-        autoSavedFileURL: URL? = nil,
+        autoSavedFile: SavedScreenshotFile? = nil,
         findsSensitiveDataOnOpen: Bool = false
     ) {
         let screen = anchorScreen ?? screenFor(result: result)
         // The auto-saved file of this capture: an editor save replaces it, so the
         // unedited (e.g. unredacted) original doesn't stay next to the edit.
-        var replaceableFileURL = autoSavedFileURL
+        var replaceableFile = autoSavedFile
 
         inlineAnnotationWindow?.close()
         inlineAnnotationWindow = nil
@@ -2090,11 +2093,12 @@ final class CaptureCoordinator {
                         sourceAppName: result.appName,
                         sourceWindowTitle: result.windowName,
                         date: result.timestamp,
-                        replacing: replaceableFileURL
+                        replacing: replaceableFile
                     )
                     // Repeated saves keep replacing the same file instead of piling up copies.
-                    if replaceableFileURL != nil, let savedURL {
-                        replaceableFileURL = savedURL
+                    // Re-read the identity: an atomic replace creates a new file.
+                    if replaceableFile != nil, let savedURL {
+                        replaceableFile = SavedScreenshotFile(url: savedURL)
                     }
                     self.annotationWindow = nil
                     return true
@@ -2442,7 +2446,7 @@ final class CaptureCoordinator {
         sourceAppName: String?,
         sourceWindowTitle: String?,
         date: Date,
-        replacing original: URL?
+        replacing original: SavedScreenshotFile?
     ) -> Result<ScreenshotSaveOutcome, ScreenshotSaveError> {
         guard let encoded = screenshotData(from: image) else { return .failure(.encodingFailed) }
         let directory = settings.screenshotMonthlyFolders
@@ -2475,7 +2479,7 @@ final class CaptureCoordinator {
         sourceAppName: String? = nil,
         sourceWindowTitle: String? = nil,
         date: Date = Date(),
-        replacing original: URL? = nil
+        replacing original: SavedScreenshotFile? = nil
     ) -> URL? {
         switch writeScreenshot(
             image,
@@ -2488,8 +2492,10 @@ final class CaptureCoordinator {
             if outcome.replacedOriginal {
                 showToast(String(localized: "Saved – original replaced"))
             } else if let replaceError = outcome.replaceError {
-                Self.captureLogger.error("Replacing the auto-saved original failed: \(replaceError, privacy: .private)")
-                logDiagnostic("Replacing the auto-saved original failed; saved as \(outcome.url.lastPathComponent)")
+                // Not replaceable (read-only, locked, other format) or the replace failed:
+                // the unedited original is still on disk next to the edit.
+                Self.captureLogger.error("Auto-saved original kept: \(replaceError, privacy: .private)")
+                logDiagnostic("Auto-saved original kept; edit saved as \(outcome.url.lastPathComponent)")
                 showToast(
                     String(localized: "Original couldn't be replaced – saved as a new file"),
                     icon: "exclamationmark.triangle.fill",

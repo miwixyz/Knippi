@@ -18,21 +18,63 @@ public enum ScreenshotSaveError: Error, Equatable, Sendable {
     }
 }
 
+/// Identity of a file on disk (device, inode, creation time), read without following
+/// symlinks. Another file at the same path — or a symlink — has a different identity.
+public struct ScreenshotFileIdentity: Equatable, Sendable {
+    public let device: Int64
+    public let inode: UInt64
+    public let birthSeconds: Int64
+    public let birthNanoseconds: Int64
+
+    /// Identity of the regular file at `url`, or nil if there is none (missing, symlink, folder).
+    public init?(of url: URL) {
+        var info = stat()
+        guard lstat(url.path, &info) == 0, (info.st_mode & S_IFMT) == S_IFREG else { return nil }
+        device = Int64(info.st_dev)
+        inode = UInt64(info.st_ino)
+        birthSeconds = Int64(info.st_birthtimespec.tv_sec)
+        birthNanoseconds = Int64(info.st_birthtimespec.tv_nsec)
+    }
+}
+
+/// A file Knippi wrote, with its identity at that moment. An editor save replaces it only
+/// while the file at `url` still is that file.
+public struct SavedScreenshotFile: Equatable, Sendable {
+    public let url: URL
+    public let identity: ScreenshotFileIdentity
+
+    public init(url: URL, identity: ScreenshotFileIdentity) {
+        self.url = url
+        self.identity = identity
+    }
+
+    /// Tracks the file currently at `url`; nil if there is no regular file.
+    public init?(url: URL) {
+        guard let identity = ScreenshotFileIdentity(of: url) else { return nil }
+        self.init(url: url, identity: identity)
+    }
+}
+
 /// Where an editor save goes: over the auto-saved original of the same capture, or a new file.
 public enum ScreenshotSaveTarget: Equatable, Sendable {
     case replace(URL)
+    /// No original to replace (none tracked, gone, or another file now at its path).
     case new(URL)
+    /// The original is still there but can't be replaced (`reason`); it stays next to the edit.
+    case newKeepingOriginal(URL, reason: String)
 }
 
 /// The file actually written, and whether it replaced the auto-saved original.
 public struct ScreenshotSaveOutcome: Equatable, Sendable {
     public let url: URL
     public let replacedOriginal: Bool
-    /// Set when replacing the original was allowed but failed, so the edit went to a
-    /// new file and the original is still on disk. Callers must tell the user.
+    /// Set when the original is still on disk next to the edit — replacing it wasn't
+    /// possible (read-only, locked, other format) or failed. Callers must tell the user.
     public let replaceError: String?
 
     public var replaceFailed: Bool { replaceError != nil }
+    /// The unedited original stays on disk next to the new file.
+    public var originalKept: Bool { replaceError != nil }
 
     public init(url: URL, replacedOriginal: Bool, replaceError: String? = nil) {
         self.url = url
@@ -43,20 +85,26 @@ public struct ScreenshotSaveOutcome: Equatable, Sendable {
 
 public enum ScreenshotSaver {
     /// Decides where an editor save goes. The auto-saved `original` of the same capture is
-    /// replaced only if it still exists, is writable and has the same format as `proposed`;
-    /// otherwise the save is a normal new file at `proposed` (numbered if taken).
+    /// replaced only if the file at its path is still that file, is writable (not locked)
+    /// and has the same format as `proposed`. Is it gone or another file, the save is a
+    /// plain new file; is it there but not replaceable, the result says why.
     public static func target(
         for proposed: URL,
-        replacing original: URL?,
+        replacing original: SavedScreenshotFile?,
         fileManager: FileManager = .default
     ) -> ScreenshotSaveTarget {
-        guard let original,
-              original.pathExtension.lowercased() == proposed.pathExtension.lowercased(),
-              fileManager.fileExists(atPath: original.path),
-              fileManager.isWritableFile(atPath: original.path) else {
+        guard let original, ScreenshotFileIdentity(of: original.url) == original.identity else {
             return .new(proposed)
         }
-        return .replace(original)
+        let path = original.url.path
+        if original.url.pathExtension.lowercased() != proposed.pathExtension.lowercased() {
+            return .newKeepingOriginal(proposed, reason: "\(path): other format than the edit")
+        }
+        let locked = (try? fileManager.attributesOfItem(atPath: path)[.immutable] as? Bool) ?? false
+        if locked || !fileManager.isWritableFile(atPath: path) {
+            return .newKeepingOriginal(proposed, reason: "\(path): not writable or locked")
+        }
+        return .replace(original.url)
     }
 
     /// Writes `data` over the auto-saved `original` of the same capture (atomically, same
@@ -66,17 +114,22 @@ public enum ScreenshotSaver {
     public static func write(
         _ data: Data,
         to url: URL,
-        replacing original: URL?,
+        replacing original: SavedScreenshotFile?,
         replaceWriter: (Data, URL) throws -> Void = { try $0.write(to: $1, options: .atomic) }
     ) -> Result<ScreenshotSaveOutcome, ScreenshotSaveError> {
         var replaceError: String?
-        if case .replace(let target) = target(for: url, replacing: original) {
+        switch target(for: url, replacing: original) {
+        case .replace(let target):
             do {
                 try replaceWriter(data, target)
                 return .success(ScreenshotSaveOutcome(url: target, replacedOriginal: true))
             } catch {
                 replaceError = "\(target.path): \(error)"
             }
+        case .newKeepingOriginal(_, let reason):
+            replaceError = reason
+        case .new:
+            break
         }
         return write(data, to: url).map {
             ScreenshotSaveOutcome(url: $0, replacedOriginal: false, replaceError: replaceError)
