@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
-## [0.1.1] — unveröffentlicht
+## [0.1.1] — 2026-11-20
 
 ### Behoben
 
