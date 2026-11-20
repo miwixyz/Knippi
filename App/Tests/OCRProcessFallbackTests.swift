@@ -9,7 +9,8 @@ final class OCRProcessFallbackTests: XCTestCase {
     )
 
     func testSensitiveRegionsEngineFailureRetriesInHelper() async throws {
-        let expected = SensitiveRegion(kind: .email, text: "a@b.de", boundingBox: CGRect(x: 1, y: 2, width: 3, height: 4))
+        let expected = SensitiveRegion(kind: .email, text: "a@b.de", boundingBox: CGRect(x: 1, y: 2, width: 3, height: 4),
+                                       isVerified: true)
         let regions = try await OCRProcessFallback.sensitiveRegions(
             image: makeImage(),
             run: { _ in throw Self.engineError },
@@ -30,6 +31,24 @@ final class OCRProcessFallbackTests: XCTestCase {
             )
             XCTFail("Expected an error")
         } catch {}
+    }
+
+    func testHelperAcceptsOnlyFileURLs() {
+        XCTAssertNotNil(OCRProcessFallback.fileURL("file:///tmp/input.png"))
+        XCTAssertNil(OCRProcessFallback.fileURL("https://example.com/input.png"))
+        XCTAssertNil(OCRProcessFallback.fileURL("/tmp/input.png"))
+    }
+
+    func testHungHelperIsTerminatedAfterTimeout() throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sleep")
+        process.arguments = ["10"]
+        let start = Date()
+        XCTAssertThrowsError(try OCRProcessFallback.runAndWait(process, timeout: 0.5)) { error in
+            XCTAssertTrue(error.localizedDescription.contains("did not finish"), "\(error)")
+        }
+        XCTAssertLessThan(Date().timeIntervalSince(start), 5)
+        XCTAssertFalse(process.isRunning)
     }
 
     func testSuccessfulRecognitionDoesNotLaunchHelper() async throws {

@@ -91,8 +91,8 @@ enum OCRProcessFallback {
     static func runHelperIfRequested() -> Bool {
         let arguments = CommandLine.arguments
         if arguments.count == 4, arguments[1] == sensitiveHelperArgument,
-           let inputURL = URL(string: arguments[2]),
-           let outputURL = URL(string: arguments[3]) {
+           let inputURL = fileURL(arguments[2]),
+           let outputURL = fileURL(arguments[3]) {
             runHelper {
                 let regions = try await TextRecognizer.sensitiveRegions(image: loadImage(at: inputURL))
                 let data = try JSONEncoder().encode(regions.map(EncodedSensitiveRegion.init))
@@ -100,8 +100,8 @@ enum OCRProcessFallback {
             }
         }
         guard arguments.count == 6, arguments[1] == helperArgument,
-              let inputURL = URL(string: arguments[2]),
-              let outputURL = URL(string: arguments[3]),
+              let inputURL = fileURL(arguments[2]),
+              let outputURL = fileURL(arguments[3]),
               let level = recognitionLevel(for: arguments[4]) else {
             return false
         }
@@ -117,6 +117,12 @@ enum OCRProcessFallback {
             let data = try JSONEncoder().encode(regions.map(EncodedRegion.init))
             try data.write(to: outputURL, options: .atomic)
         }
+    }
+
+    /// Helper arguments must be file URLs; anything else is not a helper launch.
+    static func fileURL(_ argument: String) -> URL? {
+        guard let url = URL(string: argument), url.isFileURL else { return nil }
+        return url
     }
 
     /// Performs one helper job, then exits the process (0 on success).
@@ -182,13 +188,27 @@ enum OCRProcessFallback {
         let process = Process()
         process.executableURL = executableURL
         process.arguments = arguments(inputURL.absoluteString, outputURL.absoluteString)
-        try process.run()
-        process.waitUntilExit()
+        try runAndWait(process, timeout: helperTimeout)
 
         guard process.terminationStatus == 0 else {
             throw OCRProcessFallbackError.helperFailed(process.terminationStatus)
         }
         return try Data(contentsOf: outputURL)
+    }
+
+    static let helperTimeout: TimeInterval = 30
+
+    /// Runs `process` and waits for it; terminates it and throws after `timeout`
+    /// so a hung helper can't block OCR forever.
+    static func runAndWait(_ process: Process, timeout: TimeInterval) throws {
+        let exited = DispatchSemaphore(value: 0)
+        process.terminationHandler = { _ in exited.signal() }
+        try process.run()
+        if exited.wait(timeout: .now() + timeout) == .timedOut {
+            process.terminate()
+            _ = exited.wait(timeout: .now() + 2)
+            throw OCRProcessFallbackError.helperTimedOut(timeout)
+        }
     }
 
     private static func loadImage(at url: URL) throws -> CGImage {
@@ -252,9 +272,11 @@ private struct EncodedRegion: Codable {
     }
 }
 
+/// Deliberately without the matched text: the redaction needs only kind and box,
+/// and the plaintext must not land in a temp file.
 private struct EncodedSensitiveRegion: Codable {
     let kind: SensitiveMatch.Kind
-    let text: String
+    let isVerified: Bool
     let x: CGFloat
     let y: CGFloat
     let width: CGFloat
@@ -262,7 +284,7 @@ private struct EncodedSensitiveRegion: Codable {
 
     init(_ region: SensitiveRegion) {
         kind = region.kind
-        text = region.text
+        isVerified = region.isVerified
         x = region.boundingBox.origin.x
         y = region.boundingBox.origin.y
         width = region.boundingBox.width
@@ -270,7 +292,8 @@ private struct EncodedSensitiveRegion: Codable {
     }
 
     var region: SensitiveRegion {
-        SensitiveRegion(kind: kind, text: text, boundingBox: CGRect(x: x, y: y, width: width, height: height))
+        SensitiveRegion(kind: kind, text: "", boundingBox: CGRect(x: x, y: y, width: width, height: height),
+                        isVerified: isVerified)
     }
 }
 
@@ -286,6 +309,7 @@ private enum OCRProcessFallbackError: LocalizedError {
     case invalidInputImage
     case cannotEncodeImage
     case helperFailed(Int32)
+    case helperTimedOut(TimeInterval)
 
     var errorDescription: String? {
         switch self {
@@ -294,6 +318,7 @@ private enum OCRProcessFallbackError: LocalizedError {
         case .invalidInputImage: "Could not read the temporary OCR image."
         case .cannotEncodeImage: "Could not prepare the image for OCR retry."
         case .helperFailed(let status): "OCR retry process exited with status \(status)."
+        case .helperTimedOut(let seconds): "OCR retry process did not finish within \(Int(seconds)) seconds."
         }
     }
 }

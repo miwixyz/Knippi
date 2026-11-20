@@ -205,7 +205,8 @@ public enum TextRecognizer {
                             kind: match.kind,
                             text: String(text[match.range]),
                             boundingBox: imageRect(fromNormalized: normalized,
-                                                   imageWidth: imageWidth, imageHeight: imageHeight)
+                                                   imageWidth: imageWidth, imageHeight: imageHeight),
+                            isVerified: match.isVerified
                         ))
                     }
                 }
