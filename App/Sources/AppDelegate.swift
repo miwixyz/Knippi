@@ -38,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         lastPixelateToast = Date()
         pixelateFailureToast?.orderOut(nil)
         pixelateFailureToast = ToastWindow(
-            message: "Verpixeln fehlgeschlagen – Bereich wurde geschwärzt.",
+            message: String(localized: "Pixelation failed – area was blacked out."),
             icon: "exclamationmark.triangle.fill",
             iconColor: .systemOrange
         )

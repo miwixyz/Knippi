@@ -39,3 +39,4 @@ CLAUDE.md
 scripts/
 .omx/
 build-dev/
+build-rel/

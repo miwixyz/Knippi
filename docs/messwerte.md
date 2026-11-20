@@ -5,3 +5,4 @@ Ziele (Spec §1): Kürzel → Auswahl < 150 ms · Leerlauf < 40 MB phys_footprin
 | Datum | Stand | App-Größe | Leerlauf phys_footprint | CPU Leerlauf | Kürzel → Auswahl | Tests |
 |---|---|---|---|---|---|---|
 | 2026-11-20 | Capso aba1f64 (universal, ungestrippt) | 48 MB | 18 MB | 0,0 % | nicht gemessen | 547, 3 rot |
+| 2026-11-20 | knippi/fork-basis 6ff1b42 (Release, arm64, gestrippt) | 11 MB | 16 MB | 0,0 % | nicht gemessen (Freigabe fehlt) | Pakete 704 + App 235, alle grün |
