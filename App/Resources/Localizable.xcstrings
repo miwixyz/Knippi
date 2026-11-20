@@ -52422,6 +52422,16 @@
         }
       }
     },
+    "Saved – original replaced" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesichert – Original ersetzt"
+          }
+        }
+      }
+    },
     "Couldn't save: %@ isn't reachable – the image is on the clipboard" : {
       "localizations" : {
         "de" : {

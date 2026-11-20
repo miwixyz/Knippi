@@ -1840,6 +1840,8 @@ final class CaptureCoordinator {
         return NSSound(named: "Pop")
     }()
 
+    /// `preferredFileURL`: the file auto-saved for this capture. Editing from the
+    /// preview replaces exactly that file on save.
     @discardableResult
     func showQuickAccess(
         for result: CaptureResult,
@@ -1935,13 +1937,18 @@ final class CaptureCoordinator {
             guard let self, let window else { return }
             let anchor = window.targetScreen
             self.dismissQuickAccessWindow(window)
-            self.openAnnotationEditor(result, anchorScreen: anchor)
+            self.openAnnotationEditor(result, anchorScreen: anchor, autoSavedFileURL: preferredFileURL)
         }
         window.onFindSensitive = { [weak self, weak window] in
             guard let self, let window else { return }
             let anchor = window.targetScreen
             self.dismissQuickAccessWindow(window)
-            self.openAnnotationEditor(result, anchorScreen: anchor, findsSensitiveDataOnOpen: true)
+            self.openAnnotationEditor(
+                result,
+                anchorScreen: anchor,
+                autoSavedFileURL: preferredFileURL,
+                findsSensitiveDataOnOpen: true
+            )
         }
         window.onPreview = { [weak self, weak window] in
             guard let self, let window else { return }
@@ -2044,9 +2051,13 @@ final class CaptureCoordinator {
         _ result: CaptureResult,
         anchorScreen: NSScreen? = nil,
         openedFileURL: URL? = nil,
+        autoSavedFileURL: URL? = nil,
         findsSensitiveDataOnOpen: Bool = false
     ) {
         let screen = anchorScreen ?? screenFor(result: result)
+        // The auto-saved file of this capture: an editor save replaces it, so the
+        // unedited (e.g. unredacted) original doesn't stay next to the edit.
+        var replaceableFileURL = autoSavedFileURL
 
         inlineAnnotationWindow?.close()
         inlineAnnotationWindow = nil
@@ -2074,12 +2085,17 @@ final class CaptureCoordinator {
                     }
                     return didSave
                 } else {
-                    self.saveRenderedImage(
+                    let savedURL = self.saveRenderedImage(
                         rendered,
                         sourceAppName: result.appName,
                         sourceWindowTitle: result.windowName,
-                        date: result.timestamp
+                        date: result.timestamp,
+                        replacing: replaceableFileURL
                     )
+                    // Repeated saves keep replacing the same file instead of piling up copies.
+                    if replaceableFileURL != nil, let savedURL {
+                        replaceableFileURL = savedURL
+                    }
                     self.annotationWindow = nil
                     return true
                 }
@@ -2410,6 +2426,24 @@ final class CaptureCoordinator {
         sourceWindowTitle: String? = nil,
         date: Date = Date()
     ) -> Result<URL, ScreenshotSaveError> {
+        writeScreenshot(
+            image,
+            sourceAppName: sourceAppName,
+            sourceWindowTitle: sourceWindowTitle,
+            date: date,
+            replacing: nil
+        ).map(\.url)
+    }
+
+    /// `replacing`: the auto-saved file of the same capture, which an editor save
+    /// overwrites instead of putting the edit next to it (see `ScreenshotSaver.target`).
+    private func writeScreenshot(
+        _ image: CGImage,
+        sourceAppName: String?,
+        sourceWindowTitle: String?,
+        date: Date,
+        replacing original: URL?
+    ) -> Result<ScreenshotSaveOutcome, ScreenshotSaveError> {
         guard let encoded = screenshotData(from: image) else { return .failure(.encodingFailed) }
         let directory = settings.screenshotMonthlyFolders
             ? FileNaming.monthlyDirectory(in: settings.exportLocation)
@@ -2423,7 +2457,7 @@ final class CaptureCoordinator {
             sourceWindowTitle: sourceWindowTitle,
             template: settings.screenshotFilenameTemplate
         )
-        return ScreenshotSaver.write(encoded.data, to: url)
+        return ScreenshotSaver.write(encoded.data, to: url, replacing: original)
     }
 
     private func screenshotData(from image: CGImage) -> (data: Data, format: ScreenshotOutputFormat)? {
@@ -2434,20 +2468,31 @@ final class CaptureCoordinator {
         return (data, output.format)
     }
 
+    /// Returns the file written, or nil on failure (image copied, failure toast shown).
+    @discardableResult
     private func saveRenderedImage(
         _ image: CGImage,
         sourceAppName: String? = nil,
         sourceWindowTitle: String? = nil,
-        date: Date = Date()
-    ) {
-        if case .failure(let error) = writeScreenshot(
+        date: Date = Date(),
+        replacing original: URL? = nil
+    ) -> URL? {
+        switch writeScreenshot(
             image,
             sourceAppName: sourceAppName,
             sourceWindowTitle: sourceWindowTitle,
-            date: date
+            date: date,
+            replacing: original
         ) {
+        case .success(let outcome):
+            if outcome.replacedOriginal {
+                showToast(String(localized: "Saved – original replaced"))
+            }
+            return outcome.url
+        case .failure(let error):
             copyRenderedScreenshotToClipboard(image)
             showSaveFailureToast(error)
+            return nil
         }
     }
 
