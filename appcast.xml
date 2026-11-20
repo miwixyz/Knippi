@@ -1,8 +1,21 @@
-<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+<?xml version="1.0" standalone="yes"?>
+<!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
---><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+-->
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>Knippi</title>
+        <item>
+            <title>0.1.1</title>
+            <pubDate>Fri, 20 Nov 2026 18:27:02 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>517</sparkle:version>
+            <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Updates:</b> In 0.1.0 startete die Update-Suche nicht („Update nicht erfolgreich“). Ab 0.1.1 sucht Knippi wieder selbst nach neuen Versionen. Wer 0.1.0 installiert hat, lädt 0.1.1 einmal von Hand, danach kommen Updates automatisch.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.1/Knippi-0.1.1.zip" length="5524061" type="application/octet-stream" sparkle:edSignature="x3sfA+gi22xt4TsrX1DneJ4fPAc7VDVgW+KSfo6GKuZTWG1jQlvFcr504k6XA1fHRTbff/TTPtI1aqpsTVP7Bw=="/>
+        </item>
         <item>
             <title>0.1.0</title>
             <pubDate>Fri, 20 Nov 2026 17:38:18 +0100</pubDate>
@@ -12,10 +25,11 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
             <description><![CDATA[<meta charset="utf-8"><p>Erste Fassung. Knippi ist eine schlanke Screenshot-App für die Menüleiste, entstanden aus Capso von lzhgus (MIT).</p><h3>Neu</h3><ul><li><b>Aufnehmen:</b> Bereich, Fenster oder ganzer Bildschirm. Eigene Kürzel ab Werk, auf Wunsch auch command + shift + 3, 4 und 5.</li><li><b>Schnellzugriff:</b> Nach jeder Aufnahme erscheint ein Vorschaubild in der Ecke. Alternativ öffnet sich gleich der Editor, oder Knippi sichert still. Einstellbar unter „Nach der Aufnahme“.</li><li><b>Editor</b> mit Pfeilen, Text, Markierungen, Zählern und Verpixeln.</li><li><b>Vertrauliches finden:</b> Knippi schlägt E-Mail-Adressen, Telefonnummern, IBAN, Kartennummern und Zugangsschlüssel zum Schwärzen vor. Offene Vorschläge werden vor jedem Export geschwärzt.</li><li><b>Schwarzer Balken</b> als Standard zum Schwärzen, deckend statt durchscheinend.</li><li><b>Color Picker</b> als eigene Aufnahmeart (option + shift + 9) mit Lupe, mehreren Farbformaten und „Letzte Farben“ in der Menüleiste.</li><li><b>Hintergründe:</b> drei Verläufe (Polarlicht, Abendglut, Graphit), eigenes Bild, Formate 16:9, 1:1 und 4:5. Fenster-Aufnahmen behalten auf Wunsch einen durchsichtigen Hintergrund mit Schatten.</li><li><b>Texterkennung:</b> Text aus einem Bildschirmbereich kopieren.</li><li><b>Teilen-Menü</b> im Schnellzugriff (AirDrop, Nachrichten und mehr). command + P heftet die Aufnahme an.</li><li><b>Speichern:</b> Ordner wählbar, ab Werk <code>Bilder/Knippi</code>, Dateiname „Knippi JJJJ-MM-TT um HH.MM.SS“. Knippi überschreibt nie eine fremde Datei und meldet Speicherfehler sichtbar.</li><li><b>Ohne Bildschirmaufnahme-Freigabe</b> zeigt Knippi einen Hinweis mit „Einstellungen öffnen“, statt still ein leeres Bild zu liefern.</li><li><b>Updates</b> kommen automatisch über einen signierten Update-Feed.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.0/Knippi-0.1.0.zip" length="5523941" type="application/octet-stream" sparkle:edSignature="8dkWKNpJxcB67BWL2uv0hTuJSeUaXx4tlpxrF5usG/ZsFY86XfOsrljnHvAwrJqd0IsCp9sPEiV+dcRvbaG4Bw=="></enclosure>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.0/Knippi-0.1.0.zip" length="5523941" type="application/octet-stream" sparkle:edSignature="8dkWKNpJxcB67BWL2uv0hTuJSeUaXx4tlpxrF5usG/ZsFY86XfOsrljnHvAwrJqd0IsCp9sPEiV+dcRvbaG4Bw=="/>
         </item>
     </channel>
-</rss><!-- sparkle-signatures:
-edSignature: 8jcJf5oQW4gxm5u35FrdW2+s6pFKAJh81tjIIAn1JOyL6XMwenpqHIwlljtLsH3eTjFv0k1L6v7JpLEWGo8UAw==
-length: 3078
+</rss>
+<!-- sparkle-signatures:
+edSignature: 1lChaBL6Kx3rje0VyPRzG6N2hTm7B2gOfA2K2HXvEErWhhdV3nf//SUGcrxF0V3AIesVi/bxwmL8P8n3b82hCg==
+length: 4153
 -->
