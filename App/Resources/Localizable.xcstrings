@@ -33478,6 +33478,16 @@
         }
       }
     },
+    "Pixelate" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verpixeln"
+          }
+        }
+      }
+    },
     "Pixelate / Blur" : {
       "localizations" : {
         "de" : {
@@ -36605,6 +36615,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nicht für vertrauliche Daten – dafür den schwarzen Balken verwenden."
+          }
+        }
+      }
+    },
+    "Black Bar" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schwarzer Balken"
           }
         }
       }

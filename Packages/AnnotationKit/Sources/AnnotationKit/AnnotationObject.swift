@@ -16,7 +16,7 @@ public enum RedactionMode: Int, Codable, CaseIterable, Sendable {
         switch self {
         case .pixelate: "Pixelate"
         case .blur: "Blur"
-        case .solid: "Solid"
+        case .solid: "Black Bar"
         }
     }
 }

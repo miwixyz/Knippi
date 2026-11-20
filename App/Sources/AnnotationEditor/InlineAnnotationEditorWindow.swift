@@ -727,7 +727,7 @@ private struct InlineAnnotationToolbar: View {
             if currentTool == .pixelate {
                 Picker("", selection: $redactionMode) {
                     ForEach(RedactionMode.allCases, id: \.self) { mode in
-                        Text(mode.label).tag(mode)
+                        Text(mode.localizedLabel).tag(mode)
                     }
                 }
                 .pickerStyle(.segmented)

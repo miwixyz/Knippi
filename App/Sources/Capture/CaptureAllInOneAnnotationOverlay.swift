@@ -1130,7 +1130,7 @@ private struct AllInOneAnnotationToolbarView: View {
                     UserDefaults.standard.set(mode.rawValue, forKey: "annotationRedactionMode")
                     session.updateSelectedStyle()
                 } label: {
-                    Text(mode.label)
+                    Text(mode.localizedLabel)
                         .font(.system(size: 11, weight: .semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
@@ -1140,7 +1140,8 @@ private struct AllInOneAnnotationToolbarView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .help(mode == .solid ? Text(mode.label) : Text("\(mode.label) – \(redactionConfidentialHint)"))
+                .help(mode == .solid ? mode.localizedLabel : "\(mode.localizedLabel) – \(redactionConfidentialHint)")
+                .accessibilityLabel(mode.localizedLabel)
             }
         }
         .padding(2)
