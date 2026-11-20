@@ -80,43 +80,55 @@ struct SquareCenterLockShortcutTests {
         #expect(shortcut.displayCharacter == "X")
     }
 
-    @Test("Recording punctuation uses the unshifted glyph")
+    @Test("Punctuation keeps the layout's unshifted glyph")
+    func punctuationUsesLayoutGlyph() {
+        #expect(SquareCenterLockShortcut.displayName(layoutGlyph: ";", eventCharacters: ";") == ";")
+        #expect(SquareCenterLockShortcut.displayName(layoutGlyph: "-", eventCharacters: "-") == "-")
+    }
+
+    @Test("Shifted event characters are ignored in favor of the unshifted layout glyph")
+    func shiftedCharactersUseLayoutGlyph() {
+        #expect(SquareCenterLockShortcut.displayName(layoutGlyph: ";", eventCharacters: ":") == ";")
+    }
+
+    @Test("Letters on non-US layouts are uppercased only when that stays one character")
+    func nonUSLetters() {
+        #expect(SquareCenterLockShortcut.displayName(layoutGlyph: "ö", eventCharacters: "ö") == "Ö")
+        #expect(SquareCenterLockShortcut.displayName(layoutGlyph: "ß", eventCharacters: "ß") == "ß")
+    }
+
+    @Test("Without a layout glyph the event characters are used")
+    func fallsBackToEventCharacters() {
+        #expect(SquareCenterLockShortcut.displayName(layoutGlyph: nil, eventCharacters: "-") == "-")
+        #expect(SquareCenterLockShortcut.displayName(layoutGlyph: nil, eventCharacters: nil) == nil)
+    }
+
+    @Test("Recording a punctuation key yields a single glyph on the active layout")
     func recordsPunctuationKey() throws {
-        let event = try makeKeyEvent(
+        for keyCode in [UInt16(kVK_ANSI_Semicolon), UInt16(kVK_ANSI_Minus)] {
+            let event = try makeKeyEvent(keyCode: keyCode, characters: ";", modifierFlags: [])
+            let shortcut = try #require(SquareCenterLockShortcut(event: event))
+
+            #expect(shortcut.keyCode == keyCode)
+            #expect(shortcut.displayCharacter.count == 1)
+        }
+    }
+
+    @Test("Recording while Shift is held stores the same glyph as without Shift")
+    func recordsShiftedKeyAsUnshiftedGlyph() throws {
+        let plain = try #require(SquareCenterLockShortcut(event: makeKeyEvent(
             keyCode: UInt16(kVK_ANSI_Semicolon),
             characters: ";",
             modifierFlags: []
-        )
-        let shortcut = try #require(SquareCenterLockShortcut(event: event))
-
-        #expect(shortcut.keyCode == UInt16(kVK_ANSI_Semicolon))
-        #expect(shortcut.displayCharacter == ";")
-    }
-
-    @Test("Recording a symbol key uses the unshifted glyph")
-    func recordsMinusKey() throws {
-        let event = try makeKeyEvent(
-            keyCode: UInt16(kVK_ANSI_Minus),
-            characters: "-",
-            modifierFlags: []
-        )
-        let shortcut = try #require(SquareCenterLockShortcut(event: event))
-
-        #expect(shortcut.keyCode == UInt16(kVK_ANSI_Minus))
-        #expect(shortcut.displayCharacter == "-")
-    }
-
-    @Test("Recording while Shift is held still stores the unshifted punctuation glyph")
-    func recordsShiftedPunctuationAsUnshiftedGlyph() throws {
-        let event = try makeKeyEvent(
+        )))
+        let shifted = try #require(SquareCenterLockShortcut(event: makeKeyEvent(
             keyCode: UInt16(kVK_ANSI_Semicolon),
             characters: ":",
             modifierFlags: .shift
-        )
-        let shortcut = try #require(SquareCenterLockShortcut(event: event))
+        )))
 
-        #expect(shortcut.keyCode == UInt16(kVK_ANSI_Semicolon))
-        #expect(shortcut.displayCharacter == ";")
+        #expect(shifted.keyCode == UInt16(kVK_ANSI_Semicolon))
+        #expect(shifted.displayCharacter == plain.displayCharacter)
     }
 
     @Test("Recording a function key uses its F-number label")

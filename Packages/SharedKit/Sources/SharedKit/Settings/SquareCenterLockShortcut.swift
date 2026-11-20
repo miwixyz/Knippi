@@ -117,9 +117,17 @@ public struct SquareCenterLockShortcut: Equatable, Sendable {
             return special
         }
 
-        let raw = unshiftedCharacter(for: event.keyCode)
-            ?? event.charactersIgnoringModifiers
-            ?? ""
+        return displayName(
+            layoutGlyph: unshiftedCharacter(for: event.keyCode),
+            eventCharacters: event.charactersIgnoringModifiers
+        )
+    }
+
+    /// Picks the label from the layout's unshifted glyph (falling back to the
+    /// event's characters). Letters are shown uppercase like a key cap, unless
+    /// uppercasing would change the length (German "ß" → "SS").
+    static func displayName(layoutGlyph: String?, eventCharacters: String?) -> String? {
+        let raw = layoutGlyph ?? eventCharacters ?? ""
         guard raw.count == 1, let character = raw.first else { return nil }
         guard character.isLetter
                 || character.isNumber
@@ -128,7 +136,8 @@ public struct SquareCenterLockShortcut: Equatable, Sendable {
             return nil
         }
         if character.isLetter {
-            return String(character).uppercased()
+            let upper = String(character).uppercased()
+            return upper.count == 1 ? upper : String(character)
         }
         return String(character)
     }
