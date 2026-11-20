@@ -10,8 +10,17 @@ struct QuickAccessActionLayoutTests {
             .copy,
             .save,
             .annotate,
+            .findSensitive,
             .pin,
         ])
+    }
+
+    @Test("Find Sensitive Data is one click, never in overflow")
+    func findSensitiveIsVisible() {
+        for sharing in [false, true] {
+            #expect(QuickAccessActionLayout.visibleActions(sharingAvailable: sharing).contains(.findSensitive))
+        }
+        #expect(!QuickAccessActionLayout.overflowActions.contains(.findSensitive))
     }
 
     @Test("Cloud sharing adds Upload while intelligence actions stay in overflow")
@@ -22,6 +31,7 @@ struct QuickAccessActionLayoutTests {
             .save,
             .upload,
             .annotate,
+            .findSensitive,
             .pin,
         ])
         #expect(QuickAccessActionLayout.overflowActions == [.ocr])

@@ -1807,6 +1807,12 @@ final class CaptureCoordinator {
             self.dismissQuickAccessWindow(window)
             self.openAnnotationEditor(result, anchorScreen: anchor)
         }
+        window.onFindSensitive = { [weak self, weak window] in
+            guard let self, let window else { return }
+            let anchor = window.targetScreen
+            self.dismissQuickAccessWindow(window)
+            self.openAnnotationEditor(result, anchorScreen: anchor, findsSensitiveDataOnOpen: true)
+        }
         window.onPreview = { [weak self, weak window] in
             guard let self, let window else { return }
             self.openQuickAccessPreview(result, anchorScreen: window.targetScreen)
@@ -1907,7 +1913,8 @@ final class CaptureCoordinator {
     private func openAnnotationEditor(
         _ result: CaptureResult,
         anchorScreen: NSScreen? = nil,
-        openedFileURL: URL? = nil
+        openedFileURL: URL? = nil,
+        findsSensitiveDataOnOpen: Bool = false
     ) {
         let screen = anchorScreen ?? screenFor(result: result)
 
@@ -1921,6 +1928,7 @@ final class CaptureCoordinator {
             captureDate: result.timestamp,
             screenshotOutput: settings.screenshotOutputOptions,
             screenshotFilenameTemplate: settings.screenshotFilenameTemplate,
+            findsSensitiveDataOnOpen: findsSensitiveDataOnOpen,
             onSave: { [weak self] (rendered: CGImage) -> Bool in
                 guard let self else { return false }
                 if let openedFileURL {

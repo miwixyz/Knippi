@@ -4,6 +4,7 @@ public enum QuickAccessActionKind: String, CaseIterable, Sendable {
     case save
     case upload
     case annotate
+    case findSensitive
     case ocr
     case pin
 }
@@ -14,7 +15,7 @@ public enum QuickAccessActionLayout {
         if sharingAvailable {
             actions.append(.upload)
         }
-        actions.append(contentsOf: [.annotate, .pin])
+        actions.append(contentsOf: [.annotate, .findSensitive, .pin])
         return actions
     }
 

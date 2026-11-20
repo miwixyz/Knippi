@@ -16,6 +16,7 @@ final class QuickAccessWindow: NSPanel {
     var onSave: (() -> Void)?
     var onSaveAs: (() -> Void)?
     var onAnnotate: (() -> Void)?
+    var onFindSensitive: (() -> Void)?
     var onOCR: (() -> Void)?
     var onPin: (() -> Void)?
     var onPreview: (() -> Void)?
@@ -114,6 +115,7 @@ final class QuickAccessWindow: NSPanel {
             onSave:      { [weak self] in self?.onSave?() },
             onSaveAs:    { [weak self] in self?.onSaveAs?() },
             onAnnotate:  { [weak self] in self?.onAnnotate?() },
+            onFindSensitive: { [weak self] in self?.onFindSensitive?() },
             onOCR:       { [weak self] in self?.onOCR?() },
             onPin:       { [weak self] in self?.onPin?() },
             onPreview:   { [weak self] in self?.onPreview?() },

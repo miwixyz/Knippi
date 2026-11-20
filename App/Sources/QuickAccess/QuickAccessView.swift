@@ -20,6 +20,7 @@ struct QuickAccessView: View {
     let onSave: () -> Void
     let onSaveAs: () -> Void
     let onAnnotate: () -> Void
+    let onFindSensitive: () -> Void
     let onOCR: () -> Void
     let onPin: () -> Void
     let onPreview: () -> Void
@@ -50,7 +51,7 @@ struct QuickAccessView: View {
     }
 
     private enum HoverAction: Hashable {
-        case copy, save, drag, annotate, ocr, pin, upload, linkCopied, overflow
+        case copy, save, drag, annotate, findSensitive, ocr, pin, upload, linkCopied, overflow
     }
 
     private var isRevealed: Bool { isHovering || isFocused }
@@ -218,7 +219,7 @@ struct QuickAccessView: View {
         switch action {
         case .upload, .annotate, .pin:
             return true
-        case .drag, .copy, .save, .ocr:
+        case .drag, .copy, .save, .ocr, .findSensitive:
             return false
         }
     }
@@ -240,6 +241,8 @@ struct QuickAccessView: View {
             }
         case .annotate:
             toolButton(.annotate, icon: "pencil.tip.crop.circle", action: onAnnotate)
+        case .findSensitive:
+            toolButton(.findSensitive, icon: "eye.slash", action: onFindSensitive)
         case .pin:
             toolButton(.pin, icon: "pin", action: onPin)
         case .ocr:
@@ -275,7 +278,7 @@ struct QuickAccessView: View {
                 Label("Extract Text", systemImage: "text.viewfinder")
             }
             .keyboardShortcut("o", modifiers: [.command, .shift])
-        case .drag, .copy, .save, .upload, .annotate, .pin:
+        case .drag, .copy, .save, .upload, .annotate, .findSensitive, .pin:
             EmptyView()
         }
     }
@@ -550,6 +553,7 @@ struct QuickAccessView: View {
         case .save:      return ("s", [.command])
         case .drag:      return nil
         case .annotate:  return ("e", [.command])
+        case .findSensitive: return nil
         case .ocr:       return ("o", [.command, .shift])
         case .pin:       return ("p", [.command])
         case .upload, .linkCopied, .overflow: return nil
@@ -580,6 +584,7 @@ struct QuickAccessView: View {
         case .save: return String(localized: "Save")
         case .drag: return String(localized: "Drag Screenshot")
         case .annotate: return String(localized: "Annotate")
+        case .findSensitive: return String(localized: "Find Sensitive Data")
         case .ocr: return String(localized: "Extract Text")
         case .pin: return String(localized: "Pin")
         case .upload: return String(localized: "Upload to Cloud")
@@ -594,6 +599,7 @@ struct QuickAccessView: View {
         case .save: return String(localized: "Save screenshot")
         case .drag: return String(localized: "Drag this screenshot into another app using your screenshot export settings")
         case .annotate: return String(localized: "Open annotation editor")
+        case .findSensitive: return String(localized: "Open the editor and suggest black bars for email addresses, phone numbers, IBANs, card numbers and secrets")
         case .ocr: return String(localized: "Extract text from screenshot")
         case .pin: return String(localized: "Pin to screen")
         case .upload: return String(localized: "Upload screenshot to cloud and copy link")

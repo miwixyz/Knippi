@@ -31,6 +31,7 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
         captureDate: Date = Date(),
         screenshotOutput: ScreenshotOutputOptions,
         screenshotFilenameTemplate: String,
+        findsSensitiveDataOnOpen: Bool = false,
         onSave: @escaping (CGImage) -> Bool,
         onCopy: @escaping (CGImage) -> Void,
         onPin: @escaping (CGImage, CGRect?) -> Void,
@@ -99,6 +100,7 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
             captureDate: captureDate,
             screenshotOutput: screenshotOutput,
             screenshotFilenameTemplate: screenshotFilenameTemplate,
+            findsSensitiveDataOnOpen: findsSensitiveDataOnOpen,
             onSave: { [weak self] rendered in
                 // `onSave` may cancel (e.g. the user dismisses an "overwrite
                 // vs. save a copy" prompt) — only close the window when a

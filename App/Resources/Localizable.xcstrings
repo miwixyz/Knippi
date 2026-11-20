@@ -51942,6 +51942,146 @@
           }
         }
       }
+    },
+    "Find Sensitive Data" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertrauliches finden"
+          }
+        }
+      }
+    },
+    "Finding Sensitive Data…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertrauliches wird gesucht …"
+          }
+        }
+      }
+    },
+    "Scanning" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suche läuft"
+          }
+        }
+      }
+    },
+    "%lld found" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld gefunden"
+          }
+        }
+      }
+    },
+    "Black Out All" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle schwärzen"
+          }
+        }
+      }
+    },
+    "No sensitive data found" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine vertraulichen Daten gefunden"
+          }
+        }
+      }
+    },
+    "Finding sensitive data failed: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suche nach vertraulichen Daten fehlgeschlagen: %@"
+          }
+        }
+      }
+    },
+    "Click to keep or skip this black bar" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klicken, um diesen Balken zu behalten oder auszulassen"
+          }
+        }
+      }
+    },
+    "Possibly sensitive (checksum not confirmed). Click to keep or skip this black bar" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Möglicherweise vertraulich (Prüfsumme nicht bestätigt). Klicken, um diesen Balken zu behalten oder auszulassen"
+          }
+        }
+      }
+    },
+    "Sensitive data suggestion" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschlag: vertrauliche Daten"
+          }
+        }
+      }
+    },
+    "Sensitive data suggestions" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschläge für vertrauliche Daten"
+          }
+        }
+      }
+    },
+    "Selected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausgewählt"
+          }
+        }
+      }
+    },
+    "Not selected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht ausgewählt"
+          }
+        }
+      }
+    },
+    "Open the editor and suggest black bars for email addresses, phone numbers, IBANs, card numbers and secrets" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öffnet den Editor und schlägt schwarze Balken für E-Mail-Adressen, Telefonnummern, IBANs, Kartennummern und Geheimnisse vor"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

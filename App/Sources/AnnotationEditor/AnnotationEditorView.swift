@@ -14,6 +14,8 @@ struct AnnotationEditorView: View {
     let captureDate: Date
     let screenshotOutput: ScreenshotOutputOptions
     let screenshotFilenameTemplate: String
+    /// Starts "Find Sensitive Data" as soon as the canvas appears (Quick Access action).
+    let findsSensitiveDataOnOpen: Bool
     let onSave: (CGImage) -> Void
     let onSaveAs: (CGImage) -> Void
     let onCopy: (CGImage) -> Void
@@ -35,6 +37,7 @@ struct AnnotationEditorView: View {
         captureDate: Date,
         screenshotOutput: ScreenshotOutputOptions,
         screenshotFilenameTemplate: String,
+        findsSensitiveDataOnOpen: Bool = false,
         onSave: @escaping (CGImage) -> Void,
         onSaveAs: @escaping (CGImage) -> Void,
         onCopy: @escaping (CGImage) -> Void,
@@ -50,6 +53,7 @@ struct AnnotationEditorView: View {
         self.captureDate = captureDate
         self.screenshotOutput = screenshotOutput
         self.screenshotFilenameTemplate = screenshotFilenameTemplate
+        self.findsSensitiveDataOnOpen = findsSensitiveDataOnOpen
         self.onSave = onSave
         self.onSaveAs = onSaveAs
         self.onCopy = onCopy
@@ -103,6 +107,7 @@ struct AnnotationEditorView: View {
     @State private var dragRenderCache: DragRenderCache?
     /// Cached text line bounding boxes for smart highlighter snapping.
     @State private var textRegions: [CGRect] = []
+    @State private var sensitiveSuggestions = SensitiveSuggestionsModel()
 
     private struct DragRenderCache {
         let renderedImage: CGImage
@@ -274,6 +279,10 @@ struct AnnotationEditorView: View {
     }
 
     private func handleEscape() {
+        if sensitiveSuggestions.isShowing {
+            sensitiveSuggestions.cancel()
+            return
+        }
         switch AnnotationEscapePolicy.action(
             isEditingText: isEditingText,
             isCropMode: isCropMode,
@@ -350,7 +359,9 @@ struct AnnotationEditorView: View {
             onDragEnded: onDragEnded,
             isDragDisabled: isEditingText,
             onCancel: onCancel,
-            onCrop: { isCropMode = true },
+            onCrop: { sensitiveSuggestions.cancel(); isCropMode = true },
+            isFindingSensitiveData: sensitiveSuggestions.isScanning,
+            onFindSensitiveData: findSensitiveData,
             presets: presets,
             onApplyPreset: applyPreset,
             onSavePreset: saveCurrentStyleAsPreset,
@@ -367,6 +378,14 @@ struct AnnotationEditorView: View {
                 previewCanvas
             }
             .background(Color(white: 0.12))
+            .overlay(alignment: .top) {
+                if sensitiveSuggestions.isShowing {
+                    SensitiveSuggestionsBar(model: sensitiveSuggestions, onBlackOut: blackOutSensitiveData)
+                        .padding(.top, FamilyTheme.Space.m)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .animation(.easeOut(duration: 0.2), value: sensitiveSuggestions.isShowing)
             .onAppear { handleCanvasAppear(size: geo.size) }
             .onChange(of: currentTool, handleToolChange)
             .onChange(of: currentColor) { _, _ in updateSelectedStyle() }
@@ -419,6 +438,15 @@ struct AnnotationEditorView: View {
             onTextEditingEnded: handleTextEditingEnded
         )
         .frame(width: canvasRect.width * zoomScale, height: canvasRect.height * zoomScale)
+        .overlay(alignment: .topLeading) {
+            if sensitiveSuggestions.isShowing {
+                SensitiveSuggestionsOverlay(
+                    model: sensitiveSuggestions,
+                    zoomScale: zoomScale,
+                    canvasOrigin: canvasRect.origin
+                )
+            }
+        }
         .offset(x: cropOffsetX, y: cropOffsetY)
         .frame(
             width: effectiveImageWidth * zoomScale,
@@ -505,10 +533,25 @@ struct AnnotationEditorView: View {
         invalidateDragCache()
     }
 
+    private func findSensitiveData() {
+        commitEditingTrigger += 1
+        sensitiveSuggestions.scan(image: sourceImage, screen: NSApp.keyWindow?.screen)
+    }
+
+    private func blackOutSensitiveData() {
+        let bars = sensitiveSuggestions.takeSelectedRedactions()
+        guard !bars.isEmpty else { return }
+        document.addObjects(bars)
+        handleDocumentChanged()
+    }
+
     private func handleCanvasAppear(size: CGSize) {
         fitToWindow(availableSize: size)
         lineWidth = savedWidth(for: currentTool)
         strokePattern = savedStrokePattern
+        if findsSensitiveDataOnOpen, !sensitiveSuggestions.isShowing {
+            findSensitiveData()
+        }
         Task {
             if let regions = try? await OCRProcessFallback.recognize(
                 image: sourceImage, level: .fast, detectURLs: false

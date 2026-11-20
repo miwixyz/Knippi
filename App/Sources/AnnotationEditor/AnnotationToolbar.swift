@@ -36,6 +36,8 @@ struct AnnotationToolbar: View {
     let isDragDisabled: Bool
     let onCancel: () -> Void
     let onCrop: () -> Void
+    var isFindingSensitiveData: Bool = false
+    var onFindSensitiveData: () -> Void = {}
     var presets: [AnnotationStylePreset] = []
     var onApplyPreset: (AnnotationStylePreset) -> Void = { _ in }
     var onSavePreset: () -> Void = {}
@@ -63,6 +65,7 @@ struct AnnotationToolbar: View {
                         presetsMenu
                         toolbarDivider
                         cropGroup
+                        findSensitiveButton
                         toolbarDivider
                         beautifyGroup
                         toolbarDivider
@@ -291,6 +294,29 @@ struct AnnotationToolbar: View {
         .buttonStyle(.plain)
         .help("Crop")
         .disabled(isEditingText)
+    }
+
+    private var findSensitiveButton: some View {
+        Button(action: onFindSensitiveData) {
+            ZStack {
+                if isFindingSensitiveData {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Image(systemName: "eye.slash")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(toolbarIconForeground(isActive: false))
+                }
+            }
+            .frame(width: 30, height: 26)
+            .background(toolbarButtonBackground(isActive: isFindingSensitiveData))
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .overlay(toolbarButtonStroke)
+        }
+        .buttonStyle(.plain)
+        .help(isFindingSensitiveData ? "Finding Sensitive Data…" : "Find Sensitive Data")
+        .accessibilityLabel(Text("Find Sensitive Data"))
+        .accessibilityValue(Text(isFindingSensitiveData ? String(localized: "Scanning") : ""))
+        .disabled(isEditingText || isFindingSensitiveData)
     }
 
     private var beautifyGroup: some View {
