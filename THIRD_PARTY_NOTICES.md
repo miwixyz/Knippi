@@ -73,3 +73,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
 Source: https://github.com/keycastr/keycastr/blob/main/LICENSE.md
+
+---
+
+## Plus Jakarta Sans – SIL Open Font License 1.1 – © The Plus Jakarta Sans Project Authors – https://github.com/tokotype/PlusJakartaSans
+
+Knippi bundles the font file `PlusJakartaSans-Variable.ttf` (from github.com/google/fonts) as its interface typeface. The font is licensed under the SIL Open Font License, Version 1.1. The full license text ships with the app as `OFL.txt` (source: `App/Resources/Fonts/OFL.txt`).

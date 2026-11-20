@@ -63,10 +63,10 @@ struct PreferencesView: View {
         HStack(spacing: 0) {
             sidebar
             Divider()
-                .background(Color.white.opacity(0.06))
             content
         }
         .frame(width: 680, height: 480)
+        .background(FamilyTheme.backgroundGradient)
         .onReceive(NotificationCenter.default.publisher(for: .openScreenshotSettings)) { notification in
             if let tab = notification.object as? PreferencesTab {
                 selectedTab = tab
@@ -81,20 +81,7 @@ struct PreferencesView: View {
         }
     }
 
-    @ViewBuilder
-    private var sidebar: some View {
-#if compiler(>=6.2)
-        if #available(macOS 26.0, *) {
-            GlassEffectContainer(spacing: 8) {
-                sidebarContent
-            }
-        } else {
-            sidebarContent
-        }
-#else
-        sidebarContent
-#endif
-    }
+    private var sidebar: some View { sidebarContent }
 
     private var sidebarContent: some View {
         VStack(spacing: 2) {
@@ -108,23 +95,10 @@ struct PreferencesView: View {
         .padding(.vertical, 12)
         .padding(.horizontal, 8)
         .frame(width: 180)
-        .background(Color.white.opacity(0.04))
+        .background(FamilyTheme.backgroundMiddle)
     }
 
-    @ViewBuilder
-    private var content: some View {
-#if compiler(>=6.2)
-        if #available(macOS 26.0, *) {
-            GlassEffectContainer(spacing: 18) {
-                scrollContent
-            }
-        } else {
-            scrollContent
-        }
-#else
-        scrollContent
-#endif
-    }
+    private var content: some View { scrollContent }
 
     private var scrollContent: some View {
         ScrollView {
@@ -169,9 +143,9 @@ private struct SidebarButton: View {
                 Image(systemName: tab.icon)
                     .frame(width: 20)
                     .font(.system(size: 14))
-                    .opacity(isSelected ? 1 : 0.7)
+                    .foregroundStyle(isSelected ? FamilyTheme.accent : FamilyTheme.textSecondary)
                 Text(tab.title)
-                    .font(.system(size: 13))
+                    .font(FamilyTheme.font(13))
                 Spacer()
             }
             .padding(.horizontal, 10)
@@ -180,7 +154,7 @@ private struct SidebarButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isSelected ? .primary : .secondary)
+        .foregroundStyle(isSelected ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
         .onHover { isHovered = $0 }
     }
 }

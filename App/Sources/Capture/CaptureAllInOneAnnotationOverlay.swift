@@ -728,7 +728,7 @@ private struct AllInOneAnnotationToolbarView: View {
             HStack(spacing: 9) {
                 currentToolGlyph
                     .frame(width: 30, height: 28)
-                    .background(Color.accentColor.opacity(0.45), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .background(FamilyTheme.accentFill.opacity(0.45), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 Circle()
                     .fill(Color(cgColor: session.currentColor.cgColor))
@@ -1177,7 +1177,7 @@ private struct AllInOneAnnotationToolbarView: View {
     }
 
     private func optionBackground(isActive: Bool) -> Color {
-        isActive ? Color.accentColor.opacity(0.48) : Color.white.opacity(0.001)
+        isActive ? FamilyTheme.accentFill.opacity(0.48) : Color.white.opacity(0.001)
     }
 
     @ViewBuilder
@@ -1205,7 +1205,7 @@ private struct AllInOneAnnotationToolbarView: View {
             }
             .foregroundStyle(.white)
             .frame(width: 29, height: 38)
-            .background(session.currentTool == tool ? Color.accentColor.opacity(0.45) : Color.white.opacity(0.001))
+            .background(session.currentTool == tool ? FamilyTheme.accentFill.opacity(0.45) : Color.white.opacity(0.001))
             .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
         }
         .buttonStyle(.plain)
@@ -1236,7 +1236,7 @@ private struct AllInOneAnnotationToolbarView: View {
 
     private func buttonBackground(isActive: Bool, isEnabled: Bool) -> Color {
         if !isEnabled { return Color.white.opacity(0.06) }
-        if isActive { return Color.accentColor.opacity(0.45) }
+        if isActive { return FamilyTheme.accentFill.opacity(0.45) }
         return Color.white.opacity(0.10)
     }
 

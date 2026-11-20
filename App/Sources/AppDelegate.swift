@@ -1,6 +1,7 @@
 // App/Sources/AppDelegate.swift
 import AppKit
 import AnnotationKit
+import os
 import SharedKit
 import ShareKit
 import OCRKit
@@ -50,6 +51,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // coordinators in the separate test-host process.
         if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
             return
+        }
+
+        FamilyTheme.app = .knippi
+        if !FamilyTheme.registerFonts(bundle: .main) {
+            Logger(subsystem: "dev.mwlr.knippi", category: "theme").error("Plus Jakarta Sans nicht registriert – Systemschrift aktiv")
         }
 
         Self.shared = self

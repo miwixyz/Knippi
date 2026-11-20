@@ -86,6 +86,7 @@ struct AddCustomCropRatioSheet: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(FamilyTheme.accentFill)
                 .keyboardShortcut(.defaultAction)
                 .disabled(parsed == nil)
             }

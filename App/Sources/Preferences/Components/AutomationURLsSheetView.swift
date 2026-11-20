@@ -96,9 +96,9 @@ struct AutomationURLsSheetView: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Automation URLs")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(FamilyTheme.font(16, weight: .semibold))
                     Text("Trigger Knippi actions from Raycast, Alfred, Shortcuts, or shell scripts.")
-                        .font(.system(size: 12))
+                        .font(FamilyTheme.font(12))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -113,7 +113,7 @@ struct AutomationURLsSheetView: View {
                     ForEach(sections) { section in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(section.title)
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(FamilyTheme.font(11, weight: .semibold))
                                 .foregroundStyle(.tertiary)
                                 .textCase(.uppercase)
                                 .tracking(0.6)

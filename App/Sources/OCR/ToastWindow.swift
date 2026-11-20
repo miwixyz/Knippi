@@ -82,7 +82,7 @@ private struct ToastView: View {
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(iconColor)
             Text(message)
-                .font(.system(size: 13, weight: .medium))
+                .font(FamilyTheme.font(13, weight: .medium))
                 .foregroundStyle(.primary)
         }
         .fixedSize()

@@ -8,17 +8,17 @@ struct QuickAccessSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Quick Access")
-                .font(.system(size: 20, weight: .bold))
+                .font(FamilyTheme.font(20, weight: .semibold))
 
             SettingGroup(title: "Position") {
                 SettingCard {
                     VStack(alignment: .leading, spacing: 8) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Preview Position")
-                                .font(.system(size: 13))
+                                .font(FamilyTheme.font(13))
                                 .foregroundStyle(.primary)
                             Text("Where the floating preview appears")
-                                .font(.system(size: 11))
+                                .font(FamilyTheme.font(11))
                                 .foregroundStyle(.tertiary)
                         }
                         Picker("", selection: $viewModel.quickAccessPosition) {

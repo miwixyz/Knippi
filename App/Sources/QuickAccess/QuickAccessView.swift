@@ -161,11 +161,11 @@ struct QuickAccessView: View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Label {
                 Text("Captured")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(FamilyTheme.font(13, weight: .semibold))
             } icon: {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(FamilyTheme.success)
             }
             Spacer()
             Text(metaLine)
@@ -538,7 +538,8 @@ struct QuickAccessView: View {
 
     private func toolBackground(_ kind: HoverAction, isPrimary: Bool) -> Color {
         if isPrimary {
-            return Color.accentColor.opacity(hoveredAction == kind ? 0.92 : 0.78)
+            // Weiße Schrift → accentFill (Weiß ≥ 5,3 : 1), nicht der helle Dunkelmodus-Akzent.
+            return FamilyTheme.accentFill.opacity(hoveredAction == kind ? 1 : 0.9)
         }
         return hoveredAction == kind ? Color.primary.opacity(0.12) : Color.clear
     }
@@ -614,7 +615,7 @@ private struct FailureToast: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.red)
             Text(message)
-                .font(.system(size: 12))
+                .font(FamilyTheme.font(12))
             Button(String(localized: "Retry"), action: onRetry)
                 .controlSize(.small)
             Button {

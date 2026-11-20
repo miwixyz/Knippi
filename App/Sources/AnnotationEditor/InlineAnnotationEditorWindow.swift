@@ -904,7 +904,7 @@ private struct InlineAnnotationToolbar: View {
             }
             .foregroundStyle(.white)
             .frame(width: 29, height: 28)
-            .background(currentTool == tool ? Color.accentColor.opacity(0.45) : Color.white.opacity(0.001))
+            .background(currentTool == tool ? FamilyTheme.accentFill.opacity(0.45) : Color.white.opacity(0.001))
             .clipShape(RoundedRectangle(cornerRadius: 7))
         }
         .buttonStyle(.plain)
@@ -935,8 +935,8 @@ private struct InlineAnnotationToolbar: View {
 
     private func buttonBackground(isActive: Bool, isPrimary: Bool, isEnabled: Bool) -> Color {
         if !isEnabled { return Color.white.opacity(0.06) }
-        if isPrimary { return Color.accentColor.opacity(0.82) }
-        if isActive { return Color.accentColor.opacity(0.45) }
+        if isPrimary { return FamilyTheme.accentFill.opacity(0.82) }
+        if isActive { return FamilyTheme.accentFill.opacity(0.45) }
         return Color.white.opacity(0.10)
     }
 

@@ -14,7 +14,7 @@ struct ScreenshotSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Screenshots")
-                .font(.system(size: 20, weight: .bold))
+                .font(FamilyTheme.font(20, weight: .semibold))
 
             SettingGroup(title: "After Capture") {
                 SettingCard {
@@ -179,7 +179,7 @@ struct ScreenshotSettingsView: View {
                 }
 
                 Text("Useful for capturing menus, hover states, and other UI that disappears the moment you move the mouse.")
-                    .font(.system(size: 11))
+                    .font(FamilyTheme.font(11))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 4)
             }
@@ -202,7 +202,7 @@ struct ScreenshotSettingsView: View {
                         Label("**Right-click** to open the preset picker", systemImage: "cursorarrow.click.2")
                         Label("**Shift + R** to cycle in reverse", systemImage: "arrow.left.arrow.right")
                     }
-                    .font(.system(size: 11))
+                    .font(FamilyTheme.font(11))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 2)
@@ -277,8 +277,8 @@ struct ScreenshotSettingsView: View {
                         showingAddPreset = true
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.accentColor)
+                    .font(FamilyTheme.font(13))
+                    .foregroundStyle(FamilyTheme.accent)
                     .padding(.leading, 2)
                 } // if capturePresetsEnabled
             }
@@ -304,7 +304,7 @@ struct ScreenshotSettingsView: View {
     private var addPresetSheet: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Add Custom Preset")
-                .font(.system(size: 17, weight: .semibold))
+                .font(FamilyTheme.font(17, weight: .semibold))
 
             Picker("", selection: $newPresetType) {
                 Text("Aspect Ratio").tag(0)
@@ -316,7 +316,7 @@ struct ScreenshotSettingsView: View {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(newPresetType == 0 ? LocalizedStringKey("Width ratio") : LocalizedStringKey("Width (px)"))
-                            .font(.system(size: 12))
+                            .font(FamilyTheme.font(12))
                             .foregroundStyle(.secondary)
                         TextField("e.g. 16", text: $newWidth)
                             .textFieldStyle(.roundedBorder)
@@ -324,7 +324,7 @@ struct ScreenshotSettingsView: View {
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(newPresetType == 0 ? LocalizedStringKey("Height ratio") : LocalizedStringKey("Height (px)"))
-                            .font(.system(size: 12))
+                            .font(FamilyTheme.font(12))
                             .foregroundStyle(.secondary)
                         TextField("e.g. 9", text: $newHeight)
                             .textFieldStyle(.roundedBorder)
@@ -333,7 +333,7 @@ struct ScreenshotSettingsView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(LocalizedStringKey("Name (optional)"))
-                        .font(.system(size: 12))
+                        .font(FamilyTheme.font(12))
                         .foregroundStyle(.secondary)
                     TextField("e.g. Widescreen", text: $newName)
                         .textFieldStyle(.roundedBorder)

@@ -15,11 +15,11 @@ struct SettingRow<Control: View>: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(label)
-                        .font(.system(size: 13))
+                        .font(FamilyTheme.font(13))
                         .foregroundStyle(.primary)
                     if let sublabel {
                         Text(sublabel)
-                            .font(.system(size: 11))
+                            .font(FamilyTheme.font(11))
                             .foregroundStyle(.tertiary)
                     }
                 }

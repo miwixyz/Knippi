@@ -7,7 +7,7 @@ struct AnnotationColorControls: View {
 
     var swatchSize: CGFloat = 19
     var spacing: CGFloat = 3
-    var selectedRingColor: Color = .accentColor
+    var selectedRingColor: Color = FamilyTheme.accent
 
     @State private var sampler: NSColorSampler?
     @StateObject private var colorPanel = AnnotationColorPanelController()

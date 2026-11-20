@@ -8,7 +8,7 @@ struct RecordingSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Recording")
-                .font(.system(size: 20, weight: .bold))
+                .font(FamilyTheme.font(20, weight: .semibold))
 
             SettingGroup(title: "Cursor") {
                 SettingCard {

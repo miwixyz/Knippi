@@ -51,6 +51,7 @@ struct OCROnboardingView: View {
                 onDismiss()
             }
             .buttonStyle(.borderedProminent)
+            .tint(FamilyTheme.accentFill)
             .controlSize(.large)
         }
         .padding(32)

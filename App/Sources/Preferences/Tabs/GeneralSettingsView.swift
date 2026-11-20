@@ -27,7 +27,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("General")
-                .font(.system(size: 20, weight: .bold))
+                .font(FamilyTheme.font(20, weight: .semibold))
 
             SettingGroup(title: "Startup") {
                 SettingCard {
@@ -105,7 +105,7 @@ struct GeneralSettingsView: View {
                 SettingCard {
                     SettingRow(label: "Version") {
                         Text(viewModel.appVersion)
-                            .font(.system(size: 12))
+                            .font(FamilyTheme.font(12))
                             .foregroundStyle(.tertiary)
                             .fontDesign(.monospaced)
                     }
@@ -181,7 +181,7 @@ private struct ExternalLinkButton: View {
                 Image(systemName: icon)
                     .font(.system(size: 10))
                 Text(title)
-                    .font(.system(size: 12))
+                    .font(FamilyTheme.font(12))
                 Image(systemName: "arrow.up.right")
                     .font(.system(size: 8, weight: .bold))
                     .opacity(0.6)

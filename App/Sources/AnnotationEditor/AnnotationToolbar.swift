@@ -441,11 +441,11 @@ struct AnnotationToolbar: View {
     }
 
     private func toolbarButtonBackground(isActive: Bool) -> Color {
-        isActive ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.04)
+        isActive ? FamilyTheme.accent.opacity(0.18) : Color.primary.opacity(0.04)
     }
 
     private func toolbarIconForeground(isActive: Bool) -> Color {
-        isActive ? Color.accentColor : Color.primary.opacity(0.82)
+        isActive ? FamilyTheme.accent : Color.primary.opacity(0.82)
     }
 
     private var toolbarButtonStroke: some View {
@@ -455,7 +455,7 @@ struct AnnotationToolbar: View {
 
     private func actionButtonBackground(isPrimary: Bool, isDestructive: Bool) -> Color {
         if isPrimary {
-            return Color.accentColor
+            return FamilyTheme.accentFill   // weißes Symbol darauf
         }
         if isDestructive {
             return Color.primary.opacity(0.045)

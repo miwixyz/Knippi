@@ -312,7 +312,7 @@ struct ScrollCaptureControlsView: View {
                 controlButton(
                     icon: "checkmark",
                     label: String(localized: "Done"),
-                    color: Color.accentColor,
+                    color: FamilyTheme.accentFill,
                     action: onDone
                 )
             } else {

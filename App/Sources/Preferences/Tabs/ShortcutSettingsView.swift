@@ -67,23 +67,23 @@ struct ShortcutSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Shortcuts")
-                .font(.system(size: 20, weight: .bold))
+                .font(FamilyTheme.font(20, weight: .semibold))
 
             // Info banner
             HStack(spacing: 8) {
                 Image(systemName: "info.circle")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(FamilyTheme.accent)
                 Text("Click a customizable shortcut to record a new combination. Press Esc to cancel or Delete to remove. Contextual shortcuts are fixed and work only while that panel is active.")
-                    .font(.system(size: 12))
+                    .font(FamilyTheme.font(12))
                     .foregroundStyle(.secondary)
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.blue.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(FamilyTheme.accent.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.blue.opacity(0.2), lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous)
+                    .stroke(FamilyTheme.accent.opacity(0.26), lineWidth: 0.5)
             )
 
             SystemScreenshotShortcutsCard()
@@ -144,7 +144,7 @@ struct ShortcutSettingsView: View {
             HStack(spacing: 6) {
                 ShortcutKeycap(text: "⇧")
                 Text("+")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(FamilyTheme.font(11, weight: .semibold))
                     .foregroundStyle(.tertiary)
                 SquareCenterLockKeyRecorder(shortcut: $viewModel.squareCenterLockShortcut)
             }
@@ -192,7 +192,7 @@ private struct SquareCenterLockKeyRecorder: View {
         } label: {
             Text(isRecording ? "…" : shortcut.displayCharacter)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                .foregroundStyle(isRecording ? Color.accentColor : Color.secondary)
+                .foregroundStyle(isRecording ? FamilyTheme.accent : Color.secondary)
                 .padding(.horizontal, 8)
                 .frame(height: 24)
                 .background(
@@ -202,7 +202,7 @@ private struct SquareCenterLockKeyRecorder: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .stroke(
-                            isRecording ? Color.accentColor : Color.primary.opacity(0.10),
+                            isRecording ? FamilyTheme.accent : Color.primary.opacity(0.10),
                             lineWidth: isRecording ? 1.5 : 0.5
                         )
                 )
@@ -345,7 +345,7 @@ private struct SystemScreenshotShortcutsCard: View {
             Image(systemName: icon).foregroundStyle(tint)
             VStack(alignment: .leading, spacing: 8) {
                 Text(text)
-                    .font(.system(size: 12))
+                    .font(FamilyTheme.font(12))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 action()

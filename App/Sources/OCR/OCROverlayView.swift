@@ -109,6 +109,7 @@ struct OCROverlayView: View {
                     copyAll()
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(FamilyTheme.accentFill)
                 .controlSize(.small)
                 .keyboardShortcut("c", modifiers: .command)
             }

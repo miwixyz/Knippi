@@ -42,11 +42,9 @@ final class PreferencesWindow {
         window.isReleasedWhenClosed = false
         window.center()
 
-        // Liquid Glass-inspired background
-        let visualEffect = NSVisualEffectView()
-        visualEffect.blendingMode = .behindWindow
-        visualEffect.material = .sidebar
-        visualEffect.state = .active
+        // App-Familie G1: fester Fensterkörper statt Behind-Window-Blur
+        // (der Schreibtisch würde sonst den Inhalt einfärben).
+        let visualEffect = NSView()
         window.contentView = visualEffect
 
         let viewModel = PreferencesViewModel(settings: settings, permissionManager: permissionManager)

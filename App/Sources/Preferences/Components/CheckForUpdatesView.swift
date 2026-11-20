@@ -220,7 +220,7 @@ struct CheckForUpdatesView: View {
                     }
 
                     Text(status.message)
-                        .font(.system(size: 11))
+                        .font(FamilyTheme.font(11))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.trailing)
                 }

@@ -10,7 +10,7 @@ struct OCRSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Text Recognition")
-                .font(.system(size: 20, weight: .bold))
+                .font(FamilyTheme.font(20, weight: .semibold))
 
             SettingGroup(title: "Text Recognition") {
                 SettingCard {

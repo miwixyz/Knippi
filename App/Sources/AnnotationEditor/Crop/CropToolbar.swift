@@ -33,7 +33,7 @@ struct CropToolbar: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 28, height: 24)
-                .background(RoundedRectangle(cornerRadius: 6).fill(Color.accentColor))
+                .background(RoundedRectangle(cornerRadius: 6).fill(FamilyTheme.accentFill))
 
             ratioMenu
                 .frame(width: 180)
@@ -86,6 +86,7 @@ struct CropToolbar: View {
                 Text("Apply").font(.system(size: 12, weight: .medium))
             }
             .buttonStyle(.borderedProminent)
+            .tint(FamilyTheme.accentFill)
             .controlSize(.small)
             .keyboardShortcut(.defaultAction)
         }

@@ -8,7 +8,7 @@ struct PermissionSettingsView: View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
                 Text("Permissions")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(FamilyTheme.font(20, weight: .semibold))
                 Spacer()
                 Button(action: refresh) {
                     Label("Refresh", systemImage: "arrow.clockwise")
@@ -86,7 +86,7 @@ struct PermissionSettingsView: View {
                 .fill(isGranted ? Color.green : Color.orange)
                 .frame(width: 7, height: 7)
             Text(isGranted ? "Allowed" : "Needs Access")
-                .font(.system(size: 11, weight: .medium))
+                .font(FamilyTheme.font(11, weight: .medium))
                 .foregroundStyle(isGranted ? .secondary : .primary)
         }
         .frame(width: 96, alignment: .leading)

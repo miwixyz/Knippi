@@ -19,17 +19,17 @@ struct ExportSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Export")
-                .font(.system(size: 20, weight: .bold))
+                .font(FamilyTheme.font(20, weight: .semibold))
 
             SettingGroup(title: "Quality") {
                 SettingCard {
                     VStack(alignment: .leading, spacing: 8) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Export Quality")
-                                .font(.system(size: 13))
+                                .font(FamilyTheme.font(13))
                                 .foregroundStyle(.primary)
                             Text("Applies to video and GIF exports")
-                                .font(.system(size: 11))
+                                .font(FamilyTheme.font(11))
                                 .foregroundStyle(.tertiary)
                         }
                         Picker("", selection: $viewModel.exportQuality) {
@@ -83,7 +83,7 @@ struct ExportSettingsView: View {
                     SettingRow(label: "Export To") {
                         HStack(spacing: 8) {
                             Text(displayedPath)
-                                .font(.system(size: 12))
+                                .font(FamilyTheme.font(12))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
@@ -151,10 +151,10 @@ struct ExportSettingsView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Screenshot Filename")
-                            .font(.system(size: 13))
+                            .font(FamilyTheme.font(13))
                             .foregroundStyle(.primary)
                         Text("Extension is added automatically")
-                            .font(.system(size: 11))
+                            .font(FamilyTheme.font(11))
                             .foregroundStyle(.tertiary)
                     }
                     Spacer()
@@ -198,10 +198,10 @@ struct ExportSettingsView: View {
                 .background(Color.white.opacity(0.06))
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("Preview")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(FamilyTheme.font(11, weight: .medium))
                     .foregroundStyle(.tertiary)
                 Text(viewModel.screenshotFilenamePreview)
-                    .font(.system(size: 11))
+                    .font(FamilyTheme.font(11))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -222,7 +222,7 @@ struct ExportSettingsView: View {
     private var filenameTokensPopover: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Filename Tokens")
-                .font(.system(size: 13, weight: .semibold))
+                .font(FamilyTheme.font(13, weight: .semibold))
             tokenRow("{date}", "2026-06-07")
             tokenRow("{time}", "16.11.23")
             tokenRow("{timestamp}", "2026-06-07 at 16.11.23")
@@ -241,7 +241,7 @@ struct ExportSettingsView: View {
                 .font(.system(size: 11, design: .monospaced))
                 .frame(width: 88, alignment: .leading)
             Text(description)
-                .font(.system(size: 11))
+                .font(FamilyTheme.font(11))
                 .foregroundStyle(.secondary)
         }
     }

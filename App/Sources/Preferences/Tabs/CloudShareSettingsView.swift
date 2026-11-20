@@ -13,7 +13,7 @@ struct CloudShareSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Cloud Share")
-                .font(.system(size: 20, weight: .bold))
+                .font(FamilyTheme.font(20, weight: .semibold))
 
             if viewModel.isCloudShareConfigured {
                 configuredView
@@ -53,7 +53,7 @@ struct CloudShareSettingsView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
             Text(String(localized: "Cloud Share is not set up yet"))
-                .font(.headline)
+                .font(FamilyTheme.font(.headline))
             Text(String(localized: "Connect your own cloud storage bucket to share captures with one click."))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -62,6 +62,7 @@ struct CloudShareSettingsView: View {
             }
             .controlSize(.large)
             .buttonStyle(.borderedProminent)
+            .tint(FamilyTheme.accentFill)
             Spacer()
         }
         .frame(maxWidth: .infinity)
@@ -77,26 +78,26 @@ struct CloudShareSettingsView: View {
                                 .foregroundStyle(.green)
                                 .font(.system(size: 12))
                             Text(currentProvider?.displayName ?? viewModel.cloudShareProvider ?? "—")
-                                .font(.system(size: 12))
+                                .font(FamilyTheme.font(12))
                                 .foregroundStyle(.secondary)
                         }
                     }
                     SettingRow(label: "Public URL Prefix", showDivider: true) {
                         Text(viewModel.cloudShareURLPrefix ?? "—")
-                            .font(.system(size: 12))
+                            .font(FamilyTheme.font(12))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
                     SettingRow(label: "Bucket", showDivider: true) {
                         Text(viewModel.cloudShareBucket ?? "—")
-                            .font(.system(size: 12))
+                            .font(FamilyTheme.font(12))
                             .foregroundStyle(.secondary)
                     }
                     if let region = viewModel.cloudShareRegion, !region.isEmpty {
                         SettingRow(label: "Region / Endpoint", showDivider: true) {
                             Text(region)
-                                .font(.system(size: 12))
+                                .font(FamilyTheme.font(12))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
@@ -105,7 +106,7 @@ struct CloudShareSettingsView: View {
                     if let pathPrefix = viewModel.cloudSharePathPrefix, !pathPrefix.isEmpty {
                         SettingRow(label: "Path Prefix", showDivider: true) {
                             Text(pathPrefix)
-                                .font(.system(size: 12))
+                                .font(FamilyTheme.font(12))
                                 .foregroundStyle(.secondary)
                         }
                     }

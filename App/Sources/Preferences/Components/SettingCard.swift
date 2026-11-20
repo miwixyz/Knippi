@@ -18,7 +18,7 @@ struct SettingGroup<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 11, weight: .semibold))
+                .font(FamilyTheme.font(11, weight: .semibold))
                 .foregroundStyle(.tertiary)
                 .textCase(.uppercase)
                 .tracking(0.8)
