@@ -187,6 +187,72 @@ final class CaptureCoordinator {
         startAreaCapture(action: .pin)
     }
 
+    // MARK: - Colour Picker
+
+    /// Freeze all displays and let the user pick one pixel's colour with the loupe.
+    func pickColor() {
+        guard !isCaptureSelectionActive else { return }
+        isSelectionFlowStarting = true
+        scheduleSelectionStart { [weak self] in
+            self?.showColorPickerOverlay()
+        }
+    }
+
+    /// Copies `color` in the chosen format, remembers it and confirms with a toast.
+    func copyColor(_ color: SharedKit.RGBColor) {
+        let value = settings.colorFormat.string(for: color)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(value, forType: .string)
+        var recent = settings.recentColors
+        recent.add(color)
+        settings.recentColors = recent
+        showToast(String(localized: "\(value) copied"), icon: "eyedropper")
+    }
+
+    private func showColorPickerOverlay() {
+        dismissOverlay(notifyingCaptureEnd: false)
+        let frozenScreens = captureFrozenScreens()
+        NotificationCenter.default.post(name: .knippiCaptureDidFreezeDesktop, object: nil)
+        guard !frozenScreens.isEmpty else {
+            dismissOverlay()
+            showToast(
+                String(localized: "Could not read the screen"),
+                icon: "exclamationmark.triangle",
+                iconColor: .systemYellow
+            )
+            return
+        }
+        showFreezeWindows(frozenScreens)
+        // One overlay per display, each sampling its own frozen image, so the
+        // colour always comes from the display under the pointer.
+        for (screen, frozenImage) in frozenScreens {
+            let overlay = CaptureOverlayWindow(
+                screen: screen,
+                settings: settings,
+                handlesGlobalKeyEvents: overlayWindows.isEmpty,
+                presetsDisabled: true,
+                allowsMultiWindowSelection: false
+            )
+            overlay.setFrozenBackground(frozenImage)
+            overlay.onColorPicked = { [weak self] color in
+                guard let self else { return }
+                self.dismissOverlay()
+                self.copyColor(color)
+            }
+            overlay.onCancelled = { [weak self] in
+                self?.dismissOverlay()
+            }
+            overlay.activate(mode: .colorPicker)
+            overlayWindows.append(overlay)
+        }
+        // Make the overlay under the pointer key so Return/arrows land there.
+        let mouse = NSEvent.mouseLocation
+        if let target = overlayWindows.first(where: { $0.frame.contains(mouse) }) {
+            target.makeKey()
+        }
+    }
+
     func pinFromClipboard(pasteboard: NSPasteboard = .general) {
         let screen = NSScreen.screens.first {
             NSMouseInRect(NSEvent.mouseLocation, $0.frame, false)
@@ -645,12 +711,13 @@ final class CaptureCoordinator {
             uniqueKeysWithValues: frozenScreens.map { ($0.0.displayID, $0.1) }
         )
 
-        for (screen, _) in frozenScreens {
+        for (screen, frozenImage) in frozenScreens {
             let overlay = CaptureOverlayWindow(
                 screen: screen,
                 settings: settings,
                 handlesGlobalKeyEvents: overlayWindows.isEmpty
             )
+            overlay.setFrozenBackground(frozenImage)
             overlay.onAreaSelected = { [weak self] rect, screen in
                 guard let self else { return }
                 self.dismissSelectionOverlays()
@@ -715,6 +782,13 @@ final class CaptureCoordinator {
             self.dismissAllInOneToolbar()
             self.dismissFreezeWindows()
             self.captureWindow()
+        }
+        toolbar.onColor = { [weak self] in
+            guard let self else { return }
+            self.dismissAllInOneToolbar()
+            self.dismissFreezeWindows()
+            self.pendingSourceApplication = nil
+            self.pickColor()
         }
         toolbar.onScrolling = { [weak self] rect in
             guard let self, FeatureFlags.scrollingCapture else { return }
@@ -971,6 +1045,7 @@ final class CaptureCoordinator {
                 self?.pendingSourceApplication = nil
                 self?.dismissOverlay()
             }
+            overlay.setFrozenBackground(frozenImage)
             overlay.activate(mode: mode)
             overlayWindows.append(overlay)
         }

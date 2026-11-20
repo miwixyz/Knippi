@@ -87,6 +87,15 @@ final class MenuBarController: NSObject {
         captureWindow.setShortcut(for: .captureWindow)
         menu.addItem(captureWindow)
 
+        let pickColor = menuItem(String(localized: "Pick Color"), action: #selector(pickColor))
+        pickColor.setShortcut(for: .pickColor)
+        menu.addItem(pickColor)
+        let recentColors = NSMenuItem(title: String(localized: "Recent Colors"), action: nil, keyEquivalent: "")
+        recentColors.submenu = NSMenu(title: String(localized: "Recent Colors"))
+        recentColors.tag = Self.recentColorsTag
+        refreshRecentColors(recentColors)
+        menu.addItem(recentColors)
+
         let pinFromClipboard = menuItem(String(localized: "Pin from Clipboard"), action: #selector(pinFromClipboard))
         pinFromClipboard.setShortcut(for: .pinFromClipboard)
         pinFromClipboard.toolTip = String(localized: "Float copied images, text, colors, or files above other windows")
@@ -180,6 +189,53 @@ final class MenuBarController: NSObject {
             ]
         ))
         item.attributedTitle = attributed
+    }
+
+    private static let recentColorsTag = 4_711
+
+    /// Rebuilds the "Recent Colors" submenu: swatch + value in the current format.
+    private func refreshRecentColors(_ item: NSMenuItem) {
+        guard let submenu = item.submenu else { return }
+        submenu.removeAllItems()
+        let colors = settings.recentColors.items
+        guard !colors.isEmpty else {
+            let empty = NSMenuItem(title: String(localized: "No colors yet"), action: nil, keyEquivalent: "")
+            empty.isEnabled = false
+            submenu.addItem(empty)
+            return
+        }
+        let format = settings.colorFormat
+        for (index, color) in colors.enumerated() {
+            let entry = menuItem(format.string(for: color), action: #selector(copyRecentColor(_:)))
+            entry.tag = index
+            entry.image = Self.swatch(for: color)
+            submenu.addItem(entry)
+        }
+    }
+
+    private static func swatch(for color: SharedKit.RGBColor) -> NSImage {
+        let size = NSSize(width: 14, height: 14)
+        let image = NSImage(size: size, flipped: false) { rect in
+            let path = NSBezierPath(roundedRect: rect.insetBy(dx: 0.5, dy: 0.5), xRadius: 3, yRadius: 3)
+            NSColor(srgbRed: CGFloat(color.r) / 255, green: CGFloat(color.g) / 255,
+                    blue: CGFloat(color.b) / 255, alpha: 1).setFill()
+            path.fill()
+            NSColor.separatorColor.setStroke()
+            path.lineWidth = 1
+            path.stroke()
+            return true
+        }
+        return image
+    }
+
+    @objc private func pickColor() {
+        captureCoordinator.pickColor()
+    }
+
+    @objc private func copyRecentColor(_ sender: NSMenuItem) {
+        let colors = settings.recentColors.items
+        guard colors.indices.contains(sender.tag) else { return }
+        captureCoordinator.copyColor(colors[sender.tag])
     }
 
     @objc private func captureArea() {
@@ -285,6 +341,7 @@ extension MenuBarController: NSMenuDelegate {
             case #selector(captureArea): item.setShortcut(for: .captureArea)
             case #selector(captureFullscreen): item.setShortcut(for: .captureFullscreen)
             case #selector(captureWindow): item.setShortcut(for: .captureWindow)
+            case #selector(pickColor): item.setShortcut(for: .pickColor)
             case #selector(pinFromClipboard): item.setShortcut(for: .pinFromClipboard)
             case #selector(editClipboardImage): item.setShortcut(for: .editClipboardImage)
             case #selector(captureText): item.setShortcut(for: .captureText)
@@ -294,7 +351,8 @@ extension MenuBarController: NSMenuDelegate {
             case #selector(captureSelfTimer):
                 item.setShortcut(for: .selfTimerCapture)
                 refreshSelfTimerTitle(item)
-            default: break
+            default:
+                if item.tag == Self.recentColorsTag { refreshRecentColors(item) }
             }
         }
     }

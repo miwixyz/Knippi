@@ -650,7 +650,7 @@ public final class AppSettings: @unchecked Sendable {
     }
 
     public var showMagnifier: Bool {
-        get { defaults.object(forKey: "showMagnifier") as? Bool ?? false }
+        get { defaults.object(forKey: "showMagnifier") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "showMagnifier") }
     }
 

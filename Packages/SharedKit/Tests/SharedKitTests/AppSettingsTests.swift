@@ -70,6 +70,19 @@ struct AppSettingsTests {
         #expect(!AppSettings(defaults: defaults).quickAccessCloseAfterDrag)
     }
 
+    @Test("Pixel magnifier defaults on and persists")
+    func showMagnifierPersists() {
+        let suite = "test.showMagnifier"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+
+        let first = AppSettings(defaults: defaults)
+        #expect(first.showMagnifier)
+
+        first.showMagnifier = false
+        #expect(!AppSettings(defaults: defaults).showMagnifier)
+    }
+
     @Test("Default export location is Desktop")
     func defaultExportLocation() {
         let settings = AppSettings()

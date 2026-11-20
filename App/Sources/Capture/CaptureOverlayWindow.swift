@@ -37,6 +37,7 @@ final class CaptureOverlayWindow: NSPanel {
     var onCancelled: (() -> Void)?
     var onSpaceToggle: (() -> Void)?
     var onShortcutAction: ((CaptureOverlayShortcutAction) -> Void)?
+    var onColorPicked: ((SharedKit.RGBColor) -> Void)?
 
     private let settings: AppSettings
     private let handlesGlobalKeyEvents: Bool
@@ -102,6 +103,9 @@ final class CaptureOverlayWindow: NSPanel {
             // monitor leaves the event alone.
             EscapeKeyPressSwallower.shared.swallowRemainder(of: NSApp.currentEvent)
             self?.onCancelled?()
+        }
+        overlayView.onColorPicked = { [weak self] color in
+            self?.onColorPicked?(color)
         }
         overlayView.onSpaceToggle = { [weak self] in
             self?.onSpaceToggle?()

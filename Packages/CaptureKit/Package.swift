@@ -7,6 +7,6 @@ let package = Package(
     dependencies: [.package(path: "../SharedKit")],
     targets: [
         .target(name: "CaptureKit", dependencies: ["SharedKit"]),
-        .testTarget(name: "CaptureKitTests", dependencies: ["CaptureKit"]),
+        .testTarget(name: "CaptureKitTests", dependencies: ["CaptureKit", "SharedKit"]),
     ]
 )

@@ -52092,6 +52092,106 @@
           }
         }
       }
+    },
+    "Pick Color" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbe aufnehmen"
+          }
+        }
+      }
+    },
+    "Recent Colors" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzte Farben"
+          }
+        }
+      }
+    },
+    "No colors yet" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine Farben"
+          }
+        }
+      }
+    },
+    "%@ copied" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kopiert"
+          }
+        }
+      }
+    },
+    "Could not read the screen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirm konnte nicht gelesen werden"
+          }
+        }
+      }
+    },
+    "Pixel Magnifier" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pixellupe"
+          }
+        }
+      }
+    },
+    "Show a magnified pixel view while selecting an area" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Auswählen eines Bereichs eine vergrößerte Pixelansicht zeigen"
+          }
+        }
+      }
+    },
+    "Color Format" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbformat"
+          }
+        }
+      }
+    },
+    "Used when copying a picked color" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gilt beim Kopieren einer aufgenommenen Farbe"
+          }
+        }
+      }
+    },
+    "Copy the color under the pointer, magnified pixel by pixel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbe unter dem Zeiger kopieren, Pixel für Pixel vergrößert"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

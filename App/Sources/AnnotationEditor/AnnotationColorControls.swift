@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import AnnotationKit
+import SharedKit
 
 struct AnnotationColorControls: View {
     @Binding var currentColor: AnnotationColor
@@ -83,9 +84,20 @@ struct AnnotationColorControls: View {
         sampler.show { color in
             if let color {
                 currentColor = AnnotationColor(nsColor: color)
+                Self.rememberPickedColor(color)
             }
             self.sampler = nil
         }
+    }
+
+    /// Screen-sampled colours join the menu bar's "Recent Colors" list.
+    nonisolated private static func rememberPickedColor(_ color: NSColor) {
+        guard let srgb = color.usingColorSpace(.sRGB) else { return }
+        func byte(_ v: CGFloat) -> Int { Int((min(max(v, 0), 1) * 255).rounded()) }
+        let settings = AppSettings()
+        var recent = settings.recentColors
+        recent.add(SharedKit.RGBColor(r: byte(srgb.redComponent), g: byte(srgb.greenComponent), b: byte(srgb.blueComponent)))
+        settings.recentColors = recent
     }
 
     private func copyCurrentHex() {

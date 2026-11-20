@@ -34,6 +34,7 @@ final class CaptureAllInOneToolbarWindow {
     var onScrolling: ((CGRect) -> Void)?
     var onTimer: ((CGRect) -> Void)?
     var onOCR: ((CGRect) -> Void)?
+    var onColor: (() -> Void)?
     var onRecording: ((CGRect) -> Void)?
     var onAnnotate: ((CGRect) -> Void)?
     var onCopy: ((CGRect) -> Void)?
@@ -176,6 +177,7 @@ final class CaptureAllInOneToolbarWindow {
             },
             onFullscreen: { [weak self] in self?.onFullscreen?() },
             onWindow: { [weak self] in self?.onWindow?() },
+            onColor: { [weak self] in self?.onColor?() },
             onScrolling: { [weak self] in
                 guard let self else { return }
                 self.onScrolling?(self.screenLocalSelectionRect)
@@ -653,7 +655,7 @@ private final class CaptureAllInOneToolbarState {
 
         var itemHeights: [CGFloat] = []
         if !isCompact || showsOverflow {
-            itemHeights += Array(repeating: rowHeight, count: 5)
+            itemHeights += Array(repeating: rowHeight, count: 6)
             if FeatureFlags.scrollingCapture { itemHeights.append(rowHeight) }
             if FeatureFlags.screenRecording { itemHeights.append(rowHeight) }
             itemHeights.append(dividerHeight)
@@ -680,7 +682,7 @@ private final class CaptureAllInOneToolbarState {
 
 private struct CaptureAllInOneToolbarView: View {
     private enum ModeAction: Hashable {
-        case area, fullscreen, window, scrolling, timer, ocr, recording
+        case area, fullscreen, window, scrolling, timer, ocr, color, recording
     }
 
     private enum UtilityAction: Hashable {
@@ -693,6 +695,7 @@ private struct CaptureAllInOneToolbarView: View {
     let onArea: () -> Void
     let onFullscreen: () -> Void
     let onWindow: () -> Void
+    let onColor: () -> Void
     let onScrolling: () -> Void
     let onTimer: () -> Void
     let onOCR: () -> Void
@@ -726,6 +729,7 @@ private struct CaptureAllInOneToolbarView: View {
                 }
                 modeButton(.timer, icon: "timer", title: "Timer", action: onTimer)
                 modeButton(.ocr, textIcon: "Aa", title: "OCR", action: onOCR)
+                modeButton(.color, icon: "eyedropper", title: "Color", action: onColor)
                 if FeatureFlags.screenRecording {
                     modeButton(.recording, icon: "video", title: "Recording", action: onRecording)
                 }
@@ -770,6 +774,7 @@ private struct CaptureAllInOneToolbarView: View {
                 }
                 railActionButton(.timer, icon: "timer", title: "Timer", label: String(localized: "Timer"), action: onTimer)
                 railActionButton(.ocr, textIcon: "Aa", title: "OCR", label: String(localized: "OCR"), action: onOCR)
+                railActionButton(.color, icon: "eyedropper", title: "Color", label: String(localized: "Color"), action: onColor)
                 if FeatureFlags.screenRecording {
                     railActionButton(.recording, icon: "video", title: "Recording", label: String(localized: "Record"), action: onRecording)
                 }

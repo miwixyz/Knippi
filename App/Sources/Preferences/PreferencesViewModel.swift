@@ -267,6 +267,18 @@ final class PreferencesViewModel {
             }
         }
     }
+    var colorFormat: ColorFormat {
+        get {
+            access(keyPath: \.colorFormat)
+            return settings.colorFormat
+        }
+        set {
+            withMutation(keyPath: \.colorFormat) {
+                settings.colorFormat = newValue
+            }
+        }
+    }
+
     var showMagnifier: Bool {
         get {
             access(keyPath: \.showMagnifier)

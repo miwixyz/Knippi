@@ -17,11 +17,16 @@ extension Notification.Name {
     /// Only PreferencesView observes this — NOT AppDelegate (which would cause
     /// infinite recursion through show(tab:) → post → observer → show(tab:)).
     static let preferencesSwitchTab = Notification.Name("preferencesSwitchTab")
+    /// Colour-picker key (Return/arrows) pressed in an overlay that is not on
+    /// the display under the cursor. `userInfo["keyCode"]` is the key code.
+    static let colorPickerKeyForwarded = Notification.Name("colorPickerKeyForwarded")
 }
 
 enum CaptureOverlayMode {
     case area
     case windowSelection([WindowInfo])
+    /// Pick one pixel's colour from the frozen backdrop.
+    case colorPicker
 }
 
 @MainActor
@@ -32,6 +37,8 @@ final class CaptureOverlayView: NSView {
     var onWindowsSelected: (([CGWindowID]) -> Void)?
     var onCancel: (() -> Void)?
     var onSpaceToggle: (() -> Void)?
+    /// Colour-picker mode: the sampled sRGB colour of the confirmed pixel.
+    var onColorPicked: ((SharedKit.RGBColor) -> Void)?
 
     private let settings: AppSettings
     private let safeAreaTopInset: CGFloat
@@ -71,6 +78,11 @@ final class CaptureOverlayView: NSView {
     private var isShiftHeld = false
 
     private var cursorHidden = false
+
+    /// Colour-picker sample point moved with the arrow keys (view points).
+    /// Cleared when the mouse moves again.
+    private var colorSamplePoint: NSPoint?
+    nonisolated(unsafe) private var colorPickerKeyObserver: Any?
 
     /// Pre-captured frozen screenshot. When set, drawn as the background
     /// instead of being transparent, preserving dropdown menus/popups.
@@ -119,6 +131,21 @@ final class CaptureOverlayView: NSView {
             owner: self,
             userInfo: nil
         ))
+
+        colorPickerKeyObserver = NotificationCenter.default.addObserver(
+            forName: .colorPickerKeyForwarded,
+            object: nil,
+            queue: .main
+        ) { [weak self] note in
+            let keyCode = (note.userInfo?["keyCode"] as? NSNumber)?.uint16Value
+            let isFromSelf = note.object as AnyObject? === self
+            MainActor.assumeIsolated {
+                guard let self, !isFromSelf, let keyCode else { return }
+                self.syncCurrentMouseLocation()
+                guard self.currentMouseLocation != nil else { return }
+                _ = self.handleColorPickerKey(keyCode)
+            }
+        }
 
         if allowsMultiWindowSelection {
             multiWindowSelectionObserver = NotificationCenter.default.addObserver(
@@ -170,6 +197,9 @@ final class CaptureOverlayView: NSView {
         if let multiWindowSelectionObserver {
             NotificationCenter.default.removeObserver(multiWindowSelectionObserver)
         }
+        if let colorPickerKeyObserver {
+            NotificationCenter.default.removeObserver(colorPickerKeyObserver)
+        }
     }
 
     @available(*, unavailable)
@@ -184,6 +214,7 @@ final class CaptureOverlayView: NSView {
         selectedWindowIDs = []
         isShiftHeld = false
         centerLockKeyHeld = false
+        colorSamplePoint = nil
         needsDisplay = true
     }
 
@@ -196,7 +227,13 @@ final class CaptureOverlayView: NSView {
         // Only hide cursor in area mode — we draw our own crosshair reticle.
         // In window selection mode, keep the normal cursor visible so
         // the user can see where they're pointing.
-        if case .area = mode {
+        if case .colorPicker = mode {
+            // The loupe and reticle replace the system cursor.
+            if !cursorHidden {
+                NSCursor.hide()
+                cursorHidden = true
+            }
+        } else if case .area = mode {
             if activePreset.isFixedSize {
                 // Fixed-size mode: keep system cursor visible (the rectangle replaces the reticle)
                 restoreCursorIfNeeded()
@@ -265,7 +302,7 @@ final class CaptureOverlayView: NSView {
         switch mode {
         case .windowSelection(let windows):
             self.availableWindows = windows
-        case .area:
+        case .area, .colorPicker:
             self.availableWindows = []
         }
         needsDisplay = true
@@ -314,7 +351,86 @@ final class CaptureOverlayView: NSView {
             drawAreaMode(in: context)
         case .windowSelection:
             drawWindowSelectionMode(in: context)
+        case .colorPicker:
+            drawColorPickerMode(in: context)
         }
+    }
+
+    // MARK: - Colour Picker / Loupe
+
+    /// Point the colour picker samples: arrow-key position, else the pointer.
+    private var effectiveSamplePoint: NSPoint? {
+        colorSamplePoint ?? currentMouseLocation
+    }
+
+    private func imagePixel(for point: NSPoint, in image: CGImage) -> CGPoint {
+        PixelLoupeGeometry.imagePixel(
+            forViewPoint: point,
+            viewSize: bounds.size,
+            imageSize: CGSize(width: image.width, height: image.height)
+        )
+    }
+
+    private func drawLoupe(at point: NSPoint, in context: CGContext) {
+        guard let image = frozenBackground else { return }
+        let pixel = imagePixel(for: point, in: image)
+        let color = sampleColor(in: image, atPixel: pixel)
+        PixelLoupeView.draw(
+            image: image,
+            centerPixel: pixel,
+            cursor: point,
+            bounds: bounds,
+            color: color,
+            label: color.map { settings.colorFormat.string(for: $0) },
+            in: context
+        )
+    }
+
+    /// Whether area mode shows the loupe next to the crosshair.
+    private var showsAreaLoupe: Bool {
+        settings.showMagnifier && frozenBackground != nil
+    }
+
+    private func drawColorPickerMode(in context: CGContext) {
+        guard let point = effectiveSamplePoint else { return }
+        drawReticle(at: point, in: context)
+        drawLoupe(at: point, in: context)
+    }
+
+    /// Return confirms, arrows move the sample point by one image pixel.
+    /// Returns false for keys the colour picker does not handle.
+    func handleColorPickerKey(_ keyCode: UInt16) -> Bool {
+        guard case .colorPicker = mode else { return false }
+        let step = frozenBackground.map { bounds.width / CGFloat(max($0.width, 1)) } ?? 1
+        switch keyCode {
+        case 36, 76: // Return, keypad Enter
+            confirmColorPick()
+        case 123, 124, 125, 126:
+            guard var point = effectiveSamplePoint else { return true }
+            switch keyCode {
+            case 123: point.x -= step
+            case 124: point.x += step
+            case 125: point.y -= step
+            default: point.y += step
+            }
+            point.x = min(max(point.x, 0), bounds.width - step / 2)
+            point.y = min(max(point.y, step / 2), bounds.height)
+            colorSamplePoint = point
+            needsDisplay = true
+        default:
+            return false
+        }
+        return true
+    }
+
+    private func confirmColorPick() {
+        guard let point = effectiveSamplePoint, let image = frozenBackground,
+              let color = sampleColor(in: image, atPixel: imagePixel(for: point, in: image)) else {
+            NSSound.beep()
+            return
+        }
+        restoreCursorIfNeeded()
+        onColorPicked?(color)
     }
 
     private func drawAreaMode(in context: CGContext) {
@@ -347,6 +463,9 @@ final class CaptureOverlayView: NSView {
             drawDimensionLabel(for: selectionRect, in: context)
             if let currentMouseLocation {
                 drawReticle(at: currentMouseLocation, in: context)
+                if showsAreaLoupe {
+                    drawLoupe(at: currentMouseLocation, in: context)
+                }
             }
         } else {
             // Before dragging: either fixed-size rectangle preview or crosshair
@@ -389,7 +508,11 @@ final class CaptureOverlayView: NSView {
                 // Freeform or aspect-ratio mode: standard crosshair
                 if let currentMouseLocation {
                     drawReticle(at: currentMouseLocation, in: context)
-                    drawCoordinateLabel(at: currentMouseLocation, in: context)
+                    if showsAreaLoupe {
+                        drawLoupe(at: currentMouseLocation, in: context)
+                    } else {
+                        drawCoordinateLabel(at: currentMouseLocation, in: context)
+                    }
                 }
                 drawPresetBadge(in: context)
             }
@@ -867,6 +990,10 @@ final class CaptureOverlayView: NSView {
             if let windowID = hoveredWindowID {
                 handleWindowClick(windowID, modifierFlags: event.modifierFlags)
             }
+        case .colorPicker:
+            currentMouseLocation = convert(event.locationInWindow, from: nil)
+            colorSamplePoint = nil
+            confirmColorPick()
         }
     }
 
@@ -985,6 +1112,8 @@ final class CaptureOverlayView: NSView {
         switch mode {
         case .area:
             break
+        case .colorPicker:
+            colorSamplePoint = nil
         case .windowSelection:
             if let currentMouseLocation {
                 let screenPoint = viewPointToScreenPoint(currentMouseLocation)
@@ -1020,13 +1149,27 @@ final class CaptureOverlayView: NSView {
                 cancelOverlay()
             }
 
-        case .windowSelection:
+        case .windowSelection, .colorPicker:
             cancelOverlay()
         }
     }
 
     override func keyDown(with event: NSEvent) {
         if handleCenterLockKeyEvent(event) {
+            return
+        }
+        if case .colorPicker = mode, [36, 76, 123, 124, 125, 126].contains(event.keyCode) {
+            syncCurrentMouseLocation()
+            if currentMouseLocation == nil && colorSamplePoint == nil {
+                // Pointer is on another display: let that overlay handle it.
+                NotificationCenter.default.post(
+                    name: .colorPickerKeyForwarded,
+                    object: self,
+                    userInfo: ["keyCode": NSNumber(value: event.keyCode)]
+                )
+            } else {
+                _ = handleColorPickerKey(event.keyCode)
+            }
             return
         }
         if event.keyCode == 53 { // ESC

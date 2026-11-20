@@ -21,6 +21,7 @@ struct AutomationURLActionTests {
             ("knippi://grab/annotate", .captureAreaAndAnnotate),
             ("knippi://grab/area-and-annotate", .captureAreaAndAnnotate),
             ("knippi://grab/area-and-pin", .captureAreaAndPin),
+            ("knippi://grab/color", .pickColor),
             ("knippi://grab/pin", .pinFromClipboard),
             ("knippi://grab/pin-from-clipboard", .pinFromClipboard),
             ("knippi://grab/edit-clipboard", .editClipboardImage),

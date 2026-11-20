@@ -46,7 +46,8 @@ struct AutomationURLsSheetView: View {
                 AutomationCommandItem(id: "clipboard", name: "Capture Area to Clipboard", urlString: "knippi://grab/clipboard"),
                 AutomationCommandItem(id: "share", name: "Capture and Share to Cloud", urlString: "knippi://grab/share"),
                 AutomationCommandItem(id: "annotate", name: "Capture Area & Annotate", urlString: "knippi://grab/annotate"),
-                AutomationCommandItem(id: "area-and-pin", name: "Capture Area & Pin", urlString: "knippi://grab/area-and-pin")
+                AutomationCommandItem(id: "area-and-pin", name: "Capture Area & Pin", urlString: "knippi://grab/area-and-pin"),
+                AutomationCommandItem(id: "color", name: "Pick Color", urlString: "knippi://grab/color")
             ]
         ),
         AutomationCommandSection(

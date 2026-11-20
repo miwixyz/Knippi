@@ -77,9 +77,22 @@ struct ScreenshotSettingsView: View {
                             .toggleStyle(.switch)
                             .controlSize(.small)
                     }
-                    // TODO: Re-enable the rows below once underlying
-                    // behaviors are implemented (showMagnifier,
-                    // rememberLastCaptureArea).
+                    SettingRow(label: "Pixel Magnifier", sublabel: "Show a magnified pixel view while selecting an area", showDivider: true) {
+                        Toggle("", isOn: $viewModel.showMagnifier)
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                    }
+                    SettingRow(label: "Color Format", sublabel: "Used when copying a picked color", showDivider: true) {
+                        Picker("", selection: $viewModel.colorFormat) {
+                            ForEach(ColorFormat.allCases, id: \.self) { format in
+                                Text(verbatim: format.displayName).tag(format)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .fixedSize(horizontal: true, vertical: false)
+                    }
+                    // TODO: Re-enable rememberLastCaptureArea once implemented.
                 }
             }
 

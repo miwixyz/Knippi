@@ -19,6 +19,7 @@ extension KeyboardShortcuts.Name {
     static let captureAreaAndShare = Self("captureAreaAndShare", initial: .init(.zero, modifiers: [.option, .shift]))
     static let captureAreaAndAnnotate = Self("captureAreaAndAnnotate", initial: .init(.eight, modifiers: [.option, .shift]))
     static let captureAreaAndPin = Self("captureAreaAndPin")
+    static let pickColor = Self("pickColor", initial: .init(.nine, modifiers: [.option, .shift]))
     static let pinFromClipboard = Self("pinFromClipboard")
     static let editClipboardImage = Self("editClipboardImage")
     /// No default binding — opt-in. Self-Timer is discoverable from the
@@ -34,7 +35,7 @@ extension KeyboardShortcuts.Name {
     static let allKnippi: [Self] = [
         .captureAllInOne, .captureArea, .captureFullscreen, .captureWindow, .captureText, .recordScreen,
         .recordFullscreen, .captureScrolling, .captureAreaToClipboard, .captureAreaAndShare,
-        .captureAreaAndAnnotate, .captureAreaAndPin, .pinFromClipboard, .editClipboardImage,
+        .captureAreaAndAnnotate, .captureAreaAndPin, .pickColor, .pinFromClipboard, .editClipboardImage,
         .selfTimerCapture, .captureLastArea, .togglePins,
     ]
 }
@@ -103,6 +104,12 @@ struct ShortcutSettingsView: View {
                     shortcutRow("Capture and Share to Cloud", name: .captureAreaAndShare, showDivider: true)
                     shortcutRow("Capture Area & Annotate", name: .captureAreaAndAnnotate, showDivider: true)
                     shortcutRow("Capture Area & Pin", name: .captureAreaAndPin, showDivider: true)
+                    shortcutRow(
+                        "Pick Color",
+                        name: .pickColor,
+                        showDivider: true,
+                        help: "Copy the color under the pointer, magnified pixel by pixel"
+                    )
                     shortcutRow(
                         "Pin from Clipboard",
                         name: .pinFromClipboard,

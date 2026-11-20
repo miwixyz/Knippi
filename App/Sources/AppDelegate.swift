@@ -194,6 +194,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         KeyboardShortcuts.onKeyDown(for: .captureAreaAndPin) { [weak self] in
             self?.captureCoordinator?.captureAreaAndPin()
         }
+        KeyboardShortcuts.onKeyDown(for: .pickColor) { [weak self] in
+            self?.captureCoordinator?.pickColor()
+        }
         KeyboardShortcuts.onKeyDown(for: .pinFromClipboard) { [weak self] in
             self?.captureCoordinator?.pinFromClipboard()
         }
@@ -300,6 +303,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             captureCoordinator.captureAreaAndAnnotate()
         case .captureAreaAndPin:
             captureCoordinator.captureAreaAndPin()
+        case .pickColor:
+            captureCoordinator.pickColor()
         case .pinFromClipboard:
             captureCoordinator.pinFromClipboard()
         case .editClipboardImage:
