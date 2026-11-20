@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/Knippi-App_Icon-1024.png" alt="Knippi-Symbol" width="160">
+</p>
+
 # Knippi
 
 Knippi ist eine schnelle, schlanke Screenshot-App für die Menüleiste des Mac. Open Source und kostenlos.
