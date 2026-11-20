@@ -2,6 +2,7 @@
 import AppKit
 import CoreImage
 import Observation
+import os
 import UserNotifications
 import AnnotationKit
 import CaptureKit
@@ -218,6 +219,10 @@ final class CaptureCoordinator {
         NotificationCenter.default.post(name: .knippiCaptureDidFreezeDesktop, object: nil)
         guard !frozenScreens.isEmpty else {
             dismissOverlay()
+            if !CGPreflightScreenCaptureAccess() {
+                CapturePermissionNotice.show()
+                return
+            }
             showToast(
                 String(localized: "Could not read the screen"),
                 icon: "exclamationmark.triangle",
@@ -535,7 +540,7 @@ final class CaptureCoordinator {
                 }
                 handleCaptureResult(result)
             } catch {
-                print("Fullscreen capture failed: \(error)")
+                handleCaptureFailure(error, context: "Fullscreen capture")
             }
         }
     }
@@ -591,14 +596,14 @@ final class CaptureCoordinator {
 
                 guard !windows.isEmpty else {
                     isSelectionFlowStarting = false
-                    print("No windows found to capture")
+                    Self.captureLogger.notice("No windows found to capture")
                     return
                 }
 
                 showFrozenOverlay(mode: .windowSelection(windows))
             } catch {
                 isSelectionFlowStarting = false
-                print("Window enumeration failed: \(error)")
+                handleCaptureFailure(error, context: "Window enumeration")
             }
         }
     }
@@ -642,7 +647,7 @@ final class CaptureCoordinator {
                     }
                     handleCaptureResult(result)
                 } catch {
-                    print("Fullscreen replay failed: \(error)")
+                    handleCaptureFailure(error, context: "Fullscreen replay")
                 }
             }
         }
@@ -1210,7 +1215,7 @@ final class CaptureCoordinator {
                 }
                 handleCaptureResult(result)
             } catch {
-                print("Window capture failed: \(error)")
+                handleCaptureFailure(error, context: "Window capture")
             }
         }
     }
@@ -1246,7 +1251,7 @@ final class CaptureCoordinator {
                 )
                 handleCaptureResult(result)
             } catch {
-                print("Multi-window capture failed: \(error)")
+                handleCaptureFailure(error, context: "Multi-window capture")
             }
         }
     }
@@ -1515,7 +1520,7 @@ final class CaptureCoordinator {
                 }
                 handleCaptureResult(result)
             } catch {
-                print("Area capture failed: \(error)")
+                handleCaptureFailure(error, context: "Area capture")
             }
         }
     }
@@ -2581,8 +2586,36 @@ final class CaptureCoordinator {
         return unsafeBitCast(sym, to: CGDisplayCreateImageFunc.self)
     }()
 
+    /// Returns nil without Screen Recording permission: CGDisplayCreateImage
+    /// would then hand back a wallpaper-only image instead of failing.
+    /// Callers fall back to ScreenCaptureKit, which reports the real error.
     private static func syncCaptureDisplay(_ displayID: CGDirectDisplayID) -> CGImage? {
-        cgDisplayCreateImage?(displayID)?.takeRetainedValue()
+        let route = CaptureRoute.choose(
+            preflight: CGPreflightScreenCaptureAccess(),
+            syncAvailable: cgDisplayCreateImage != nil
+        )
+        guard route == .sync else { return nil }
+        return cgDisplayCreateImage?(displayID)?.takeRetainedValue()
+    }
+
+    // MARK: - Capture Failures
+
+    private static let captureLogger = Logger(subsystem: "dev.mwlr.knippi", category: "capture")
+
+    /// Reports a failed capture visibly instead of only logging it.
+    private func handleCaptureFailure(_ error: Error, context: String) {
+        switch CaptureErrorPresentation.forError(error) {
+        case .permissionMissing:
+            Self.captureLogger.error("\(context, privacy: .public) failed: permission missing")
+            CapturePermissionNotice.show()
+        case let .generic(message):
+            Self.captureLogger.error("\(context, privacy: .public) failed: \(message, privacy: .public)")
+            showToast(
+                String(localized: "Screenshot failed"),
+                icon: "exclamationmark.triangle",
+                iconColor: .systemYellow
+            )
+        }
     }
 }
 

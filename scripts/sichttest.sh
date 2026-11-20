@@ -4,7 +4,8 @@
 # Eigene Kennung (dev.mwlr.knippi.sichttest), kein Update-Feed, Developer-ID-Signatur.
 # Warum Developer ID: macOS bindet die Bildschirmaufnahme-Freigabe an die Signatur.
 # Ad hoc signiert gilt sie nur für genau einen Build (gemessen 2026-11-20: nach dem
-# Neubau wieder „Zugriff erforderlich“). Mit Developer ID bleibt sie über Neubauten.
+# Neubau wieder „Zugriff erforderlich“). Mit Developer ID sollte sie Neubauten
+# überstehen — unbewiesen, nach dem Neubau im tccd-Log prüfen (auth_value=2).
 #
 # Aufruf:  sh scripts/sichttest.sh
 set -eu

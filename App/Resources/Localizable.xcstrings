@@ -1361,6 +1361,16 @@
         }
       }
     },
+    "Knippi needs Screen Recording permission. Open System Settings → Privacy & Security → Screen & System Audio Recording and allow Knippi." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knippi braucht die Freigabe für Bildschirmaufnahme. Öffne Systemeinstellungen → Datenschutz & Sicherheit → Bildschirm- und Systemaudioaufnahme und erlaube Knippi."
+          }
+        }
+      }
+    },
     "Knippi will keep running, and your global shortcuts still work:\n\n• Capture Area: %@\n\nTo open Preferences again, launch Knippi from Spotlight, Launchpad, or Finder — even while it's still running." : {
       "comment" : "Body text of the confirmation dialog when the user is about to hide the menu bar icon. Shows the Capture Area shortcut and tells the user how to reopen Preferences afterwards.",
       "localizations" : {
@@ -1452,6 +1462,16 @@
         }
       }
     },
+    "Open Settings" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen öffnen"
+          }
+        }
+      }
+    },
     "Required to cancel recording and scrolling capture with Esc" : {
       "comment" : "Subtitle of the Accessibility permission row.",
       "localizations" : {
@@ -1459,6 +1479,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Erforderlich, um Aufnahme und Scroll-Aufnahme mit Esc abzubrechen"
+          }
+        }
+      }
+    },
+    "Screen Recording Permission Needed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe für Bildschirmaufnahme erforderlich"
+          }
+        }
+      }
+    },
+    "Screenshot failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmfoto fehlgeschlagen"
           }
         }
       }

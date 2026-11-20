@@ -101,6 +101,10 @@ final class OCRCoordinator {
                 }
             } catch {
                 logger.error("Instant OCR failed: \(error.localizedDescription, privacy: .public)")
+                if CaptureErrorPresentation.forError(error) == .permissionMissing {
+                    CapturePermissionNotice.show()
+                    return
+                }
                 showToast("OCR: \(error.localizedDescription)", icon: "xmark.circle.fill", iconColor: .systemRed, screen: screen)
             }
         }

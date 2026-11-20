@@ -46,9 +46,11 @@ public final class PermissionManager {
     // MARK: - Screen Recording
 
     public func checkScreenRecordingPermission() async {
-        // Apples Statusabfrage ohne Nebenwirkung. Gemessen 2026-11-20 (macOS 27.2):
-        // SCShareableContent lieferte hier -3801 „TCC abgelehnt“, obwohl die
-        // Aufnahme mit derselben Freigabe funktionierte.
+        // Apples Statusabfrage ohne Nebenwirkung, deshalb zuerst. Korrektur
+        // 2026-11-20 (macOS 27.2): Die frühere Annahme, die Aufnahme habe trotz
+        // -3801 funktioniert, war ein Messfehler — CGDisplayCreateImage lieferte
+        // ohne Freigabe nur das Schreibtischbild (keine Fenster, keine Menüleiste).
+        // Das -3801 von SCShareableContent war korrekt.
         if CGPreflightScreenCaptureAccess() {
             screenRecordingGranted = true
             return
