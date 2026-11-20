@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
-## [0.1.0] — unveröffentlicht
+## [0.1.0] — 2026-11-20
 
 Erste Fassung. Knippi ist eine schlanke Screenshot-App für die Menüleiste, entstanden aus
 [Capso](https://github.com/lzhgus/Capso) von lzhgus (MIT).

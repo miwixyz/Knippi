@@ -85,6 +85,13 @@ git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null \
 git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1 \
     && fail "Tag ${TAG} existiert schon auf GitHub. Version in project.yml anheben."
 grep -q "^## \[${VERSION}\]" CHANGELOG.md || fail "CHANGELOG hat keinen Abschnitt ## [${VERSION}]"
+# Das Datum im Abschnitt muss der Release-Tag sein, sonst steht in Release-Notizen und
+# Update-Fenster ein falscher Tag (0.1.0 wurde vorab datiert). Nur beim Veröffentlichen.
+if [ "${PUBLISH}" = "1" ]; then
+    TODAY="$(date +%F)"
+    grep -qF "## [${VERSION}] — ${TODAY}" CHANGELOG.md \
+        || fail "CHANGELOG-Abschnitt [${VERSION}] trägt nicht das heutige Datum (${TODAY}). Zeile anpassen: ## [${VERSION}] — ${TODAY}"
+fi
 
 # Info.plist: Feed und Schlüssel prüfen, bevor gebaut wird. Ohne
 # SURequireSignedFeed nähme die App auch einen manipulierten Appcast an.
