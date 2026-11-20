@@ -35,6 +35,7 @@ struct QuickAccessView: View {
     @State private var uploadAttemptGate = UploadAttemptGate()
     @State private var didStartAutoUpload = false
     @State private var dragFileStore = QuickAccessDragFileStore()
+    @State private var shareFileStore = QuickAccessDragFileStore.forSharing()
     @State private var dragFileID = UUID()
     @State private var preparedDragFileURL: URL?
     @State private var dragPreparationTask: Task<Void, Never>?
@@ -450,9 +451,21 @@ struct QuickAccessView: View {
         try? dragFileStore.removeFile(for: dragFileID)
     }
 
-    /// Reuses the temp file prepared for drag-out; writes it first if it is missing.
+    /// Writes its own file via the share store: the drag-out file is deleted when the card
+    /// closes (auto-dismiss after the pick), while AirDrop may still be waiting for the receiver.
     private func performSystemShare() {
-        guard let fileURL = dragFileURL() else {
+        let fileURL: URL
+        do {
+            fileURL = try shareFileStore.fileURL(
+                for: captureImage,
+                id: UUID(),
+                output: screenshotOutput,
+                date: capturedAt,
+                sourceAppName: sourceAppName,
+                sourceWindowTitle: sourceWindowTitle,
+                template: screenshotFilenameTemplate
+            )
+        } catch {
             showShareFailure()
             return
         }

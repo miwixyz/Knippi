@@ -173,6 +173,24 @@ final class BeautifyRendererTests: XCTestCase {
         XCTAssertLessThan(corner.redComponent, 0.1)
     }
 
+    /// Large pictures are decoded only as big as the canvas needs; when more than half the
+    /// long side is needed the full image is read (resampling would cost more than it saves).
+    func testBackgroundPictureIsDecodedAtCanvasSize() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("knippi-bg-\(UUID().uuidString).png")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let ctx = try XCTUnwrap(Self.context(width: 400, height: 300))
+        ctx.setFillColor(CGColor(red: 0, green: 0, blue: 1, alpha: 1))
+        ctx.fill(CGRect(x: 0, y: 0, width: 400, height: 300))
+        try XCTUnwrap(ImageUtilities.pngData(from: try XCTUnwrap(ctx.makeImage()))).write(to: url)
+
+        let small = try XCTUnwrap(BeautifyRenderer.loadImage(at: url, covering: CGSize(width: 100, height: 60)))
+        XCTAssertEqual(max(small.width, small.height), 100, "scale max(100/400, 60/300) = 0.25")
+        XCTAssertGreaterThanOrEqual(Double(small.height), 60, "still covers the canvas")
+
+        let large = try XCTUnwrap(BeautifyRenderer.loadImage(at: url, covering: CGSize(width: 300, height: 200)))
+        XCTAssertEqual(large.width, 400, "scale 0.75: full decode")
+    }
+
     // MARK: - Persistence
 
     /// Exactly what the pre-B6 `saveStyle` wrote (no aspect, plain style string).

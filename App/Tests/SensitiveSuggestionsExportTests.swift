@@ -84,6 +84,47 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
         XCTAssertFalse(document.canUndo)
     }
 
+    // MARK: - Crop output size with a background format
+
+    /// The crop's output size applies to the cropped image; the 16:9 background is drawn
+    /// around it afterwards. Before, the 16:9 canvas was squeezed into the crop's 4:3 size.
+    func testOutputSizeKeepsBackgroundAspect() throws {
+        let image = try whiteImage(width: 400, height: 300)
+        let document = AnnotationDocument(imageSize: CGSize(width: image.width, height: image.height))
+        var settings = BeautifySettings()
+        settings.isEnabled = true
+        settings.aspect = .wide16x9
+
+        let output = try XCTUnwrap(AnnotationEditorView.renderForExport(
+            sourceImage: image,
+            document: document,
+            suggestions: SensitiveSuggestionsModel(),
+            beautifySettings: settings,
+            outputSize: CGSize(width: 200, height: 150),
+            onWarning: { XCTFail("unexpected warning: \($0)") }
+        ))
+
+        XCTAssertEqual(Double(output.width) / Double(output.height), 16.0 / 9, accuracy: 0.02)
+        let expected = settings.canvasSize(for: CGSize(width: 200, height: 150))
+        XCTAssertEqual(output.width, Int(expected.width))
+        XCTAssertEqual(output.height, Int(expected.height))
+    }
+
+    func testOutputSizeWithoutBeautifyResizesTheCrop() throws {
+        let image = try whiteImage(width: 400, height: 300)
+        let document = AnnotationDocument(imageSize: CGSize(width: image.width, height: image.height))
+        let output = try XCTUnwrap(AnnotationEditorView.renderForExport(
+            sourceImage: image,
+            document: document,
+            suggestions: SensitiveSuggestionsModel(),
+            beautifySettings: plainSettings,
+            outputSize: CGSize(width: 200, height: 150),
+            onWarning: { XCTFail("unexpected warning: \($0)") }
+        ))
+        XCTAssertEqual(output.width, 200)
+        XCTAssertEqual(output.height, 150)
+    }
+
     // MARK: - Exports while the scan is still running
 
     /// Holds a scan open until `finish` hands it the regions.

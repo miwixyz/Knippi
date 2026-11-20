@@ -33,6 +33,18 @@ public final class QuickAccessDragFileStore {
         self.encoder = encoder
     }
 
+    /// Store for files handed to the macOS share menu. Services such as AirDrop read the file
+    /// only after the user picked them (WebKit keeps shared files for the same reason,
+    /// rdar://63030288), so callers never remove these files themselves: they live in their
+    /// own folder, keep their plain name, and only `pruneStaleFiles` deletes them after 24 h.
+    public static func forSharing(fileManager: FileManager = .default) -> QuickAccessDragFileStore {
+        let defaultDirectory = QuickAccessDragFileStore(fileManager: fileManager).directory
+        return QuickAccessDragFileStore(
+            directory: defaultDirectory.appendingPathComponent("Shared", isDirectory: true),
+            fileManager: fileManager
+        )
+    }
+
     public func fileURL(
         for image: CGImage,
         id: UUID,

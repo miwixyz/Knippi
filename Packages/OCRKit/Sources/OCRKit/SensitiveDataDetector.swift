@@ -59,7 +59,8 @@ public struct SensitiveDataDetector: Sendable {
 
     static let ibanPattern = #"\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){2,7}(?: ?[A-Z0-9]{1,3})?\b"#
     /// IBAN start at the end of a line: the rest is on the next OCR line, so no checksum.
-    static let ibanAtLineEndPattern = #"\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){2,}(?=[ \t]*$)"#
+    /// One group is enough ("IBAN: DE89 3704" wraps after the bank code).
+    static let ibanAtLineEndPattern = #"\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){1,}(?=[ \t]*$)"#
     /// Digit groups for card detection; groups joined by one space or dash form a run.
     static let digitGroupPattern = #"\d+"#
     static let genericTokenPattern = #"[A-Za-z0-9+/_-]{32,}={0,2}"#
@@ -135,7 +136,17 @@ public struct SensitiveDataDetector: Sendable {
                     if digits >= 13 { candidates.append((run[i].lowerBound..<run[j].upperBound, digits)) }
                 }
             }
-            guard !candidates.isEmpty else { continue }
+            guard !candidates.isEmpty else {
+                // A card number wrapped onto the next line: its first 8–12 digits end this
+                // line ("Visa 4111 1111 1111"). Groups of 3+ digits keep dates like 2026-11-20 out.
+                let digits = counts.reduce(0, +)
+                let atLineEnd = text[run[run.count - 1].upperBound...].allSatisfy { $0 == " " || $0 == "\t" }
+                if (8...12).contains(digits), counts.allSatisfy({ $0 >= 3 }), atLineEnd {
+                    result.append(SensitiveMatch(kind: .card, range: run[0].lowerBound..<run[run.count - 1].upperBound,
+                                                 isVerified: false))
+                }
+                continue
+            }
             var verified: [Range<String.Index>] = []
             for c in candidates.sorted(by: { $0.digits > $1.digits })
             where Self.passesLuhn(String(text[c.range])) && !verified.contains(where: { $0.overlaps(c.range) }) {

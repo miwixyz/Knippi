@@ -47,7 +47,7 @@ enum BeautifyRenderer {
             BeautifyGradients.draw(gradient, in: ctx, rect: canvasRect)
 
         case .image(let url):
-            if let picture = loadImage(at: url) {
+            if let picture = loadImage(at: url, covering: canvasRect.size) {
                 ctx.saveGState()
                 ctx.clip(to: canvasRect)
                 ctx.draw(picture, in: aspectFillRect(for: CGSize(width: picture.width, height: picture.height), in: canvasRect))
@@ -121,6 +121,30 @@ enum BeautifyRenderer {
             kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
         ]
         return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+    }
+
+    /// Reads a background picture only as large as needed to aspect-fill `canvas`.
+    /// Render runs on the main actor for every capture with a picture background. Measured
+    /// 2026-11-20 (6000×4000 JPEG, decode + draw): canvas 1835×1032 99 → 40 ms; canvas
+    /// 3600×2300 104 ms full vs 116 ms downsampled. So downsample only when less than half
+    /// the long side is needed; otherwise a full decode is cheaper than resampling.
+    static func loadImage(at url: URL, covering canvas: CGSize) -> CGImage? {
+        guard url.isFileURL, let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+        var maxPixelSize = 8192
+        if let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+           var width = props[kCGImagePropertyPixelWidth] as? Double,
+           var height = props[kCGImagePropertyPixelHeight] as? Double,
+           width > 0, height > 0, canvas.width > 0, canvas.height > 0 {
+            // EXIF orientations 5–8 swap width and height once the transform is applied.
+            if let orientation = props[kCGImagePropertyOrientation] as? Int, (5...8).contains(orientation) {
+                swap(&width, &height)
+            }
+            let scale = max(canvas.width / width, canvas.height / height)
+            if scale < 0.5 {
+                maxPixelSize = max(1, Int((max(width, height) * scale).rounded(.up)))
+            }
+        }
+        return loadImage(at: url, maxPixelSize: maxPixelSize)
     }
 
     /// The rect that covers `bounds` completely with `size`'s aspect, centred.

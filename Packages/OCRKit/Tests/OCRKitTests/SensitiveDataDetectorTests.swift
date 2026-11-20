@@ -87,6 +87,25 @@ struct SensitiveDataDetectorTests {
     @Test func plainTextHasNoMatches() { #expect(d.matches(in: "Willkommen bei Knippi 2026").isEmpty) }
     @Test func dateAndOrderNumberAreNotFlagged() { #expect(d.matches(in: "Bestellung 2026-11-20 Nr. 4711").isEmpty) }
 
+    // A card number or IBAN wrapped onto the next OCR line: the first part is suggested unverified.
+    @Test func cardStartAtLineEnd() throws {
+        let m = try #require(d.matches(in: "Visa 4111 1111 1111").first)
+        #expect(m.kind == .card)
+        #expect(!m.isVerified)
+        #expect(String("Visa 4111 1111 1111"[m.range]) == "4111 1111 1111")
+    }
+    @Test func cardStartWithoutGroupsAtLineEnd() {
+        #expect(d.matches(in: "Karte 411111111111").map(\.kind) == [.card])
+    }
+    @Test func shortIbanStartAtLineEnd() throws {
+        let m = try #require(d.matches(in: "IBAN: DE89 3704").first { $0.kind == .iban })
+        #expect(!m.isVerified)
+    }
+    @Test func dateAtLineEndIsNotACard() { #expect(d.matches(in: "Stand 2026-11-20").isEmpty) }
+    @Test func digitsMidLineAreNotACardStart() {
+        #expect(!d.matches(in: "4111 1111 1111 Stück").contains { $0.kind == .card })
+    }
+
     private func verifiedText(_ kind: SensitiveMatch.Kind, in s: String) -> String? {
         d.matches(in: s).first { $0.kind == kind && $0.isVerified }.map { String(s[$0.range]) }
     }

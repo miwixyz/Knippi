@@ -105,6 +105,7 @@ struct AnnotationEditorView: View {
     @State private var outputSize: CGSize?
     @State private var commitEditingTrigger = 0
     @State private var dragFileStore = QuickAccessDragFileStore()
+    @State private var shareFileStore = QuickAccessDragFileStore.forSharing()
     @State private var dragFileID = UUID()
     @State private var dragRenderCache: DragRenderCache?
     /// Cached text line bounding boxes for smart highlighter snapping.
@@ -848,19 +849,20 @@ struct AnnotationEditorView: View {
         ) else {
             return nil
         }
-        guard let beautified = BeautifyRenderer.render(image: annotated, settings: beautifySettings) else {
+        // The crop's output size applies to the cropped image, before the background is drawn
+        // around it. Resizing the beautified canvas instead squeezed formats like 16:9 into the
+        // crop's aspect ratio. Without beautify the result is unchanged.
+        let sized = outputSize.flatMap { size -> CGImage? in
+            let width = max(1, Int(size.width.rounded()))
+            let height = max(1, Int(size.height.rounded()))
+            guard width != annotated.width || height != annotated.height else { return nil }
+            return ImageUtilities.resized(annotated, width: width, height: height)
+        } ?? annotated
+        guard let beautified = BeautifyRenderer.render(image: sized, settings: beautifySettings) else {
             return nil
         }
         if let warning = beautified.warning { onWarning(warning) }
-        let rendered = beautified.image
-        guard let outputSize else { return rendered }
-
-        let width = max(1, Int(outputSize.width.rounded()))
-        let height = max(1, Int(outputSize.height.rounded()))
-        guard width != rendered.width || height != rendered.height else {
-            return rendered
-        }
-        return ImageUtilities.resized(rendered, width: width, height: height) ?? rendered
+        return beautified.image
     }
 
     private func dragFileURL() -> URL? {
@@ -949,7 +951,8 @@ struct AnnotationEditorView: View {
     }
 
     /// Renders through `renderForExport` (applies pending sensitive-data suggestions),
-    /// writes the temp file via the drag file store (pruned after 24 h) and opens the share menu.
+    /// writes its own file via the share store (never removed when the editor closes or
+    /// changes; pruned after 24 h) and opens the share menu.
     private func share(from anchor: SystemShareAnchor) {
         commitEditingTrigger += 1
         DispatchQueue.main.async {
@@ -959,7 +962,17 @@ struct AnnotationEditorView: View {
             }
             // Never reuse a cached render: suggestions may have arrived since it was made.
             invalidateDragCache()
-            guard let fileURL = dragFileURL(), anchor.present(fileURL: fileURL) else {
+            guard let rendered = renderedOutputImage(),
+                  let fileURL = try? shareFileStore.fileURL(
+                    for: rendered,
+                    id: UUID(),
+                    output: screenshotOutput,
+                    date: captureDate,
+                    sourceAppName: sourceAppName,
+                    sourceWindowTitle: sourceWindowTitle,
+                    template: screenshotFilenameTemplate
+                  ),
+                  anchor.present(fileURL: fileURL) else {
                 SensitiveSuggestionsToast.show(
                     String(localized: "Could not prepare the image for sharing"),
                     icon: "exclamationmark.triangle.fill",
