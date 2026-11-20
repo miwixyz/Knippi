@@ -25,10 +25,17 @@ struct FileNamingTests {
         return components.date!
     }
 
-    @Test("Default screenshot name contains 'Knippi Screenshot'")
+    @Test("Default screenshot name starts with 'Knippi '")
     func defaultScreenshotName() {
         let name = FileNaming.generateName(for: .screenshot)
-        #expect(name.hasPrefix("Knippi Screenshot"))
+        #expect(name.hasPrefix("Knippi "))
+    }
+
+    @Test("Default screenshot file name is 'Knippi yyyy-MM-dd um HH.mm.ss'")
+    func defaultScreenshotFileNamePattern() {
+        let date = localDate(year: 2026, month: 11, day: 20, hour: 14, minute: 3, second: 9)
+        let fileName = FileNaming.generateFileName(for: .screenshot, format: .png, date: date)
+        #expect(fileName == "Knippi 2026-11-20 um 14.03.09.png")
     }
 
     @Test("Default recording name contains 'Knippi Recording'")
@@ -47,7 +54,12 @@ struct FileNamingTests {
     @Test("Screenshot name includes source app when provided")
     func screenshotNameIncludesSourceApp() {
         let date = Date(timeIntervalSince1970: 1_705_348_800)
-        let name = FileNaming.generateName(for: .screenshot, date: date, sourceAppName: "Safari")
+        let name = FileNaming.generateName(
+            for: .screenshot,
+            date: date,
+            sourceAppName: "Safari",
+            template: "Knippi Screenshot{source} {timestamp}"
+        )
 
         #expect(name.hasPrefix("Knippi Screenshot - Safari "))
     }
@@ -59,7 +71,8 @@ struct FileNamingTests {
             for: .screenshot,
             format: .png,
             date: date,
-            sourceAppName: "Foo/Bar:Beta"
+            sourceAppName: "Foo/Bar:Beta",
+            template: "Knippi Screenshot{source} {timestamp}"
         )
 
         #expect(fileName.hasPrefix("Knippi Screenshot - Foo-Bar-Beta "))
@@ -135,7 +148,7 @@ struct FileNamingTests {
             template: "   "
         )
 
-        #expect(name == "Knippi Screenshot 2024-01-15 at 16.00.00")
+        #expect(name == "Knippi 2024-01-15 um 16.00.00")
     }
 
     @Test("Rendered filename strips unsafe characters")

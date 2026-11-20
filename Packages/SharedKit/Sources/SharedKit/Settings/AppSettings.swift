@@ -377,7 +377,7 @@ public final class AppSettings: @unchecked Sendable {
     }
 
     public var quickAccessAutoClose: Bool {
-        get { defaults.object(forKey: "quickAccessAutoClose") as? Bool ?? false }
+        get { defaults.object(forKey: "quickAccessAutoClose") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "quickAccessAutoClose") }
     }
 
@@ -527,6 +527,15 @@ public final class AppSettings: @unchecked Sendable {
     }
 
     // MARK: Screenshots
+    public var afterCaptureMode: AfterCaptureMode {
+        get {
+            guard let raw = defaults.string(forKey: "afterCaptureMode"),
+                  let value = AfterCaptureMode(rawValue: raw) else { return .preview }
+            return value
+        }
+        set { defaults.set(newValue.rawValue, forKey: "afterCaptureMode") }
+    }
+
     public var screenshotShowPreview: Bool {
         get { defaults.object(forKey: "screenshotShowPreview") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "screenshotShowPreview") }
@@ -864,7 +873,10 @@ public final class AppSettings: @unchecked Sendable {
         if let custom = defaults.url(forKey: "exportLocation") {
             return custom
         }
-        return FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
+        // Knippi default: ~/Pictures/Knippi (created on first save).
+        let pictures = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures", isDirectory: true)
+        return pictures.appendingPathComponent("Knippi", isDirectory: true)
     }
 
     public func setExportLocation(_ url: URL) {

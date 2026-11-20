@@ -1746,7 +1746,10 @@ final class CaptureCoordinator {
         automatedCaptureDeadline = nil
 
         let result = captureResultWithPendingSource(capturedResult)
-        let action = pendingAction
+        // A plain capture follows the "after capture" mode; "Open editor" behaves like an explicit annotate.
+        let action: PostCaptureAction = pendingAction == .default && settings.afterCaptureMode == .editor
+            ? .annotate
+            : pendingAction
         pendingAction = .default
         let outputResult = beautifiedResultIfNeeded(timestampedResultIfNeeded(result), action: action)
         lastCaptureResult = result
@@ -1772,7 +1775,7 @@ final class CaptureCoordinator {
         case .pin:
             pinToScreen(outputResult, anchor: anchorRect(for: result))
         case .save:
-            saveImageToFile(outputResult)
+            saveCaptureAndReportFailure(outputResult)
         case .share:
             // Skip Quick Access, then upload in background.
             logDiagnostic("Cloud Share capture completed mode=\(outputResult.mode) displayID=\(outputResult.displayID)")
@@ -1784,6 +1787,17 @@ final class CaptureCoordinator {
                     title: String(localized: "Cloud share failed"),
                     body: String(localized: "Cloud Share is not configured.")
                 )
+            }
+        case .default where settings.afterCaptureMode == .silent:
+            let shouldAutoUpload = settings.cloudShareAutoUploadEnabled && shareCoordinator != nil
+            let saveResult = applySilentPostCaptureActions(outputResult, entryID: entryID)
+            if case .success = saveResult {
+                showToast(String(localized: "Saved"))
+            }
+            if shouldAutoUpload, let coord = shareCoordinator {
+                Task {
+                    await self.performShareAfterCapture(result: outputResult, coord: coord)
+                }
             }
         case .default:
             let shouldAutoUpload = settings.cloudShareAutoUploadEnabled && shareCoordinator != nil
@@ -1862,13 +1876,22 @@ final class CaptureCoordinator {
         }
         window.onSave = { [weak self, weak window] in
             guard let self, let window else { return }
-            guard let savedFileURL = self.saveImageToFile(result) else {
-                self.showToast(
-                    String(localized: "Failed to save screenshot"),
-                    icon: "exclamationmark.triangle.fill",
-                    iconColor: .systemOrange,
-                    screen: window.targetScreen
-                )
+            let savedFileURL: URL
+            switch self.writeScreenshot(
+                result.image,
+                sourceAppName: result.appName,
+                sourceWindowTitle: result.windowName,
+                date: result.timestamp
+            ) {
+            case .success(let url):
+                savedFileURL = url
+            case .failure(let error):
+                let alreadyCopied = self.settings.screenshotAutoCopy
+                    && self.settings.screenshotClipboardContent == .image
+                if ScreenshotSaver.failureNeedsClipboardCopy(alreadyCopied: alreadyCopied) {
+                    self.copyScreenshotToClipboard(result, entryID: entryID, pasteboard: pasteboard)
+                }
+                self.showSaveFailureToast(error, screen: window.targetScreen)
                 return
             }
             if self.settings.screenshotAutoCopy,
@@ -2192,7 +2215,7 @@ final class CaptureCoordinator {
                 self?.copyRenderedScreenshotToClipboard(image)
             },
             onSave: { [weak self] in
-                self?.saveImageToFile(
+                self?.saveRenderedImage(
                     image,
                     sourceAppName: sourceAppName,
                     sourceWindowTitle: sourceWindowTitle,
@@ -2277,7 +2300,12 @@ final class CaptureCoordinator {
             )
         }
         let savedFileURL = settings.screenshotAutoSave
-            ? saveImageToFile(result)
+            ? saveCaptureAndReportFailure(
+                result,
+                alreadyCopied: settings.screenshotAutoCopy && settings.screenshotClipboardContent == .image,
+                entryID: entryID,
+                pasteboard: pasteboard
+            )
             : nil
         if settings.screenshotAutoCopy,
            settings.screenshotClipboardContent == .filePath {
@@ -2291,24 +2319,93 @@ final class CaptureCoordinator {
         return savedFileURL
     }
 
+    /// Saves a captured result; on failure the image is put on the clipboard (unless it already is)
+    /// and a toast names the folder. Returns the saved URL, or nil on failure.
     @discardableResult
-    private func saveImageToFile(_ result: CaptureResult) -> URL? {
-        saveImageToFile(
+    private func saveCaptureAndReportFailure(
+        _ result: CaptureResult,
+        alreadyCopied: Bool = false,
+        entryID: UUID = UUID(),
+        pasteboard: NSPasteboard = .general
+    ) -> URL? {
+        switch writeScreenshot(
+            result.image,
+            sourceAppName: result.appName,
+            sourceWindowTitle: result.windowName,
+            date: result.timestamp
+        ) {
+        case .success(let url):
+            return url
+        case .failure(let error):
+            if ScreenshotSaver.failureNeedsClipboardCopy(alreadyCopied: alreadyCopied) {
+                copyScreenshotToClipboard(result, entryID: entryID, pasteboard: pasteboard)
+            }
+            showSaveFailureToast(error)
+            return nil
+        }
+    }
+
+    /// "Silent" after-capture mode: always copy to the clipboard and save to the output folder,
+    /// independent of the Copy / Auto Save toggles. A failed save shows the failure toast
+    /// (the image is on the clipboard in every case).
+    @discardableResult
+    func applySilentPostCaptureActions(
+        _ result: CaptureResult,
+        entryID: UUID,
+        pasteboard: NSPasteboard = .general
+    ) -> Result<URL, ScreenshotSaveError> {
+        var copied = false
+        if settings.screenshotClipboardContent == .image {
+            copied = copyScreenshotToClipboard(result, entryID: entryID, pasteboard: pasteboard)
+        }
+        let saveResult = writeScreenshot(
             result.image,
             sourceAppName: result.appName,
             sourceWindowTitle: result.windowName,
             date: result.timestamp
         )
+        if settings.screenshotClipboardContent == .filePath {
+            copied = copyScreenshotToClipboard(
+                result,
+                entryID: entryID,
+                preferredFileURL: try? saveResult.get(),
+                pasteboard: pasteboard
+            )
+        }
+        if case .failure(let error) = saveResult {
+            if ScreenshotSaver.failureNeedsClipboardCopy(alreadyCopied: copied) {
+                copyScreenshotToClipboard(result, entryID: entryID, pasteboard: pasteboard)
+            }
+            showSaveFailureToast(error)
+        }
+        return saveResult
     }
 
-    @discardableResult
-    private func saveImageToFile(
+    private func showSaveFailureToast(_ error: ScreenshotSaveError, screen: NSScreen? = nil) {
+        let message: String
+        switch error {
+        case .encodingFailed:
+            message = String(localized: "Couldn't save: the image couldn't be encoded – it is on the clipboard")
+        case .folderUnavailable, .writeFailed:
+            let folder = settings.exportLocation.path
+                .replacingOccurrences(of: NSHomeDirectory(), with: "~")
+            message = String(localized: "Couldn't save: \(folder) isn't reachable – the image is on the clipboard")
+        }
+        showToast(
+            message,
+            icon: "exclamationmark.triangle.fill",
+            iconColor: .systemOrange,
+            screen: screen
+        )
+    }
+
+    private func writeScreenshot(
         _ image: CGImage,
         sourceAppName: String? = nil,
         sourceWindowTitle: String? = nil,
         date: Date = Date()
-    ) -> URL? {
-        guard let encoded = screenshotData(from: image) else { return nil }
+    ) -> Result<URL, ScreenshotSaveError> {
+        guard let encoded = screenshotData(from: image) else { return .failure(.encodingFailed) }
         let directory = settings.screenshotMonthlyFolders
             ? FileNaming.monthlyDirectory(in: settings.exportLocation)
             : settings.exportLocation
@@ -2321,13 +2418,7 @@ final class CaptureCoordinator {
             sourceWindowTitle: sourceWindowTitle,
             template: settings.screenshotFilenameTemplate
         )
-        do {
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            try encoded.data.write(to: url)
-            return url
-        } catch {
-            return nil
-        }
+        return ScreenshotSaver.write(encoded.data, to: url)
     }
 
     private func screenshotData(from image: CGImage) -> (data: Data, format: ScreenshotOutputFormat)? {
@@ -2344,12 +2435,15 @@ final class CaptureCoordinator {
         sourceWindowTitle: String? = nil,
         date: Date = Date()
     ) {
-        saveImageToFile(
+        if case .failure(let error) = writeScreenshot(
             image,
             sourceAppName: sourceAppName,
             sourceWindowTitle: sourceWindowTitle,
             date: date
-        )
+        ) {
+            copyRenderedScreenshotToClipboard(image)
+            showSaveFailureToast(error)
+        }
     }
 
     private func copyRenderedImage(_ image: CGImage) {

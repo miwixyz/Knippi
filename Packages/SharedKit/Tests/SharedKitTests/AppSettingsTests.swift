@@ -83,11 +83,59 @@ struct AppSettingsTests {
         #expect(!AppSettings(defaults: defaults).showMagnifier)
     }
 
-    @Test("Default export location is Desktop")
+    @Test("Default export location is ~/Pictures/Knippi")
     func defaultExportLocation() {
-        let settings = AppSettings()
-        let desktopURL = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
-        #expect(settings.exportLocation == desktopURL)
+        let suite = "test.exportLocation.default"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        let settings = AppSettings(defaults: defaults)
+        let pictures = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!
+        #expect(settings.exportLocation == pictures.appendingPathComponent("Knippi", isDirectory: true))
+    }
+
+    @Test("A stored export location wins over the Knippi default")
+    func storedExportLocationWins() {
+        let suite = "test.exportLocation.stored"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!
+        AppSettings(defaults: defaults).setExportLocation(desktop)
+        #expect(AppSettings(defaults: defaults).exportLocation == desktop)
+    }
+
+    @Test("Quick Access auto-close defaults on, a stored value wins")
+    func quickAccessAutoCloseDefaultsOn() {
+        let suite = "test.quickAccessAutoClose.default"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        let first = AppSettings(defaults: defaults)
+        #expect(first.quickAccessAutoClose)
+
+        first.quickAccessAutoClose = false
+        #expect(!AppSettings(defaults: defaults).quickAccessAutoClose)
+    }
+
+    @Test("After-capture mode defaults to preview and round-trips")
+    func afterCaptureModeRoundTrip() {
+        let suite = "test.afterCaptureMode.roundtrip"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        let first = AppSettings(defaults: defaults)
+        #expect(first.afterCaptureMode == .preview)
+
+        for mode in AfterCaptureMode.allCases {
+            first.afterCaptureMode = mode
+            #expect(AppSettings(defaults: defaults).afterCaptureMode == mode)
+        }
+    }
+
+    @Test("Unknown stored after-capture mode falls back to preview")
+    func afterCaptureModeUnknownFallsBack() {
+        let suite = "test.afterCaptureMode.unknown"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        defaults.set("bogus", forKey: "afterCaptureMode")
+        #expect(AppSettings(defaults: defaults).afterCaptureMode == .preview)
     }
 
     @Test("Default screenshot format is PNG")

@@ -223,6 +223,48 @@ final class ScreenshotClipboardContentTests: XCTestCase {
         XCTAssertTrue(FileManager.default.isReadableFile(atPath: savedPath))
     }
 
+    func testSilentModeCopiesAndSavesIgnoringAutoToggles() throws {
+        let settings = makeSettings()
+        settings.screenshotAutoCopy = false
+        settings.screenshotAutoSave = false
+        settings.screenshotOutputFormat = .png
+        let exportRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("knippi-silent-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: exportRoot) }
+        settings.setExportLocation(exportRoot)
+        let coordinator = CaptureCoordinator(settings: settings)
+        let pasteboard = makePasteboard()
+
+        let result = coordinator.applySilentPostCaptureActions(
+            try makeCaptureResult(), entryID: UUID(), pasteboard: pasteboard
+        )
+
+        let url = try result.get()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
+        XCTAssertTrue(url.lastPathComponent.hasPrefix("Knippi 1970-01-01 um "))
+        XCTAssertNotNil(pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff))
+    }
+
+    func testSilentModeSaveFailureKeepsImageOnClipboard() throws {
+        let settings = makeSettings()
+        let exportRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("knippi-silent-fail-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: exportRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: exportRoot) }
+        let blocked = exportRoot.appendingPathComponent("blocked")
+        try Data([1]).write(to: blocked)
+        settings.setExportLocation(blocked)
+        let coordinator = CaptureCoordinator(settings: settings)
+        let pasteboard = makePasteboard()
+
+        let result = coordinator.applySilentPostCaptureActions(
+            try makeCaptureResult(), entryID: UUID(), pasteboard: pasteboard
+        )
+
+        guard case .failure = result else { return XCTFail("expected save failure") }
+        XCTAssertNotNil(pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff))
+    }
+
     private func makeSettings() -> AppSettings {
         let suite = "ScreenshotClipboardContentTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!

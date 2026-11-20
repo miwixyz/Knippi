@@ -18,15 +18,29 @@ struct ScreenshotSettingsView: View {
 
             SettingGroup(title: "After Capture") {
                 SettingCard {
-                    SettingRow(label: "Show Preview", sublabel: "Display thumbnail with quick actions") {
-                        Toggle("", isOn: $viewModel.screenshotShowPreview)
-                            .toggleStyle(.switch)
-                            .controlSize(.small)
+                    SettingRow(label: "After capture", sublabel: afterCaptureDescription) {
+                        Picker("", selection: $viewModel.afterCaptureMode) {
+                            Text("Show preview").tag(AfterCaptureMode.preview)
+                            Text("Open editor").tag(AfterCaptureMode.editor)
+                            Text("Silent").tag(AfterCaptureMode.silent)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .fixedSize(horizontal: true, vertical: false)
                     }
-                    SettingRow(label: "Copy to Clipboard", sublabel: "Copy screenshot immediately", showDivider: true) {
-                        Toggle("", isOn: $viewModel.screenshotAutoCopy)
-                            .toggleStyle(.switch)
-                            .controlSize(.small)
+                    // The mode is the source of truth: the per-step toggles only apply to "Show preview"
+                    // ("Open editor" skips them, "Silent" always copies and saves).
+                    if viewModel.afterCaptureMode == .preview {
+                        SettingRow(label: "Show Preview", sublabel: "Display thumbnail with quick actions", showDivider: true) {
+                            Toggle("", isOn: $viewModel.screenshotShowPreview)
+                                .toggleStyle(.switch)
+                                .controlSize(.small)
+                        }
+                        SettingRow(label: "Copy to Clipboard", sublabel: "Copy screenshot immediately", showDivider: true) {
+                            Toggle("", isOn: $viewModel.screenshotAutoCopy)
+                                .toggleStyle(.switch)
+                                .controlSize(.small)
+                        }
                     }
                     SettingRow(
                         label: "Clipboard Content",
@@ -57,10 +71,12 @@ struct ScreenshotSettingsView: View {
                             .fixedSize(horizontal: true, vertical: false)
                         }
                     }
-                    SettingRow(label: "Auto Save", sublabel: "Save to file automatically", showDivider: true) {
-                        Toggle("", isOn: $viewModel.screenshotAutoSave)
-                            .toggleStyle(.switch)
-                            .controlSize(.small)
+                    if viewModel.afterCaptureMode == .preview {
+                        SettingRow(label: "Auto Save", sublabel: "Save to file automatically", showDivider: true) {
+                            Toggle("", isOn: $viewModel.screenshotAutoSave)
+                                .toggleStyle(.switch)
+                                .controlSize(.small)
+                        }
                     }
                 }
             }
@@ -314,6 +330,17 @@ struct ScreenshotSettingsView: View {
         }
         .sheet(isPresented: $showingAddPreset) {
             addPresetSheet
+        }
+    }
+
+    private var afterCaptureDescription: LocalizedStringKey {
+        switch viewModel.afterCaptureMode {
+        case .preview:
+            "Show a thumbnail with quick actions"
+        case .editor:
+            "Open the annotation editor right away"
+        case .silent:
+            "Copy to the clipboard and save to the output folder, nothing else"
         }
     }
 

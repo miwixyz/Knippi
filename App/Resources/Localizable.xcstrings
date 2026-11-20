@@ -52302,6 +52302,106 @@
           }
         }
       }
+    },
+    "After capture" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach der Aufnahme"
+          }
+        }
+      }
+    },
+    "Show preview" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau zeigen"
+          }
+        }
+      }
+    },
+    "Open editor" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editor öffnen"
+          }
+        }
+      }
+    },
+    "Silent" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Still"
+          }
+        }
+      }
+    },
+    "Show a thumbnail with quick actions" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt eine Vorschau mit Schnellaktionen"
+          }
+        }
+      }
+    },
+    "Open the annotation editor right away" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öffnet sofort den Bearbeitungseditor"
+          }
+        }
+      }
+    },
+    "Copy to the clipboard and save to the output folder, nothing else" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In die Zwischenablage kopieren und im Ausgabeordner sichern, sonst nichts"
+          }
+        }
+      }
+    },
+    "Saved" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesichert"
+          }
+        }
+      }
+    },
+    "Couldn't save: %@ isn't reachable – the image is on the clipboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern fehlgeschlagen: %@ nicht erreichbar – das Bild liegt in der Zwischenablage"
+          }
+        }
+      }
+    },
+    "Couldn't save: the image couldn't be encoded – it is on the clipboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern fehlgeschlagen: Das Bild ließ sich nicht kodieren – es liegt in der Zwischenablage"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

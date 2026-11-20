@@ -53,7 +53,7 @@ public enum FileFormat: String, Sendable {
 }
 
 public enum FileNaming {
-    public static let defaultScreenshotTemplate = "Knippi Screenshot{source} {timestamp}"
+    public static let defaultScreenshotTemplate = "Knippi {date} um {time}"
     public static let defaultRecordingTemplate = "Knippi Recording {timestamp}"
 
     private static let maxBaseNameUTF8Length = 200

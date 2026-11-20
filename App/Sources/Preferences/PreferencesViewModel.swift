@@ -80,6 +80,17 @@ final class PreferencesViewModel {
     }
 
     // MARK: Screenshots
+    var afterCaptureMode: AfterCaptureMode {
+        get {
+            access(keyPath: \.afterCaptureMode)
+            return settings.afterCaptureMode
+        }
+        set {
+            withMutation(keyPath: \.afterCaptureMode) {
+                settings.afterCaptureMode = newValue
+            }
+        }
+    }
     var screenshotShowPreview: Bool {
         get {
             access(keyPath: \.screenshotShowPreview)
