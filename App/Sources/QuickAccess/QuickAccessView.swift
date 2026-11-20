@@ -80,6 +80,7 @@ struct QuickAccessView: View {
         }
         .padding(8)
         .background(hiddenEscapeButton)
+        .background(hiddenPinShortcutButton)
         .background(
             .ultraThinMaterial,
             in: RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous)
@@ -280,7 +281,6 @@ struct QuickAccessView: View {
             Button(action: onPin) {
                 Label("Pin", systemImage: "pin")
             }
-            .keyboardShortcut("p", modifiers: [.command])
         case .ocr:
             Button(action: onOCR) {
                 Label("Extract Text", systemImage: "text.viewfinder")
@@ -591,6 +591,17 @@ struct QuickAccessView: View {
         case .pin:       return ("p", [.command])
         case .systemShare, .upload, .linkCopied, .overflow: return nil
         }
+    }
+
+    /// Pin lives in the overflow menu, but ⌘P keeps working directly on the card.
+    /// The menu item carries no shortcut of its own, so it can never double-fire.
+    private var hiddenPinShortcutButton: some View {
+        Button(action: onPin) { EmptyView() }
+            .keyboardShortcut("p", modifiers: [.command])
+            .opacity(0)
+            .frame(width: 0, height: 0)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 
     private var hiddenEscapeButton: some View {
