@@ -2487,6 +2487,14 @@ final class CaptureCoordinator {
         case .success(let outcome):
             if outcome.replacedOriginal {
                 showToast(String(localized: "Saved – original replaced"))
+            } else if let replaceError = outcome.replaceError {
+                Self.captureLogger.error("Replacing the auto-saved original failed: \(replaceError, privacy: .private)")
+                logDiagnostic("Replacing the auto-saved original failed; saved as \(outcome.url.lastPathComponent)")
+                showToast(
+                    String(localized: "Original couldn't be replaced – saved as a new file"),
+                    icon: "exclamationmark.triangle.fill",
+                    iconColor: .systemOrange
+                )
             }
             return outcome.url
         case .failure(let error):

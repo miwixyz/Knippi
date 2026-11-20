@@ -28,10 +28,16 @@ public enum ScreenshotSaveTarget: Equatable, Sendable {
 public struct ScreenshotSaveOutcome: Equatable, Sendable {
     public let url: URL
     public let replacedOriginal: Bool
+    /// Set when replacing the original was allowed but failed, so the edit went to a
+    /// new file and the original is still on disk. Callers must tell the user.
+    public let replaceError: String?
 
-    public init(url: URL, replacedOriginal: Bool) {
+    public var replaceFailed: Bool { replaceError != nil }
+
+    public init(url: URL, replacedOriginal: Bool, replaceError: String? = nil) {
         self.url = url
         self.replacedOriginal = replacedOriginal
+        self.replaceError = replaceError
     }
 }
 
@@ -56,16 +62,25 @@ public enum ScreenshotSaver {
     /// Writes `data` over the auto-saved `original` of the same capture (atomically, same
     /// name) when `target(for:replacing:)` allows it; otherwise — or if replacing fails —
     /// a normal never-overwriting save at `url`.
+    /// `replaceWriter` is a test seam for the in-place write.
     public static func write(
         _ data: Data,
         to url: URL,
-        replacing original: URL?
+        replacing original: URL?,
+        replaceWriter: (Data, URL) throws -> Void = { try $0.write(to: $1, options: .atomic) }
     ) -> Result<ScreenshotSaveOutcome, ScreenshotSaveError> {
-        if case .replace(let target) = target(for: url, replacing: original),
-           (try? data.write(to: target, options: .atomic)) != nil {
-            return .success(ScreenshotSaveOutcome(url: target, replacedOriginal: true))
+        var replaceError: String?
+        if case .replace(let target) = target(for: url, replacing: original) {
+            do {
+                try replaceWriter(data, target)
+                return .success(ScreenshotSaveOutcome(url: target, replacedOriginal: true))
+            } catch {
+                replaceError = "\(target.path): \(error)"
+            }
         }
-        return write(data, to: url).map { ScreenshotSaveOutcome(url: $0, replacedOriginal: false) }
+        return write(data, to: url).map {
+            ScreenshotSaveOutcome(url: $0, replacedOriginal: false, replaceError: replaceError)
+        }
     }
 
     /// Writes `data` to `url`, creating the parent folder if needed. Never

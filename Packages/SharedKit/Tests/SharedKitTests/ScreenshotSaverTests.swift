@@ -137,6 +137,40 @@ struct ScreenshotSaverTests {
         #expect(try Data(contentsOf: autoSaved) == Data([1]))
     }
 
+    @Test("Replacing fails although allowed → new numbered file, outcome reports replaceFailed")
+    func editorSaveReportsFailedReplace() throws {
+        struct Boom: Error {}
+        let root = try tempDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let name = root.appendingPathComponent("A.png")
+        let autoSaved = try ScreenshotSaver.write(Data([1]), to: name).get()
+
+        let outcome = try ScreenshotSaver.write(
+            Data([2]), to: name, replacing: autoSaved,
+            replaceWriter: { _, _ in throw Boom() }
+        ).get()
+
+        #expect(outcome.replacedOriginal == false)
+        #expect(outcome.replaceFailed)
+        #expect(outcome.replaceError != nil)
+        #expect(outcome.url.lastPathComponent == "A 2.png")
+        #expect(try Data(contentsOf: autoSaved) == Data([1]))
+    }
+
+    @Test("Successful replace and plain new saves do not report replaceFailed")
+    func noReplaceFailedOnNormalPaths() throws {
+        let root = try tempDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let name = root.appendingPathComponent("A.png")
+        let autoSaved = try ScreenshotSaver.write(Data([1]), to: name).get()
+
+        let replaced = try ScreenshotSaver.write(Data([2]), to: name, replacing: autoSaved).get()
+        let plain = try ScreenshotSaver.write(Data([3]), to: name, replacing: nil).get()
+
+        #expect(!replaced.replaceFailed)
+        #expect(!plain.replaceFailed)
+    }
+
     @Test("Clipboard copy is needed after a failed save only when not already copied")
     func clipboardDecision() {
         #expect(ScreenshotSaver.failureNeedsClipboardCopy(alreadyCopied: false))

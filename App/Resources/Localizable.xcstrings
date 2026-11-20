@@ -52432,6 +52432,16 @@
         }
       }
     },
+    "Original couldn't be replaced – saved as a new file" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Original konnte nicht ersetzt werden – als neue Datei gesichert"
+          }
+        }
+      }
+    },
     "Couldn't save: %@ isn't reachable – the image is on the clipboard" : {
       "localizations" : {
         "de" : {
