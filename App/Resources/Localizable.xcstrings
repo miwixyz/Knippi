@@ -52192,6 +52192,116 @@
           }
         }
       }
+    },
+    "Aurora" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polarlicht"
+          }
+        }
+      }
+    },
+    "Sunset Glow" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abendglut"
+          }
+        }
+      }
+    },
+    "Graphite" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Graphit"
+          }
+        }
+      }
+    },
+    "Gradients" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verläufe"
+          }
+        }
+      }
+    },
+    "Custom Image…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eigenes Bild …"
+          }
+        }
+      }
+    },
+    "Choose a picture as background" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bild als Hintergrund wählen"
+          }
+        }
+      }
+    },
+    "Background image could not be loaded, a solid color was used instead" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrundbild ließ sich nicht laden, stattdessen wurde eine Farbe verwendet"
+          }
+        }
+      }
+    },
+    "Window Background" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fensterhintergrund"
+          }
+        }
+      }
+    },
+    "What surrounds a captured window" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was ein aufgenommenes Fenster umgibt"
+          }
+        }
+      }
+    },
+    "Transparent with Shadow" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transparent mit Schatten"
+          }
+        }
+      }
+    },
+    "Frosted Glass" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Milchglas"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

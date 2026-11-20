@@ -1,5 +1,6 @@
 // App/Sources/AnnotationEditor/BeautifyPanel.swift
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct BeautifyPanel: View {
     @Binding var settings: BeautifySettings
@@ -25,14 +26,26 @@ struct BeautifyPanel: View {
                 VStack(alignment: .leading, spacing: 8) {
                     // -- Appearance --
                     settingRow("Style") {
-                        Picker("", selection: $settings.backgroundStyle) {
-                            ForEach(BeautifyBackgroundStyle.allCases) { style in
-                                Text(style.label).tag(style)
+                        Picker("", selection: basicStyleBinding) {
+                            ForEach(BasicStyle.allCases) { style in
+                                Text(style.label).tag(Optional(style))
                             }
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
                         .fixedSize()
+                    }
+
+                    settingRow("Gradients") {
+                        HStack(spacing: FamilyTheme.Space.s) {
+                            ForEach(BeautifyGradient.allCases) { gradient in
+                                gradientTile(gradient)
+                            }
+                        }
+                    }
+
+                    settingRow("Image") {
+                        customImageButton
                     }
 
                     if settings.backgroundStyle == .solid {
@@ -45,6 +58,17 @@ struct BeautifyPanel: View {
                                     .labelsHidden()
                             }
                         }
+                    }
+
+                    settingRow("Format") {
+                        Picker("", selection: $settings.aspect) {
+                            ForEach(BeautifyAspect.allCases) { aspect in
+                                Text(verbatim: aspect.label).tag(aspect)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .fixedSize()
                     }
 
                     Divider()
@@ -80,6 +104,98 @@ struct BeautifyPanel: View {
         .background(.bar)
         .animation(.easeInOut(duration: 0.2), value: settings.isEnabled)
         .animation(.easeInOut(duration: 0.15), value: settings.backgroundStyle)
+    }
+
+    // MARK: - Background choices
+
+    /// The three plain styles; gradient and image are picked in their own row,
+    /// so the segmented control shows no selection for them.
+    private enum BasicStyle: CaseIterable, Identifiable {
+        case solid, liquidGlass, none
+        var id: Self { self }
+        var label: LocalizedStringKey {
+            switch self {
+            case .solid: "Solid"
+            case .liquidGlass: "Liquid Glass"
+            case .none: "None"
+            }
+        }
+        var style: BeautifyBackgroundStyle {
+            switch self {
+            case .solid: .solid
+            case .liquidGlass: .liquidGlass
+            case .none: .none
+            }
+        }
+    }
+
+    private var basicStyleBinding: Binding<BasicStyle?> {
+        Binding(
+            get: { BasicStyle.allCases.first { $0.style == settings.backgroundStyle } },
+            set: { if let style = $0 { settings.backgroundStyle = style.style } }
+        )
+    }
+
+    private func gradientTile(_ gradient: BeautifyGradient) -> some View {
+        let selected = settings.backgroundStyle == .gradient(gradient)
+        return Button {
+            settings.backgroundStyle = .gradient(gradient)
+        } label: {
+            Group {
+                if let preview = BeautifyGradients.image(gradient, width: 88, height: 56) {
+                    Image(decorative: preview, scale: 2)
+                        .resizable()
+                } else {
+                    Color.gray
+                }
+            }
+            .frame(width: 44, height: 28)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5)
+            )
+            .padding(2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(FamilyTheme.accent, lineWidth: selected ? 1.5 : 0)
+            )
+        }
+        .buttonStyle(.plain)
+        .help(gradient.label)
+        .accessibilityLabel(Text(verbatim: gradient.label))
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    private var customImageButton: some View {
+        let selectedURL: URL? = if case .image(let url) = settings.backgroundStyle { url } else { nil }
+        return Button(action: chooseCustomImage) {
+            Label {
+                Text(selectedURL.map { $0.lastPathComponent } ?? String(localized: "Custom Image…"))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: 140)
+            } icon: {
+                Image(systemName: "photo")
+            }
+        }
+        .controlSize(.small)
+        .help(selectedURL?.path ?? String(localized: "Choose a picture as background"))
+        .overlay(
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .strokeBorder(FamilyTheme.accent, lineWidth: selectedURL != nil ? 1.5 : 0)
+                .padding(-2)
+        )
+    }
+
+    private func chooseCustomImage() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.message = String(localized: "Choose a picture as background")
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        settings.backgroundStyle = .image(url)
     }
 
     // MARK: - Reusable Components

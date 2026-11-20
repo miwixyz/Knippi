@@ -77,6 +77,21 @@ struct ScreenshotSettingsView: View {
                             .toggleStyle(.switch)
                             .controlSize(.small)
                     }
+                    if viewModel.captureWindowShadow {
+                        SettingRow(
+                            label: "Window Background",
+                            sublabel: "What surrounds a captured window",
+                            showDivider: true
+                        ) {
+                            Picker("", selection: $viewModel.windowCaptureBackground) {
+                                Text("Transparent with Shadow").tag(WindowCaptureBackground.transparentShadow)
+                                Text("Frosted Glass").tag(WindowCaptureBackground.frostedGlass)
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .fixedSize(horizontal: true, vertical: false)
+                        }
+                    }
                     SettingRow(label: "Pixel Magnifier", sublabel: "Show a magnified pixel view while selecting an area", showDivider: true) {
                         Toggle("", isOn: $viewModel.showMagnifier)
                             .toggleStyle(.switch)

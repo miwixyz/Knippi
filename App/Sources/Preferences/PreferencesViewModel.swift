@@ -267,6 +267,17 @@ final class PreferencesViewModel {
             }
         }
     }
+    var windowCaptureBackground: WindowCaptureBackground {
+        get {
+            access(keyPath: \.windowCaptureBackground)
+            return settings.windowCaptureBackground
+        }
+        set {
+            withMutation(keyPath: \.windowCaptureBackground) {
+                settings.windowCaptureBackground = newValue
+            }
+        }
+    }
     var colorFormat: ColorFormat {
         get {
             access(keyPath: \.colorFormat)

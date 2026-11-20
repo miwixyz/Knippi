@@ -15,6 +15,14 @@ public enum ScreenshotClipboardFormat: String, CaseIterable, Sendable {
     case tiff
 }
 
+/// What surrounds a single-window capture when its shadow is captured.
+public enum WindowCaptureBackground: String, CaseIterable, Sendable {
+    /// The macOS window shadow on a transparent background (PNG with alpha).
+    case transparentShadow
+    /// The window over a blurred copy of the desktop behind it.
+    case frostedGlass
+}
+
 public enum ScreenshotClipboardContent: String, CaseIterable, Sendable {
     case image
     case filePath
@@ -647,6 +655,16 @@ public final class AppSettings: @unchecked Sendable {
     public var captureWindowShadow: Bool {
         get { defaults.object(forKey: "captureWindowShadow") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "captureWindowShadow") }
+    }
+
+    /// Only applies while `captureWindowShadow` is on; without a shadow the
+    /// window is captured plain.
+    public var windowCaptureBackground: WindowCaptureBackground {
+        get {
+            defaults.string(forKey: "windowCaptureBackground")
+                .flatMap(WindowCaptureBackground.init(rawValue:)) ?? .transparentShadow
+        }
+        set { defaults.set(newValue.rawValue, forKey: "windowCaptureBackground") }
     }
 
     public var showMagnifier: Bool {

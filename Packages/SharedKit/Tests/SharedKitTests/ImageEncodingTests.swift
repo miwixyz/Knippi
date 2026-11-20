@@ -60,6 +60,17 @@ struct ImageEncodingTests {
         #expect(pixel[0] > 245 && pixel[1] > 245 && pixel[2] > 245)
     }
 
+    @Test("PNG keeps transparent areas transparent")
+    func pngKeepsAlpha() throws {
+        let clear = try #require(CGContext(data: nil, width: 8, height: 8, bitsPerComponent: 8, bytesPerRow: 0,
+                                           space: CGColorSpaceCreateDeviceRGB(),
+                                           bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)?.makeImage())
+        let data = try #require(encoder.encode(clear, format: .png, quality: 1))
+        let source = try #require(CGImageSourceCreateWithData(data as CFData, nil))
+        let decoded = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
+        #expect(ImageUtilities.hasTransparentPixels(decoded))
+    }
+
     @Test("PNG ignores quality")
     func pngIgnoresQuality() throws {
         let image = makeImage()

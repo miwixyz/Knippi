@@ -282,6 +282,21 @@ struct AppSettingsTests {
         return AppSettings(defaults: defaults)
     }
 
+    @Test("Window capture background defaults to transparent with shadow and persists")
+    func windowCaptureBackgroundDefaultsAndPersists() {
+        let suite = "test.windowCaptureBackground.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        let first = AppSettings(defaults: defaults)
+        #expect(first.windowCaptureBackground == .transparentShadow)
+        first.windowCaptureBackground = .frostedGlass
+        #expect(AppSettings(defaults: defaults).windowCaptureBackground == .frostedGlass)
+
+        defaults.set("bogus", forKey: "windowCaptureBackground")
+        #expect(AppSettings(defaults: defaults).windowCaptureBackground == .transparentShadow)
+    }
+
     @Test("Screenshot clipboard format defaults to PNG and persists")
     func screenshotClipboardFormatDefaultsAndPersists() {
         let suite = "test.screenshotClipboardFormat"

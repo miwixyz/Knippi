@@ -52,7 +52,8 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
             suggestions: suggestions,
             beautifySettings: plainSettings,
             outputSize: nil,
-            onSuggestionsApplied: { appliedCount += 1 }
+            onSuggestionsApplied: { appliedCount += 1 },
+            onWarning: { XCTFail("unexpected warning: \($0)") }
         ))
 
         XCTAssertEqual(Array(try pixel(output, x: 25, y: 16).prefix(3)), [0, 0, 0], "selected suggestion is black")
@@ -75,7 +76,8 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
             suggestions: SensitiveSuggestionsModel(),
             beautifySettings: plainSettings,
             outputSize: nil,
-            onSuggestionsApplied: { applied = true }
+            onSuggestionsApplied: { applied = true },
+            onWarning: { XCTFail("unexpected warning: \($0)") }
         ))
         XCTAssertEqual(Array(try pixel(output, x: 25, y: 16).prefix(3)), [255, 255, 255])
         XCTAssertFalse(applied)

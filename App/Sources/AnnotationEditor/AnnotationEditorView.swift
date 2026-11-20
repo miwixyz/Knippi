@@ -97,6 +97,8 @@ struct AnnotationEditorView: View {
     @State private var isEditingText = false
     @State private var beautifySettings = BeautifySettings.saved()
     @State private var showBeautifyPanel = false
+    @State private var beautifyBackgroundPreview: CGImage?
+    @State private var beautifyBackgroundPreviewURL: URL?
     @State private var refreshTrigger = 0
     @State private var zoomScale: CGFloat = 1.0
     @State private var isCropMode = false
@@ -142,16 +144,22 @@ struct AnnotationEditorView: View {
         -(document.cropRect?.minY ?? 0) * zoomScale
     }
 
+    private var beautifyCanvasSize: CGSize {
+        beautifySettings.canvasSize(for: CGSize(width: effectiveImageWidth, height: effectiveImageHeight))
+    }
+
     private var previewContentWidth: CGFloat {
-        beautifySettings.isEnabled ? effectiveImageWidth + beautifySettings.outerInset * 2 : effectiveImageWidth
+        beautifySettings.isEnabled ? beautifyCanvasSize.width : effectiveImageWidth
     }
 
     private var previewContentHeight: CGFloat {
-        beautifySettings.isEnabled ? effectiveImageHeight + beautifySettings.outerInset * 2 : effectiveImageHeight
+        beautifySettings.isEnabled ? beautifyCanvasSize.height : effectiveImageHeight
     }
 
-    private var previewOuterInset: CGFloat {
-        beautifySettings.isEnabled ? beautifySettings.outerInset * zoomScale : 0
+    private var previewInsets: (horizontal: CGFloat, vertical: CGFloat) {
+        guard beautifySettings.isEnabled else { return (0, 0) }
+        let insets = beautifySettings.canvasInsets(for: CGSize(width: effectiveImageWidth, height: effectiveImageHeight))
+        return (insets.horizontal * zoomScale, insets.vertical * zoomScale)
     }
 
     private var previewWidth: CGFloat {
@@ -238,8 +246,39 @@ struct AnnotationEditorView: View {
                 .blur(radius: max(8, 120 * zoomScale), opaque: true)
                 .overlay(Color.white.opacity(0.03))
                 .clipped()
+        case .gradient(let gradient):
+            if let tile = BeautifyGradients.image(gradient, width: 640, height: max(1, Int(640 * previewContentHeight / max(1, previewContentWidth)))) {
+                Image(decorative: tile, scale: 1.0)
+                    .resizable()
+            }
+        case .image:
+            if let picture = beautifyBackgroundPreview {
+                Image(decorative: picture, scale: 1.0)
+                    .resizable()
+                    .scaledToFill()
+                    .clipped()
+            } else {
+                Rectangle()
+                    .fill(beautifySettings.backgroundColor)
+            }
         case .none:
             Color.clear
+        }
+    }
+
+    /// Downsampled copy of the custom background picture for the live
+    /// preview; reloaded only when the chosen file changes.
+    private func reloadBeautifyBackgroundPreview() {
+        guard case .image(let url) = beautifySettings.backgroundStyle else {
+            beautifyBackgroundPreview = nil
+            beautifyBackgroundPreviewURL = nil
+            return
+        }
+        guard url != beautifyBackgroundPreviewURL else { return }
+        beautifyBackgroundPreviewURL = url
+        beautifyBackgroundPreview = BeautifyRenderer.loadImage(at: url, maxPixelSize: 1600)
+        if beautifyBackgroundPreview == nil {
+            Self.showBeautifyWarning(BeautifyRenderer.missingBackgroundImageWarning)
         }
     }
 
@@ -388,7 +427,10 @@ struct AnnotationEditorView: View {
             .animation(.easeOut(duration: 0.2), value: sensitiveSuggestions.isShowing)
             // A drag file rendered before the suggestions appeared would skip them.
             .onChange(of: sensitiveSuggestions.isShowing) { _, _ in invalidateDragCache() }
-            .onAppear { handleCanvasAppear(size: geo.size) }
+            .onAppear {
+                handleCanvasAppear(size: geo.size)
+                if beautifySettings.isEnabled { reloadBeautifyBackgroundPreview() }
+            }
             .onChange(of: currentTool, handleToolChange)
             .onChange(of: currentColor) { _, _ in updateSelectedStyle() }
             .onChange(of: lineWidth, handleLineWidthChange)
@@ -458,7 +500,8 @@ struct AnnotationEditorView: View {
         .clipped()
         .clipShape(RoundedRectangle(cornerRadius: canvasCornerRadius, style: .continuous))
         .shadow(color: canvasShadowColor, radius: canvasShadowRadius, y: canvasShadowOffsetY)
-        .padding(previewOuterInset)
+        .padding(.horizontal, previewInsets.horizontal)
+        .padding(.vertical, previewInsets.vertical)
     }
 
     private var zoomBar: some View {
@@ -513,6 +556,7 @@ struct AnnotationEditorView: View {
             set: { newValue in
                 beautifySettings = newValue
                 newValue.saveStyle()
+                reloadBeautifyBackgroundPreview()
                 invalidateDragCache()
             }
         )
@@ -718,7 +762,18 @@ struct AnnotationEditorView: View {
                     color: .systemGreen,
                     screen: NSApp.keyWindow?.screen
                 )
-            }
+            },
+            onWarning: Self.showBeautifyWarning
+        )
+    }
+
+    static func showBeautifyWarning(_ message: String) {
+        SensitiveSuggestionsToast.show(
+            message,
+            icon: "exclamationmark.triangle.fill",
+            color: .systemOrange,
+            screen: NSApp.keyWindow?.screen,
+            duration: 3
         )
     }
 
@@ -730,7 +785,8 @@ struct AnnotationEditorView: View {
         suggestions: SensitiveSuggestionsModel,
         beautifySettings: BeautifySettings,
         outputSize: CGSize?,
-        onSuggestionsApplied: () -> Void = {}
+        onSuggestionsApplied: () -> Void = {},
+        onWarning: (String) -> Void
     ) -> CGImage? {
         if suggestions.applyPendingRedactions(to: document) {
             onSuggestionsApplied()
@@ -743,9 +799,11 @@ struct AnnotationEditorView: View {
         ) else {
             return nil
         }
-        guard let rendered = BeautifyRenderer.render(image: annotated, settings: beautifySettings) else {
+        guard let beautified = BeautifyRenderer.render(image: annotated, settings: beautifySettings) else {
             return nil
         }
+        if let warning = beautified.warning { onWarning(warning) }
+        let rendered = beautified.image
         guard let outputSize else { return rendered }
 
         let width = max(1, Int(outputSize.width.rounded()))

@@ -157,7 +157,9 @@ final class CaptureCoordinator {
               ![.pin, .ocr, .annotate, .inlineAnnotate].contains(action) else { return result }
         var style = BeautifySettings.saved(settings: settings)
         style.isEnabled = true
-        guard let image = BeautifyRenderer.render(image: result.image, settings: style) else { return result }
+        guard let beautified = BeautifyRenderer.render(image: result.image, settings: style) else { return result }
+        if let warning = beautified.warning { AnnotationEditorView.showBeautifyWarning(warning) }
+        let image = beautified.image
 
         return CaptureResult(
             image: image,
@@ -1161,16 +1163,21 @@ final class CaptureCoordinator {
     private func performWindowCapture(windowID: CGWindowID) {
         Task {
             do {
-                // Always capture without system shadow — we generate our own
-                // uniform padding + frosted glass backdrop when the setting is on.
+                // Shadow off: the plain window. Shadow on: either the native
+                // macOS shadow on transparency, or our own uniform padding +
+                // frosted glass backdrop.
+                let treatment = Self.windowCaptureTreatment(
+                    captureWindowShadow: self.settings.captureWindowShadow,
+                    background: self.settings.windowCaptureBackground
+                )
                 let (result, desktopBg) = try await self.withQuickAccessHidden {
                     let result = try await ScreenCaptureManager.captureWindow(
                         windowID: windowID,
-                        includeShadow: false,
+                        includeShadow: treatment == .nativeShadow,
                         showsCursor: self.settings.screenshotShowsCursor
                     )
                     var desktopBg: CGImage?
-                    if self.settings.captureWindowShadow {
+                    if treatment == .frostedGlass {
                         // Capture the real desktop behind the window (excluding the
                         // window itself) for the frosted glass background.
                         // Padding = 4% of the shorter side, plus room for shadow blur.
@@ -1205,6 +1212,26 @@ final class CaptureCoordinator {
             } catch {
                 print("Window capture failed: \(error)")
             }
+        }
+    }
+
+    enum WindowCaptureTreatment: Equatable {
+        /// Window only, no shadow, no backdrop.
+        case plain
+        /// ScreenCaptureKit's native shadow on a transparent background.
+        case nativeShadow
+        /// Own shadow over a blurred copy of the desktop.
+        case frostedGlass
+    }
+
+    nonisolated static func windowCaptureTreatment(
+        captureWindowShadow: Bool,
+        background: WindowCaptureBackground
+    ) -> WindowCaptureTreatment {
+        guard captureWindowShadow else { return .plain }
+        switch background {
+        case .transparentShadow: return .nativeShadow
+        case .frostedGlass: return .frostedGlass
         }
     }
 

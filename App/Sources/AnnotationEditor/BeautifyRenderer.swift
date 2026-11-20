@@ -1,20 +1,33 @@
 import AppKit
 import CoreGraphics
 import CoreImage
+import ImageIO
 import SwiftUI
 
 enum BeautifyRenderer {
-    static func render(image: CGImage, settings: BeautifySettings) -> CGImage? {
-        guard settings.isEnabled else { return image }
+    struct Output {
+        let image: CGImage
+        /// Set when the chosen background could not be used and a fallback
+        /// was drawn instead. Callers show it to the user.
+        let warning: String?
+    }
 
-        let padding = max(0, settings.padding)
+    static let missingBackgroundImageWarning = String(
+        localized: "Background image could not be loaded, a solid color was used instead"
+    )
+
+    static func render(image: CGImage, settings: BeautifySettings) -> Output? {
+        guard settings.isEnabled else { return Output(image: image, warning: nil) }
+
         let cornerRadius = max(0, settings.cornerRadius)
-        let shadowRadius = settings.shadowEnabled ? max(0, settings.shadowRadius) : 0
-        let shadowInset = settings.shadowEnabled ? shadowRadius + 6 : 0
-        let outputWidth = Int(CGFloat(image.width) + (padding + shadowInset) * 2)
-        let outputHeight = Int(CGFloat(image.height) + (padding + shadowInset) * 2)
+        let shadowRadius = settings.clampedShadowRadius
+        let imageSize = CGSize(width: image.width, height: image.height)
+        let canvas = settings.canvasSize(for: imageSize)
+        let outputWidth = Int(canvas.width)
+        let outputHeight = Int(canvas.height)
+        var warning: String?
 
-        guard let ctx = CGContext(
+        guard outputWidth > 0, outputHeight > 0, let ctx = CGContext(
             data: nil,
             width: outputWidth,
             height: outputHeight,
@@ -28,9 +41,21 @@ enum BeautifyRenderer {
 
         switch settings.backgroundStyle {
         case .solid:
-            let bgColor = NSColor(settings.backgroundColor).cgColor
-            ctx.setFillColor(bgColor)
-            ctx.fill(canvasRect)
+            fillSolid(ctx, canvasRect, settings)
+
+        case .gradient(let gradient):
+            BeautifyGradients.draw(gradient, in: ctx, rect: canvasRect)
+
+        case .image(let url):
+            if let picture = loadImage(at: url) {
+                ctx.saveGState()
+                ctx.clip(to: canvasRect)
+                ctx.draw(picture, in: aspectFillRect(for: CGSize(width: picture.width, height: picture.height), in: canvasRect))
+                ctx.restoreGState()
+            } else {
+                fillSolid(ctx, canvasRect, settings)
+                warning = missingBackgroundImageWarning
+            }
 
         case .liquidGlass:
             // Fall back to a dark fill if CI fails for any reason.
@@ -52,11 +77,12 @@ enum BeautifyRenderer {
             break
         }
 
+        let insets = settings.canvasInsets(for: imageSize)
         let imageRect = CGRect(
-            x: padding + shadowInset,
-            y: padding + shadowInset,
-            width: CGFloat(image.width),
-            height: CGFloat(image.height)
+            x: insets.horizontal.rounded(.down),
+            y: insets.vertical.rounded(.down),
+            width: imageSize.width,
+            height: imageSize.height
         )
 
         // The shadow is cast by the clipped image itself, so it follows the
@@ -75,7 +101,34 @@ enum BeautifyRenderer {
         ctx.endTransparencyLayer()
         ctx.restoreGState()
 
-        return ctx.makeImage()
+        guard let output = ctx.makeImage() else { return nil }
+        return Output(image: output, warning: warning)
+    }
+
+    private static func fillSolid(_ ctx: CGContext, _ rect: CGRect, _ settings: BeautifySettings) {
+        ctx.setFillColor(NSColor(settings.backgroundColor).cgColor)
+        ctx.fill(rect)
+    }
+
+    /// Reads a user-chosen background picture, upright (EXIF orientation
+    /// applied) and at most `maxPixelSize` on its long side; nil when missing
+    /// or unreadable.
+    static func loadImage(at url: URL, maxPixelSize: Int = 8192) -> CGImage? {
+        guard url.isFileURL, let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
+        ]
+        return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+    }
+
+    /// The rect that covers `bounds` completely with `size`'s aspect, centred.
+    static func aspectFillRect(for size: CGSize, in bounds: CGRect) -> CGRect {
+        guard size.width > 0, size.height > 0 else { return bounds }
+        let scale = max(bounds.width / size.width, bounds.height / size.height)
+        let width = size.width * scale, height = size.height * scale
+        return CGRect(x: bounds.midX - width / 2, y: bounds.midY - height / 2, width: width, height: height)
     }
 
     /// Build a "liquid glass" backdrop: an aspect-fill copy of the source

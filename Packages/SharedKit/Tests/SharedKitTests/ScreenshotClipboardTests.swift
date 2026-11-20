@@ -77,6 +77,54 @@ struct ScreenshotClipboardTests {
         #expect(pasteboard.string(forType: .string) == "keep me")
     }
 
+    @Test("PNG clipboard keeps transparent pixels of a window capture")
+    func pngClipboardKeepsAlpha() throws {
+        let pasteboard = makePasteboard()
+        #expect(ScreenshotClipboard.copy(
+            try makeTransparentImage(), content: .image, imageFormat: .png, pasteboard: pasteboard
+        ) { URL(fileURLWithPath: "/tmp/unused.png") })
+
+        let data = try #require(pasteboard.data(forType: .png))
+        let rep = try #require(NSBitmapImageRep(data: data))
+        #expect(rep.hasAlpha)
+        #expect(try #require(rep.colorAt(x: 0, y: 0)).alphaComponent < 0.01)
+        #expect(try #require(rep.colorAt(x: 5, y: 5)).alphaComponent > 0.99)
+    }
+
+    @Test("JPEG clipboard also carries PNG with alpha when the image is transparent")
+    func jpegClipboardAddsPNGForTransparentImages() throws {
+        let pasteboard = makePasteboard()
+        #expect(ScreenshotClipboard.copy(
+            try makeTransparentImage(), content: .image, imageFormat: .jpeg, pasteboard: pasteboard
+        ) { URL(fileURLWithPath: "/tmp/unused.png") })
+
+        #expect(pasteboard.data(forType: NSPasteboard.PasteboardType("public.jpeg")) != nil)
+        let data = try #require(pasteboard.data(forType: .png))
+        let rep = try #require(NSBitmapImageRep(data: data))
+        #expect(try #require(rep.colorAt(x: 0, y: 0)).alphaComponent < 0.01)
+    }
+
+    @Test("JPEG clipboard of an opaque image stays JPEG only")
+    func jpegClipboardOfOpaqueImageStaysJPEG() throws {
+        let pasteboard = makePasteboard()
+        #expect(ScreenshotClipboard.copy(
+            try makeImage(), content: .image, imageFormat: .jpeg, pasteboard: pasteboard
+        ) { URL(fileURLWithPath: "/tmp/unused.png") })
+        #expect(pasteboard.data(forType: .png) == nil)
+    }
+
+    private func makeTransparentImage() throws -> CGImage {
+        let context = try #require(CGContext(
+            data: nil, width: 10, height: 10, bitsPerComponent: 8, bytesPerRow: 40,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
+        ))
+        context.clear(CGRect(x: 0, y: 0, width: 10, height: 10))
+        context.setFillColor(CGColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1))
+        context.fill(CGRect(x: 3, y: 3, width: 4, height: 4))
+        return try #require(context.makeImage())
+    }
+
     private func makePasteboard() -> NSPasteboard {
         let pasteboard = NSPasteboard(
             name: NSPasteboard.Name("ScreenshotClipboardTests.\(UUID().uuidString)")

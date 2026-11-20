@@ -52,9 +52,37 @@ public enum ImageUtilities {
 
         guard let data else { return false }
         let item = NSPasteboardItem()
+        // JPEG has no alpha: a transparent capture (window with shadow) also
+        // carries PNG first, so apps that read PNG keep the transparency.
+        if format == .jpeg, hasTransparentPixels(cgImage), let png = pngData(from: cgImage) {
+            guard item.setData(png, forType: .png) else { return false }
+        }
         guard item.setData(data, forType: pasteboardType) else { return false }
         pasteboard.clearContents()
         return pasteboard.writeObjects([item])
+    }
+
+    /// True when any pixel is not fully opaque. Images without an alpha
+    /// channel are answered without reading pixels.
+    public static func hasTransparentPixels(_ cgImage: CGImage) -> Bool {
+        switch cgImage.alphaInfo {
+        case .none, .noneSkipFirst, .noneSkipLast: return false
+        default: break
+        }
+        let width = cgImage.width, height = cgImage.height
+        guard width > 0, height > 0 else { return false }
+        var alpha = [UInt8](repeating: 255, count: width * height)
+        let drawn: Bool = alpha.withUnsafeMutableBytes { buffer in
+            guard let ctx = CGContext(
+                data: buffer.baseAddress, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: width,
+                space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.alphaOnly.rawValue
+            ) else { return false }
+            ctx.clear(CGRect(x: 0, y: 0, width: width, height: height))
+            ctx.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return true
+        }
+        return drawn && alpha.contains { $0 < 255 }
     }
 
     public static func jpegData(from cgImage: CGImage, quality: Double = 0.85) -> Data? {
