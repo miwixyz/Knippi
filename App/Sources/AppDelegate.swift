@@ -72,7 +72,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         migrateShortcutsIfNeeded()
-        settings.startTrial()
         captureCoordinator = CaptureCoordinator(settings: settings)
         recordingCoordinator = RecordingCoordinator(settings: settings)
         ocrCoordinator = OCRCoordinator(settings: settings)

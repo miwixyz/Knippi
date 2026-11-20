@@ -1178,17 +1178,6 @@ public final class AppSettings: @unchecked Sendable {
         return supported.contains(code) ? code : "en"
     }
 
-    // MARK: Licensing
-    public var isProUnlocked: Bool {
-        get { defaults.object(forKey: "isProUnlocked") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "isProUnlocked") }
-    }
-
-    public var trialStartDate: Double {
-        get { defaults.object(forKey: "trialStartDate") as? Double ?? 0 }
-        set { defaults.set(newValue, forKey: "trialStartDate") }
-    }
-
     // MARK: Export Location
 
     public var exportLocation: URL {
@@ -1275,33 +1264,6 @@ public final class AppSettings: @unchecked Sendable {
             return cloudShareRegion != nil
         default:
             return false
-        }
-    }
-
-    // MARK: Computed
-
-    public var isTrialActive: Bool {
-        guard !isProUnlocked else { return false }
-        guard trialStartDate > 0 else { return false }
-        let start = Date(timeIntervalSince1970: trialStartDate)
-        let daysSinceStart = Calendar.current.dateComponents([.day], from: start, to: Date()).day ?? 0
-        return daysSinceStart < 7
-    }
-
-    public var trialDaysRemaining: Int {
-        guard isTrialActive else { return 0 }
-        let start = Date(timeIntervalSince1970: trialStartDate)
-        let daysSinceStart = Calendar.current.dateComponents([.day], from: start, to: Date()).day ?? 0
-        return max(0, 7 - daysSinceStart)
-    }
-
-    public var hasProAccess: Bool {
-        isProUnlocked || isTrialActive
-    }
-
-    public func startTrial() {
-        if trialStartDate == 0 {
-            trialStartDate = Date().timeIntervalSince1970
         }
     }
 

@@ -575,12 +575,6 @@ struct AppSettingsTests {
         #expect(settings.quickAccessAutoCloseInterval == 5)
     }
 
-    @Test("Pro features locked by default")
-    func proFeaturesLockedByDefault() {
-        let settings = AppSettings()
-        #expect(settings.isProUnlocked == false)
-    }
-
     @Test("Translation provider defaults to Apple")
     func translationProviderDefaultsToApple() {
         let suite = "test.translationProvider.default"
