@@ -1,12 +1,42 @@
 # Third-Party Notices
 
-This document reproduces licenses for third-party software used by Capso.
+This document reproduces licenses for third-party software used by Knippi.
+
+---
+
+## Capso – MIT License – © lzhgus – https://github.com/lzhgus/Capso
+
+Knippi is a fork of Capso.
+
+```
+MIT License
+
+Copyright (c) 2026 lzhgus
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ---
 
 ## KeyCastr
 
-Portions of Capso’s keystroke visualization (label transform rules and special-key
+Portions of Knippi’s keystroke visualization (label transform rules and special-key
 glyph table in `Packages/EffectsKit/Sources/EffectsKit/KeystrokeFormatter.swift`,
 and the listen-only event-tap approach used by `KeyPressMonitor`) are adapted from
 [KeyCastr](https://github.com/keycastr/keycastr).

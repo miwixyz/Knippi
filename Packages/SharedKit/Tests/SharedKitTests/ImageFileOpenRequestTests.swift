@@ -7,7 +7,7 @@ struct ImageFileOpenRequestTests {
     @Test("partition splits image files from other URLs")
     func partitionSplitsImageFilesFromOtherURLs() throws {
         let photo = URL(fileURLWithPath: "/tmp/photo.png")
-        let automation = try #require(URL(string: "capso://grab/area"))
+        let automation = try #require(URL(string: "knippi://grab/area"))
         let notes = URL(fileURLWithPath: "/tmp/notes.txt")
 
         let result = ImageFileOpenRequest.partition(urls: [photo, automation, notes])

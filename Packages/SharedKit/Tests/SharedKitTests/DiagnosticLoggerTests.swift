@@ -7,8 +7,8 @@ struct DiagnosticLoggerTests {
     @Test("append writes timestamped diagnostic lines")
     func appendWritesLine() throws {
         let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-diagnostic-tests-\(UUID().uuidString)", isDirectory: true)
-        let fileURL = directory.appendingPathComponent("capso.log")
+            .appendingPathComponent("knippi-diagnostic-tests-\(UUID().uuidString)", isDirectory: true)
+        let fileURL = directory.appendingPathComponent("knippi.log")
         defer { try? FileManager.default.removeItem(at: directory) }
 
         DiagnosticLogger.append("hello diagnostics", category: "Test", fileURL: fileURL)
@@ -20,8 +20,8 @@ struct DiagnosticLoggerTests {
     @Test("prepare log file creates an empty selectable file")
     func prepareLogFileCreatesFile() throws {
         let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-diagnostic-tests-\(UUID().uuidString)", isDirectory: true)
-        let fileURL = directory.appendingPathComponent("capso.log")
+            .appendingPathComponent("knippi-diagnostic-tests-\(UUID().uuidString)", isDirectory: true)
+        let fileURL = directory.appendingPathComponent("knippi.log")
         defer { try? FileManager.default.removeItem(at: directory) }
 
         let preparedURL = DiagnosticLogger.prepareLogFile(at: fileURL)

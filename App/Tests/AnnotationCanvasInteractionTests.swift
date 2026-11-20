@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import Capso
+@testable import Knippi
 import AnnotationKit
 
 @MainActor

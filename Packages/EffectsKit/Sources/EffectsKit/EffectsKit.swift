@@ -1,2 +1,2 @@
-// EffectsKit — Recording effects for Capso
+// EffectsKit — Recording effects for Knippi
 // Public API: ClickMonitor, ClickHighlightWindow, KeyPressMonitor, KeystrokeFormatter

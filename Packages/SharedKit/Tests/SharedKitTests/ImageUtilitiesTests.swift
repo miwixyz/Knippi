@@ -58,7 +58,7 @@ struct ImageUtilitiesTests {
 
         for (format, expectedType) in cases {
             let pasteboard = NSPasteboard(
-                name: NSPasteboard.Name("CapsoImageUtilitiesTests.\(UUID().uuidString)")
+                name: NSPasteboard.Name("KnippiImageUtilitiesTests.\(UUID().uuidString)")
             )
 
             #expect(ImageUtilities.copyToPasteboard(image, format: format, pasteboard: pasteboard))

@@ -8,7 +8,7 @@ struct RecordingClipboardTests {
     @Test("copies a readable recording as a file URL")
     func copiesReadableRecording() throws {
         let fileURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-recording-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-recording-\(UUID().uuidString)")
             .appendingPathExtension("mp4")
         try Data([0x00, 0x01]).write(to: fileURL)
         defer { try? FileManager.default.removeItem(at: fileURL) }
@@ -93,8 +93,8 @@ struct RecordingClipboardStateTests {
         var state = RecordingClipboardState()
         #expect(!state.canReuseAutomaticCopy)
 
-        state.markCopied(URL(fileURLWithPath: "/tmp/capso_clipboard.mp4"))
+        state.markCopied(URL(fileURLWithPath: "/tmp/knippi_clipboard.mp4"))
         #expect(state.canReuseAutomaticCopy)
-        #expect(state.copiedFileURL?.lastPathComponent == "capso_clipboard.mp4")
+        #expect(state.copiedFileURL?.lastPathComponent == "knippi_clipboard.mp4")
     }
 }

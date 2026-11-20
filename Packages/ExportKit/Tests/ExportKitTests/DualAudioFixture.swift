@@ -2,7 +2,7 @@ import AVFoundation
 import CoreMedia
 import Foundation
 
-/// Builds short `.mov` fixtures that mirror Capso's real recording pipeline:
+/// Builds short `.mov` fixtures that mirror Knippi's real recording pipeline:
 /// H.264 video + one or two AAC audio tracks in a QuickTime container.
 enum DualAudioFixture {
     enum FixtureError: Error {
@@ -19,7 +19,7 @@ enum DualAudioFixture {
         precondition((1...2).contains(audioTrackCount))
 
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-fixture-\(UUID().uuidString).mov")
+            .appendingPathComponent("knippi-fixture-\(UUID().uuidString).mov")
         try? FileManager.default.removeItem(at: url)
 
         let writer = try AVAssetWriter(outputURL: url, fileType: .mov)

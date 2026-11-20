@@ -3,13 +3,13 @@ import EditorKit
 import ImageIO
 import UniformTypeIdentifiers
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 final class EditorGIFExportTests: XCTestCase {
     func testCompositedGIFExportProducesGIFData() async throws {
         let sourceURL = try EditorVideoFixture.make()
         let destinationURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-editor-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-editor-\(UUID().uuidString)")
             .appendingPathExtension("gif")
         defer {
             try? FileManager.default.removeItem(at: sourceURL)
@@ -54,7 +54,7 @@ private enum EditorVideoFixture {
 
     static func make() throws -> URL {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-editor-source-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-editor-source-\(UUID().uuidString)")
             .appendingPathExtension("mov")
         let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
         let width = 160

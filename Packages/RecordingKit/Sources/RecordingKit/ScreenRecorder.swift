@@ -9,9 +9,9 @@ import Observation
 
 // MARK: - Debug Log
 
-func capsoLog(_ msg: String) {
+func knippiLog(_ msg: String) {
     #if DEBUG
-    NSLog("[Capso] %@", msg)
+    NSLog("[Knippi] %@", msg)
     #endif
 }
 
@@ -89,7 +89,7 @@ public final class ScreenRecorder {
         config: RecordingConfig,
         excludeWindowIDs: [CGWindowID] = []
     ) async throws {
-        capsoLog("startRecording target=\(config.target)")
+        knippiLog("startRecording target=\(config.target)")
         guard state == .idle else { throw RecordingError.alreadyRecording }
 
         state = .preparing
@@ -99,7 +99,7 @@ public final class ScreenRecorder {
 
         do {
             let fileURL = Self.recordingDirectory
-                .appendingPathComponent("capso_recording_\(UUID().uuidString).mov")
+                .appendingPathComponent("knippi_recording_\(UUID().uuidString).mov")
             outputFileURL = fileURL
 
             // Set up SCStream first (creates the dispatch queue)
@@ -131,7 +131,7 @@ public final class ScreenRecorder {
             state = .recording
             recordingStartTime = Date()
             startElapsedTimer()
-            capsoLog("Recording started")
+            knippiLog("Recording started")
         } catch {
             state = .idle; self.error = error; cleanup(); throw error
         }
@@ -148,7 +148,7 @@ public final class ScreenRecorder {
     }
 
     public func stopRecording() async throws -> RecordingResult {
-        capsoLog("stopRecording state=\(state.rawValue)")
+        knippiLog("stopRecording state=\(state.rawValue)")
         guard state == .recording || state == .paused else { throw RecordingError.notRecording }
 
         state = .stopping
@@ -158,19 +158,19 @@ public final class ScreenRecorder {
             do {
                 try await s.stopCapture()
             } catch {
-                capsoLog("stopCapture failed (continuing to finalize): \(error)")
+                knippiLog("stopCapture failed (continuing to finalize): \(error)")
             }
         }
 
         guard writer.hasWrittenFrames else {
-            capsoLog("No frames written"); cleanup(); state = .idle
+            knippiLog("No frames written"); cleanup(); state = .idle
             throw RecordingError.noFramesCaptured
         }
 
         await writer.finalize()
 
         if let e = writer.error {
-            capsoLog("Writer error: \(e)"); cleanup(); state = .idle
+            knippiLog("Writer error: \(e)"); cleanup(); state = .idle
             throw RecordingError.writerFailed(e)
         }
 
@@ -184,7 +184,7 @@ public final class ScreenRecorder {
             format: cfg.format,
             size: recordingSourceSize ?? .zero
         )
-        capsoLog("Done: \(url.lastPathComponent) \(elapsedTime)s")
+        knippiLog("Done: \(url.lastPathComponent) \(elapsedTime)s")
         cleanup(); state = .idle
         return result
     }
@@ -219,7 +219,7 @@ public final class ScreenRecorder {
             sc.microphoneCaptureDeviceID = config.microphoneDeviceID
         }
 
-        capsoLog("Stream: \(target.dimensions.w)x\(target.dimensions.h) NV12")
+        knippiLog("Stream: \(target.dimensions.w)x\(target.dimensions.h) NV12")
 
         let output = StreamOutput()
         let captureStream = SCStream(filter: target.filter, configuration: sc, delegate: output)
@@ -243,7 +243,7 @@ public final class ScreenRecorder {
             }
         }
 
-        let queue = DispatchQueue(label: "com.capso.recording", qos: .userInteractive)
+        let queue = DispatchQueue(label: "dev.mwlr.knippi.recording", qos: .userInteractive)
         self.recordingQueue = queue
         try captureStream.addStreamOutput(output, type: .screen, sampleHandlerQueue: queue)
         if config.captureSystemAudio {
@@ -269,7 +269,7 @@ public final class ScreenRecorder {
             }
 
             // Two layers of window exclusion:
-            // 1. Per-window `sharingType = .none` on Capso's recording chrome.
+            // 1. Per-window `sharingType = .none` on Knippi's recording chrome.
             // 2. `SCContentFilter(excludingWindows:)` for OS versions or
             //    windows not covered by sharingType.
             let excludedWindows = excludeSet.isEmpty
@@ -277,7 +277,7 @@ public final class ScreenRecorder {
                 : content.windows.filter { excludeSet.contains($0.windowID) }
             if !excludeSet.isEmpty, excludedWindows.count != excludeSet.count {
                 let missingIDs = excludeSet.subtracting(excludedWindows.map(\.windowID))
-                capsoLog("Proceeding without excluding windows: \(missingIDs)")
+                knippiLog("Proceeding without excluding windows: \(missingIDs)")
             }
             let filter = SCContentFilter(display: display, excludingWindows: excludedWindows)
             let dimensions = RecordingVideoGeometry.dimensions(
@@ -318,14 +318,14 @@ public final class ScreenRecorder {
             let matchedIDs = Set(content.windows.map(\.windowID)).intersection(excludeSet)
             if matchedIDs == excludeSet {
                 if attempt > 1 {
-                    capsoLog("Excluded windows became visible after \(attempt) attempts")
+                    knippiLog("Excluded windows became visible after \(attempt) attempts")
                 }
                 return content
             }
 
             if attempt == Self.excludedWindowLookupAttempts {
                 let missingIDs = excludeSet.subtracting(matchedIDs)
-                capsoLog("Timed out waiting for excluded windows: \(missingIDs)")
+                knippiLog("Timed out waiting for excluded windows: \(missingIDs)")
                 return content
             }
 
@@ -338,10 +338,10 @@ public final class ScreenRecorder {
 
     func handleStreamStopped(error: Error) {
         guard state.isActive, !streamInterrupted else {
-            capsoLog("Ignoring stream stop in state=\(state.rawValue)")
+            knippiLog("Ignoring stream stop in state=\(state.rawValue)")
             return
         }
-        capsoLog("Stream stopped unexpectedly: \(error)")
+        knippiLog("Stream stopped unexpectedly: \(error)")
         streamInterrupted = true
         writer.deactivate()
         stopElapsedTimer()
@@ -364,7 +364,7 @@ public final class ScreenRecorder {
     func reportAudioIssues(at now: Date) {
         guard state == .recording else { return }
         for issue in audioMonitor.newIssues(at: now) {
-            capsoLog("Audio issue: \(issue)")
+            knippiLog("Audio issue: \(issue)")
             onAudioIssue?(issue)
         }
     }
@@ -375,7 +375,7 @@ public final class ScreenRecorder {
         lastDiskSpaceCheck = elapsed
         guard let available = availableDiskBytes(Self.recordingDirectory),
               available < DiskSpace.minimumToKeepRecording else { return }
-        capsoLog("Free disk space low (\(available) bytes), stopping recording")
+        knippiLog("Free disk space low (\(available) bytes), stopping recording")
         diskSpaceLowReported = true
         onDiskSpaceLow?()
     }
@@ -506,10 +506,10 @@ private final class RecordingWriter: @unchecked Sendable {
         // Start writing — all inputs already added.
         assetWriter = w
         guard w.startWriting() else {
-            capsoLog("startWriting FAILED: \(String(describing: w.error))")
+            knippiLog("startWriting FAILED: \(String(describing: w.error))")
             throw RecordingError.writerFailedToStart
         }
-        capsoLog("Writer started: \(videoWidth)x\(videoHeight), sysAudio=\(sysAudioInput != nil), mic=\(micAudioInput != nil)")
+        knippiLog("Writer started: \(videoWidth)x\(videoHeight), sysAudio=\(sysAudioInput != nil), mic=\(micAudioInput != nil)")
 
         sessionStarted = false; active = false; _written = false
     }
@@ -528,13 +528,13 @@ private final class RecordingWriter: @unchecked Sendable {
             sessionStarted = true
 
             if let pb = CMSampleBufferGetImageBuffer(buf) {
-                capsoLog("Session started: \(CVPixelBufferGetWidth(pb))x\(CVPixelBufferGetHeight(pb)) at \(pts.seconds)s")
+                knippiLog("Session started: \(CVPixelBufferGetWidth(pb))x\(CVPixelBufferGetHeight(pb)) at \(pts.seconds)s")
             }
         }
 
         guard let vi = videoInput, vi.isReadyForMoreMediaData else { return }
         if !vi.append(buf) {
-            capsoLog("Video append FAILED: \(String(describing: w.error))")
+            knippiLog("Video append FAILED: \(String(describing: w.error))")
         } else {
             _written = true
         }
@@ -550,8 +550,8 @@ private final class RecordingWriter: @unchecked Sendable {
         guard let ai = sysAudioInput, ai.isReadyForMoreMediaData else { return }
         guard let converted = createCleanAudioBuffer(buf, label: "sys") else { return }
         if !ai.append(converted) {
-            if sysAudioLogCount < 3 { capsoLog("SysAudio append FAILED: \(String(describing: w.error))"); sysAudioLogCount += 1 }
-        } else if sysAudioLogCount == 0 { capsoLog("SysAudio append OK"); sysAudioLogCount += 1 }
+            if sysAudioLogCount < 3 { knippiLog("SysAudio append FAILED: \(String(describing: w.error))"); sysAudioLogCount += 1 }
+        } else if sysAudioLogCount == 0 { knippiLog("SysAudio append OK"); sysAudioLogCount += 1 }
     }
 
     func appendMicAudio(_ buf: CMSampleBuffer) {
@@ -561,8 +561,8 @@ private final class RecordingWriter: @unchecked Sendable {
         guard let ai = micAudioInput, ai.isReadyForMoreMediaData else { return }
         guard let converted = createCleanAudioBuffer(buf, label: "mic") else { return }
         if !ai.append(converted) {
-            if micAudioLogCount < 3 { capsoLog("MicAudio append FAILED: \(String(describing: w.error))"); micAudioLogCount += 1 }
-        } else if micAudioLogCount == 0 { capsoLog("MicAudio append OK"); micAudioLogCount += 1 }
+            if micAudioLogCount < 3 { knippiLog("MicAudio append FAILED: \(String(describing: w.error))"); micAudioLogCount += 1 }
+        } else if micAudioLogCount == 0 { knippiLog("MicAudio append OK"); micAudioLogCount += 1 }
     }
 
     /// Creates a clean CMSampleBuffer from SCStream audio data by copying
@@ -580,7 +580,7 @@ private final class RecordingWriter: @unchecked Sendable {
 
         if !audioFormatLogged || (label == "mic" && micAudioLogCount == 0) {
             let a = srcASBD.pointee
-            capsoLog("\(label) audio: rate=\(a.mSampleRate) ch=\(channels) flags=\(a.mFormatFlags) samples=\(numSamples) bps=\(bytesPerSample)")
+            knippiLog("\(label) audio: rate=\(a.mSampleRate) ch=\(channels) flags=\(a.mFormatFlags) samples=\(numSamples) bps=\(bytesPerSample)")
             audioFormatLogged = true
         }
 
@@ -595,7 +595,7 @@ private final class RecordingWriter: @unchecked Sendable {
               let srcPtr = dataPointer else { return nil }
 
         if !audioFormatLogged {
-            capsoLog("\(label) data: \(dataLength) bytes, expected=\(numSamples * bytesPerSample * channels)")
+            knippiLog("\(label) data: \(dataLength) bytes, expected=\(numSamples * bytesPerSample * channels)")
         }
 
         // Create a NEW block buffer with a copy of the data.
@@ -668,7 +668,7 @@ private final class StreamOutput: NSObject, SCStreamOutput, SCStreamDelegate, @u
     private var micAudioCount = 0
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
-        capsoLog("SCStream error: \(error)")
+        knippiLog("SCStream error: \(error)")
         onStreamStopped?(error)
     }
 
@@ -683,11 +683,11 @@ private final class StreamOutput: NSObject, SCStreamOutput, SCStreamDelegate, @u
             onVideo?(buf)
         case .audio:
             sysAudioCount += 1
-            if sysAudioCount <= 3 { capsoLog("System audio frame #\(sysAudioCount)") }
+            if sysAudioCount <= 3 { knippiLog("System audio frame #\(sysAudioCount)") }
             onSystemAudio?(buf)
         case .microphone:
             micAudioCount += 1
-            if micAudioCount <= 3 { capsoLog("Mic audio frame #\(micAudioCount)") }
+            if micAudioCount <= 3 { knippiLog("Mic audio frame #\(micAudioCount)") }
             onMicAudio?(buf)
         @unknown default: break
         }

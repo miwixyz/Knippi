@@ -25,16 +25,16 @@ struct FileNamingTests {
         return components.date!
     }
 
-    @Test("Default screenshot name contains 'Capso Screenshot'")
+    @Test("Default screenshot name contains 'Knippi Screenshot'")
     func defaultScreenshotName() {
         let name = FileNaming.generateName(for: .screenshot)
-        #expect(name.hasPrefix("Capso Screenshot"))
+        #expect(name.hasPrefix("Knippi Screenshot"))
     }
 
-    @Test("Default recording name contains 'Capso Recording'")
+    @Test("Default recording name contains 'Knippi Recording'")
     func defaultRecordingName() {
         let name = FileNaming.generateName(for: .recording)
-        #expect(name.hasPrefix("Capso Recording"))
+        #expect(name.hasPrefix("Knippi Recording"))
     }
 
     @Test("Name includes date components")
@@ -49,7 +49,7 @@ struct FileNamingTests {
         let date = Date(timeIntervalSince1970: 1_705_348_800)
         let name = FileNaming.generateName(for: .screenshot, date: date, sourceAppName: "Safari")
 
-        #expect(name.hasPrefix("Capso Screenshot - Safari "))
+        #expect(name.hasPrefix("Knippi Screenshot - Safari "))
     }
 
     @Test("Source app name is sanitized for filenames")
@@ -62,12 +62,12 @@ struct FileNamingTests {
             sourceAppName: "Foo/Bar:Beta"
         )
 
-        #expect(fileName.hasPrefix("Capso Screenshot - Foo-Bar-Beta "))
+        #expect(fileName.hasPrefix("Knippi Screenshot - Foo-Bar-Beta "))
         #expect(fileName.hasSuffix(".png"))
     }
 
-    @Test("Custom screenshot template can omit Capso prefix")
-    func customScreenshotTemplateOmitsCapsoPrefix() {
+    @Test("Custom screenshot template can omit Knippi prefix")
+    func customScreenshotTemplateOmitsKnippiPrefix() {
         let date = localDate()
         let fileName = FileNaming.generateFileName(
             for: .screenshot,
@@ -102,16 +102,16 @@ struct FileNamingTests {
             for: .screenshot,
             date: date,
             sourceAppName: "Safari",
-            template: "Capso Screenshot{source} {timestamp}"
+            template: "Knippi Screenshot{source} {timestamp}"
         )
         let withoutApp = FileNaming.generateName(
             for: .screenshot,
             date: date,
-            template: "Capso Screenshot{source} {timestamp}"
+            template: "Knippi Screenshot{source} {timestamp}"
         )
 
-        #expect(withApp == "Capso Screenshot - Safari 2024-01-15 at 16.00.00")
-        #expect(withoutApp == "Capso Screenshot 2024-01-15 at 16.00.00")
+        #expect(withApp == "Knippi Screenshot - Safari 2024-01-15 at 16.00.00")
+        #expect(withoutApp == "Knippi Screenshot 2024-01-15 at 16.00.00")
     }
 
     @Test("Unknown filename tokens remain visible")
@@ -135,7 +135,7 @@ struct FileNamingTests {
             template: "   "
         )
 
-        #expect(name == "Capso Screenshot 2024-01-15 at 16.00.00")
+        #expect(name == "Knippi Screenshot 2024-01-15 at 16.00.00")
     }
 
     @Test("Rendered filename strips unsafe characters")
@@ -183,7 +183,7 @@ struct FileNamingTests {
 
     @Test("Monthly directory uses year and month")
     func monthlyDirectoryUsesYearAndMonth() {
-        let base = URL(fileURLWithPath: "/tmp/capso-test", isDirectory: true)
+        let base = URL(fileURLWithPath: "/tmp/knippi-test", isDirectory: true)
         let date = Date(timeIntervalSince1970: 1_705_348_800)
 
         let directory = FileNaming.monthlyDirectory(in: base, date: date)

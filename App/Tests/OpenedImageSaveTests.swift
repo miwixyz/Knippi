@@ -1,7 +1,7 @@
 import AppKit
 import XCTest
 import SharedKit
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class OpenedImageSaveTests: XCTestCase {
@@ -145,7 +145,7 @@ final class OpenedImageSaveTests: XCTestCase {
         let suiteName = "OpenedImageSaveTests.\(UUID().uuidString)"
         let settings = AppSettings(defaults: UserDefaults(suiteName: suiteName)!)
         let exportDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-openedimagesave-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-openedimagesave-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: exportDir, withIntermediateDirectories: true)
         settings.setExportLocation(exportDir)
         let coordinator = CaptureCoordinator(settings: settings)

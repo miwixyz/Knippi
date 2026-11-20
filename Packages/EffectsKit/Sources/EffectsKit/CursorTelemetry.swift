@@ -37,7 +37,7 @@ public final class CursorTelemetry: @unchecked Sendable {
 
     // MARK: - Debug log file
 
-    private static let debugLogURL: URL = URL(fileURLWithPath: "/tmp/capso-telemetry.log")
+    private static let debugLogURL: URL = URL(fileURLWithPath: "/tmp/knippi-telemetry.log")
 
     private static func debugLog(_ message: String) {
         let ts = Date().ISO8601Format()
@@ -209,7 +209,7 @@ public final class CursorTelemetry: @unchecked Sendable {
             readySemaphore.signal()
             CFRunLoopRun()
         }
-        bgThread.name = "com.capso.cursortelemetry"
+        bgThread.name = "dev.mwlr.knippi.cursortelemetry"
         bgThread.qualityOfService = .userInteractive
         bgThread.start()
         tapThread = bgThread
@@ -273,7 +273,7 @@ public final class CursorTelemetry: @unchecked Sendable {
         }
 
         globalNSMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: handler)
-        // Local monitor so we also see events when Capso is frontmost.
+        // Local monitor so we also see events when Knippi is frontmost.
         localNSMonitor = NSEvent.addLocalMonitorForEvents(matching: mask) { ns in
             handler(ns)
             return ns

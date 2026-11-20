@@ -8,55 +8,55 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         }
       }
@@ -68,55 +68,55 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso"
+            "value" : "Knippi"
           }
         }
       }
@@ -128,73 +128,73 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso benötigt Zugriff auf das Mikrofon, um während Bildschirmaufnahmen Audio aufzuzeichnen."
+            "value" : "Knippi benötigt Zugriff auf das Mikrofon, um während Bildschirmaufnahmen Audio aufzuzeichnen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Capso needs microphone access to record audio during screen recordings."
+            "value" : "Knippi needs microphone access to record audio during screen recordings."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso necesita acceso al micrófono para grabar audio durante las grabaciones de pantalla."
+            "value" : "Knippi necesita acceso al micrófono para grabar audio durante las grabaciones de pantalla."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso a besoin d'accéder au micro pour enregistrer l'audio pendant les enregistrements de l'écran."
+            "value" : "Knippi a besoin d'accéder au micro pour enregistrer l'audio pendant les enregistrements de l'écran."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso ha bisogno dell'accesso al microfono per registrare l'audio durante le registrazioni dello schermo."
+            "value" : "Knippi ha bisogno dell'accesso al microfono per registrare l'audio durante le registrazioni dello schermo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Capso は画面録画中にオーディオを録音するためにマイクへのアクセスが必要です。"
+            "value" : "Knippi は画面録画中にオーディオを録音するためにマイクへのアクセスが必要です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Capso가 화면 녹화 중 오디오를 녹음하려면 마이크 접근 권한이 필요합니다."
+            "value" : "Knippi가 화면 녹화 중 오디오를 녹음하려면 마이크 접근 권한이 필요합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Capso precisa de acesso ao microfone para gravar áudio durante as gravações de tela."
+            "value" : "O Knippi precisa de acesso ao microfone para gravar áudio durante as gravações de tela."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso нужен доступ к микрофону, чтобы записывать звук во время записи экрана."
+            "value" : "Knippi нужен доступ к микрофону, чтобы записывать звук во время записи экрана."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso, ekran kayıtları sırasında ses kaydetmek için mikrofon erişimine ihtiyaç duyar."
+            "value" : "Knippi, ekran kayıtları sırasında ses kaydetmek için mikrofon erişimine ihtiyaç duyar."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Capso 需要麦克风权限以在录屏时录制音频。"
+            "value" : "Knippi 需要麦克风权限以在录屏时录制音频。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 需要取用麥克風，才能在螢幕錄製期間錄製音訊。"
+            "value" : "Knippi 需要取用麥克風，才能在螢幕錄製期間錄製音訊。"
           }
         }
       }
@@ -205,67 +205,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso benötigt die Berechtigung zur Bildschirmaufnahme, um Bildschirmfotos zu erstellen und den Bildschirm aufzuzeichnen."
+            "value" : "Knippi benötigt die Berechtigung zur Bildschirmaufnahme, um Bildschirmfotos zu erstellen und den Bildschirm aufzuzeichnen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso necesita acceso a la grabación de pantalla para hacer capturas y grabar la pantalla."
+            "value" : "Knippi necesita acceso a la grabación de pantalla para hacer capturas y grabar la pantalla."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso a besoin de l'autorisation d'enregistrement de l'écran pour prendre des captures d'écran et enregistrer l'écran."
+            "value" : "Knippi a besoin de l'autorisation d'enregistrement de l'écran pour prendre des captures d'écran et enregistrer l'écran."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso ha bisogno dell'autorizzazione di registrazione dello schermo per catturare istantanee e registrare lo schermo."
+            "value" : "Knippi ha bisogno dell'autorizzazione di registrazione dello schermo per catturare istantanee e registrare lo schermo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso はスクリーンショットの撮影と画面録画のために画面収録の許可が必要です。"
+            "value" : "Knippi はスクリーンショットの撮影と画面録画のために画面収録の許可が必要です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso가 스크린샷을 캡처하고 화면을 녹화하려면 화면 녹화 권한이 필요합니다."
+            "value" : "Knippi가 스크린샷을 캡처하고 화면을 녹화하려면 화면 녹화 권한이 필요합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Capso precisa de permissão de Gravação de Tela para fazer capturas de tela e gravar a tela."
+            "value" : "O Knippi precisa de permissão de Gravação de Tela para fazer capturas de tela e gravar a tela."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso нужно разрешение на запись экрана, чтобы делать снимки экрана и записывать экран."
+            "value" : "Knippi нужно разрешение на запись экрана, чтобы делать снимки экрана и записывать экран."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso, ekran görüntüsü almak ve ekranı kaydetmek için ekran kaydı iznine ihtiyaç duyar."
+            "value" : "Knippi, ekran görüntüsü almak ve ekranı kaydetmek için ekran kaydı iznine ihtiyaç duyar."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 需要屏幕录制权限来截取屏幕截图和录制屏幕。"
+            "value" : "Knippi 需要屏幕录制权限来截取屏幕截图和录制屏幕。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 需要螢幕錄製權限，才能擷取截圖和錄製螢幕。"
+            "value" : "Knippi 需要螢幕錄製權限，才能擷取截圖和錄製螢幕。"
           }
         }
       }

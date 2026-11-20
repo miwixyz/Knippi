@@ -3,7 +3,7 @@ import AppKit
 import SharedKit
 import XCTest
 
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class AnnotationCanvasClipboardShortcutTests: XCTestCase {

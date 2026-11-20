@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 final class EscapeKeyPressFilterTests: XCTestCase {
     private let escape = EscapeKeyPressFilter.escapeKeyCode

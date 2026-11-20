@@ -36,7 +36,7 @@ final class PreferencesWindow {
             defer: false
         )
         window.identifier = DockPresenceController.windowIdentifier
-        window.title = String(localized: "Capso Settings")
+        window.title = String(localized: "Knippi Settings")
         window.minSize = NSSize(width: 680, height: 480)
         window.maxSize = NSSize(width: 680, height: 480)
         window.isReleasedWhenClosed = false

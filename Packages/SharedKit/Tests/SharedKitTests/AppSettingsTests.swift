@@ -555,7 +555,7 @@ struct AppSettingsTests {
 
         first.cloudShareProvider = "s3"
         first.cloudShareURLPrefix = "https://cdn.example.com"
-        first.cloudShareBucket = "capso"
+        first.cloudShareBucket = "knippi"
         first.cloudShareRegion = "us-east-1"
         first.cloudShareEndpoint = "https://s3.us-east-1.amazonaws.com"
         first.cloudSharePathPrefix = "screenshots"
@@ -576,7 +576,7 @@ struct AppSettingsTests {
 
         settings.cloudShareProvider = "r2"
         settings.cloudShareURLPrefix = "https://pub.example.com"
-        settings.cloudShareBucket = "capso"
+        settings.cloudShareBucket = "knippi"
         settings.cloudShareAccountID = "abc123"
 
         #expect(settings.isCloudShareConfigured == true)

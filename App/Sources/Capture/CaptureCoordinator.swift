@@ -514,7 +514,7 @@ final class CaptureCoordinator {
         // and won't disappear when our overlay becomes key.
         Task {
             do {
-                // Exclude capture chrome (not all Capso windows like Settings)
+                // Exclude capture chrome (not all Knippi windows like Settings)
                 // so Quick Access cards cannot be selected as screenshot content.
                 let overlayIDs = Set(overlayWindows.map { CGWindowID($0.windowNumber) })
                 let quickAccessIDs = Set(quickAccessWindows.map { CGWindowID($0.windowNumber) })
@@ -907,7 +907,7 @@ final class CaptureCoordinator {
         areaSelected: ((CGRect, NSScreen) -> Void)? = nil
     ) {
         // Starting a replacement overlay is not the end of capture. In
-        // particular, posting `capsoCaptureDidEnd` here would briefly resume a
+        // particular, posting `knippiCaptureDidEnd` here would briefly resume a
         // parked discard alert before the next freeze parks it again.
         dismissOverlay(notifyingCaptureEnd: false)
 
@@ -916,7 +916,7 @@ final class CaptureCoordinator {
         // being selected. Only then end its modal event loop, which releases
         // pointer events for the overlay without removing the alert from the
         // already-frozen desktop.
-        NotificationCenter.default.post(name: .capsoCaptureDidFreezeDesktop, object: nil)
+        NotificationCenter.default.post(name: .knippiCaptureDidFreezeDesktop, object: nil)
         guard !frozenScreens.isEmpty else {
             showOverlay(mode: mode, areaSelected: areaSelected)
             return
@@ -1266,7 +1266,7 @@ final class CaptureCoordinator {
         dismissSelectionOverlays()
         dismissFreezeWindows()
         if notifyingCaptureEnd {
-            NotificationCenter.default.post(name: .capsoCaptureDidEnd, object: nil)
+            NotificationCenter.default.post(name: .knippiCaptureDidEnd, object: nil)
         }
     }
 
@@ -1638,7 +1638,7 @@ final class CaptureCoordinator {
         if let deadline = automatedCaptureDeadline, Date() < deadline {
             Self.postNotification(
                 title: String(localized: "Screenshot taken by another app"),
-                body: String(localized: "Another app used Capso to capture your screen.")
+                body: String(localized: "Another app used Knippi to capture your screen.")
             )
         }
         automatedCaptureDeadline = nil

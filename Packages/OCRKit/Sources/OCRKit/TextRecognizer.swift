@@ -4,7 +4,7 @@ import CoreGraphics
 import os
 import Vision
 
-private let logger = Logger(subsystem: "com.awesomemacapps.capso", category: "OCRKit")
+private let logger = Logger(subsystem: "dev.mwlr.knippi", category: "OCRKit")
 
 /// Recognition accuracy level.
 public enum RecognitionLevel: Sendable {

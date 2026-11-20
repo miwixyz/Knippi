@@ -31,7 +31,7 @@ struct GeneralSettingsView: View {
 
             SettingGroup(title: "Startup") {
                 SettingCard {
-                    SettingRow(label: "Launch at Login", sublabel: "Start Capso when you log in") {
+                    SettingRow(label: "Launch at Login", sublabel: "Start Knippi when you log in") {
                         LaunchAtLogin.Toggle { Text("") }
                             .toggleStyle(.switch)
                             .controlSize(.small)
@@ -88,7 +88,7 @@ struct GeneralSettingsView: View {
                             .toggleStyle(.switch)
                             .controlSize(.small)
                     }
-                    SettingRow(label: "Diagnostic Logs", sublabel: "Open Capso's local log folder", showDivider: true) {
+                    SettingRow(label: "Diagnostic Logs", sublabel: "Open Knippi's local log folder", showDivider: true) {
                         ExternalLinkButton(title: "Open", icon: "folder") {
                             openDiagnosticLogs()
                         }
@@ -111,22 +111,17 @@ struct GeneralSettingsView: View {
                     }
                     SettingRow(label: "Report a Bug", sublabel: "Found something broken?", showDivider: true) {
                         ExternalLinkButton(title: "Report", icon: "ladybug") {
-                            openURL("https://github.com/lzhgus/Capso/issues/new?template=bug_report.yml&labels=bug")
+                            openURL("https://github.com/miwixyz/Knippi/issues/new?template=bug_report.yml&labels=bug")
                         }
                     }
                     SettingRow(label: "Request a Feature", sublabel: "Have an idea?", showDivider: true) {
                         ExternalLinkButton(title: "Request", icon: "lightbulb") {
-                            openURL("https://github.com/lzhgus/Capso/issues/new?template=feature_request.yml&labels=enhancement")
+                            openURL("https://github.com/miwixyz/Knippi/issues/new?template=feature_request.yml&labels=enhancement")
                         }
                     }
                     SettingRow(label: "Source Code", sublabel: "View on GitHub", showDivider: true) {
                         ExternalLinkButton(title: "Open", icon: "chevron.left.forwardslash.chevron.right") {
-                            openURL("https://github.com/lzhgus/Capso")
-                        }
-                    }
-                    SettingRow(label: "Follow on X", sublabel: "Updates from @lzhgus", showDivider: true) {
-                        ExternalLinkButton(title: "Follow", icon: "at") {
-                            openURL("https://x.com/lzhgus")
+                            openURL("https://github.com/miwixyz/Knippi")
                         }
                     }
                 }
@@ -148,7 +143,7 @@ struct GeneralSettingsView: View {
     private var hideMenuBarMessage: String {
         let captureArea = shortcutDescription(for: .captureArea) ?? String(localized: "not set")
         return String(
-            format: String(localized: "Capso will keep running, and your global shortcuts still work:\n\n• Capture Area: %@\n\nTo open Preferences again, launch Capso from Spotlight, Launchpad, or Finder — even while it's still running."),
+            format: String(localized: "Knippi will keep running, and your global shortcuts still work:\n\n• Capture Area: %@\n\nTo open Preferences again, launch Knippi from Spotlight, Launchpad, or Finder — even while it's still running."),
             captureArea
         )
     }

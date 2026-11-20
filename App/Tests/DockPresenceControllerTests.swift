@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class DockPresenceControllerTests: XCTestCase {
@@ -103,7 +103,7 @@ final class DockPresenceControllerIntegrationTests: XCTestCase {
         drainMainQueue()
         try XCTSkipIf(
             DockPresenceController.activeSpace(of: [window]) == .otherAppFullScreen,
-            "Run from a desktop Space; another app's full-screen Space keeps Capso out of the Dock"
+            "Run from a desktop Space; another app's full-screen Space keeps Knippi out of the Dock"
         )
         XCTAssertEqual(NSApp.activationPolicy(), .regular)
 

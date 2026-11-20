@@ -3,7 +3,7 @@ import CaptureKit
 import SharedKit
 import SwiftUI
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class QuickAccessWindowPresentationTests: XCTestCase {

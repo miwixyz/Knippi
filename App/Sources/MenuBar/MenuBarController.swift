@@ -140,9 +140,9 @@ final class MenuBarController: NSObject {
         menu.addItem(.separator())
 
         menu.addItem(menuItem(String(localized: "Preferences..."), action: #selector(openPreferences), key: ",", modifiers: [.command]))
-        menu.addItem(menuItem(String(localized: "About Capso"), action: #selector(openAbout)))
+        menu.addItem(menuItem(String(localized: "About Knippi"), action: #selector(openAbout)))
         menu.addItem(.separator())
-        menu.addItem(menuItem(String(localized: "Quit Capso"), action: #selector(quitApp), key: "q", modifiers: [.command]))
+        menu.addItem(menuItem(String(localized: "Quit Knippi"), action: #selector(quitApp), key: "q", modifiers: [.command]))
 
         return menu
     }

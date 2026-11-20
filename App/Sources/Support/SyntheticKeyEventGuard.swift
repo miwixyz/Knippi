@@ -4,7 +4,7 @@ import AppKit
 /// Guards against synthetic ⌘C / ⇧⌘C posted by word-lookup tools.
 ///
 /// Third-party lookup/translation apps install a global mouse-up sniffer and inject ⌘C to
-/// harvest the selection. When a Capso panel is key, the injected chord used
+/// harvest the selection. When a Knippi panel is key, the injected chord used
 /// to trigger "copy and close" and tear the capture down mid-edit.
 extension NSEvent {
     /// True when this ⌘C or ⇧⌘C was posted by another process.

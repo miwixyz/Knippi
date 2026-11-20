@@ -220,7 +220,7 @@ struct ClipboardPinContentReaderTests {
     @MainActor
     func describesFileLists() throws {
         let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CapsoClipboardPinTests-\(UUID().uuidString)")
+            .appendingPathComponent("KnippiClipboardPinTests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let first = directory.appendingPathComponent("notes.txt")
@@ -247,7 +247,7 @@ struct ClipboardPinContentReaderTests {
     @MainActor
     func loadsImagePathString() throws {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CapsoClipboardPin-\(UUID().uuidString).png")
+            .appendingPathComponent("KnippiClipboardPin-\(UUID().uuidString).png")
         defer { try? FileManager.default.removeItem(at: url) }
         let source = try makeImage(width: 13, height: 9)
         let data = try #require(NSBitmapImageRep(cgImage: source).representation(using: .png, properties: [:]))
@@ -269,7 +269,7 @@ struct ClipboardPinContentReaderTests {
     @MainActor
     func rejectsUnsupportedImagePathExtension() throws {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CapsoClipboardPin-\(UUID().uuidString).txt")
+            .appendingPathComponent("KnippiClipboardPin-\(UUID().uuidString).txt")
         defer { try? FileManager.default.removeItem(at: url) }
         let source = try makeImage(width: 13, height: 9)
         let data = try #require(NSBitmapImageRep(cgImage: source).representation(using: .png, properties: [:]))
@@ -365,7 +365,7 @@ struct ClipboardPinContentReaderTests {
     @MainActor
     func rendersTextUpright() throws {
         let pasteboard = makePasteboard()
-        pasteboard.setString("CAPSO UPRIGHT 123", forType: .string)
+        pasteboard.setString("KNIPPI UPRIGHT 123", forType: .string)
 
         let result = ClipboardPinContentReader.render(from: pasteboard)
 
@@ -374,7 +374,7 @@ struct ClipboardPinContentReaderTests {
             return
         }
         let recognized = try recognizedText(in: image)
-        #expect(recognized.contains("CAPSO UPRIGHT 123"))
+        #expect(recognized.contains("KNIPPI UPRIGHT 123"))
     }
 
     private func recognizedText(in image: CGImage) throws -> String {
@@ -387,7 +387,7 @@ struct ClipboardPinContentReaderTests {
     }
 
     private func makePasteboard() -> NSPasteboard {
-        let name = NSPasteboard.Name("CapsoClipboardPinContentReaderTests.\(UUID().uuidString)")
+        let name = NSPasteboard.Name("KnippiClipboardPinContentReaderTests.\(UUID().uuidString)")
         let pasteboard = NSPasteboard(name: name)
         pasteboard.clearContents()
         return pasteboard

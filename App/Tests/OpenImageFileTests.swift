@@ -1,7 +1,7 @@
 import AppKit
 import XCTest
 import SharedKit
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class OpenImageFileTests: XCTestCase {
@@ -116,7 +116,7 @@ final class OpenImageFileTests: XCTestCase {
     private func writePNG(width: Int, height: Int) throws -> URL {
         let image = try makeTestImage(width: width, height: height)
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-openimage-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-openimage-\(UUID().uuidString)")
             .appendingPathExtension("png")
         let data = try XCTUnwrap(ImageUtilities.pngData(from: image))
         try data.write(to: url)
@@ -125,7 +125,7 @@ final class OpenImageFileTests: XCTestCase {
 
     private func writeCorruptFile(extension ext: String) throws -> URL {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-openimage-corrupt-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-openimage-corrupt-\(UUID().uuidString)")
             .appendingPathExtension(ext)
         try Data([0x00, 0x01, 0x02, 0x03]).write(to: url)
         return url

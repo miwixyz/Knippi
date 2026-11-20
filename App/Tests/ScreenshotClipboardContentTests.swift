@@ -2,7 +2,7 @@ import AppKit
 import CaptureKit
 import SharedKit
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class ScreenshotClipboardContentTests: XCTestCase {
@@ -10,7 +10,7 @@ final class ScreenshotClipboardContentTests: XCTestCase {
         let settings = makeSettings()
         settings.quickAccessAutoClose = false
         let exportRoot = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-save-retry-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-save-retry-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: exportRoot, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: exportRoot) }
         let blockedDirectory = exportRoot.appendingPathComponent("blocked")
@@ -63,7 +63,7 @@ final class ScreenshotClipboardContentTests: XCTestCase {
         let coordinator = CaptureCoordinator(settings: settings)
         let pasteboard = makePasteboard()
         let savedURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-autosave-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-autosave-\(UUID().uuidString)")
             .appendingPathExtension("png")
         try Data([0x89, 0x50, 0x4E, 0x47]).write(to: savedURL)
         defer { try? FileManager.default.removeItem(at: savedURL) }

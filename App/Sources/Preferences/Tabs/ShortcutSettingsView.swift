@@ -31,7 +31,7 @@ extension KeyboardShortcuts.Name {
     /// Unbound by default.
     static let togglePins = Self("togglePins")
 
-    static let allCapso: [Self] = [
+    static let allKnippi: [Self] = [
         .captureAllInOne, .captureArea, .captureFullscreen, .captureWindow, .captureText, .recordScreen,
         .recordFullscreen, .captureScrolling, .captureAreaToClipboard, .captureAreaAndShare,
         .captureAreaAndAnnotate, .captureAreaAndPin, .pinFromClipboard, .editClipboardImage,
@@ -292,19 +292,19 @@ private struct ShortcutKeycap: View {
     }
 }
 
-/// Helps hand ⇧⌘3 / ⇧⌘4 / ⇧⌘5 over from the macOS screenshot tool to Capso.
+/// Helps hand ⇧⌘3 / ⇧⌘4 / ⇧⌘5 over from the macOS screenshot tool to Knippi.
 private struct SystemScreenshotShortcutsCard: View {
     @State private var systemShortcutsOn = SystemScreenshotShortcuts.areEnabled
-    @State private var capsoUsesAny = Self.capsoUsesAnySystemKey
+    @State private var knippiUsesAny = Self.knippiUsesAnySystemKey
 
     private static let assignments: [(KeyboardShortcuts.Name, KeyboardShortcuts.Key)] = [
         (.captureFullscreen, .three), (.captureArea, .four), (.captureAllInOne, .five),
     ]
 
-    /// Once any Capso action uses one of these keys, the user has set them up themselves.
-    private static var capsoUsesAnySystemKey: Bool {
+    /// Once any Knippi action uses one of these keys, the user has set them up themselves.
+    private static var knippiUsesAnySystemKey: Bool {
         let systemKeys = assignments.map { KeyboardShortcuts.Shortcut($0.1, modifiers: [.command, .shift]) }
-        return KeyboardShortcuts.Name.allCapso.contains { name in
+        return KeyboardShortcuts.Name.allKnippi.contains { name in
             KeyboardShortcuts.getShortcut(for: name).map(systemKeys.contains) ?? false
         }
     }
@@ -315,28 +315,28 @@ private struct SystemScreenshotShortcutsCard: View {
                 banner(
                     icon: "exclamationmark.triangle",
                     tint: .orange,
-                    text: "macOS still uses ⇧⌘3, ⇧⌘4 and ⇧⌘5 for its own screenshots. To use them for Capso, turn off the shortcuts under Keyboard Shortcuts → Screenshots."
+                    text: "macOS still uses ⇧⌘3, ⇧⌘4 and ⇧⌘5 for its own screenshots. To use them for Knippi, turn off the shortcuts under Keyboard Shortcuts → Screenshots."
                 ) {
                     Button("Open Keyboard Settings") { NSWorkspace.shared.open(SystemScreenshotShortcuts.settingsURL) }
                 }
-            } else if !capsoUsesAny {
+            } else if !knippiUsesAny {
                 banner(
                     icon: "keyboard",
                     tint: .blue,
-                    text: "The macOS screenshot shortcuts are off. Capso can take them over: ⇧⌘3 Capture Fullscreen, ⇧⌘4 Capture Area, ⇧⌘5 All-in-One."
+                    text: "The macOS screenshot shortcuts are off. Knippi can take them over: ⇧⌘3 Capture Fullscreen, ⇧⌘4 Capture Area, ⇧⌘5 All-in-One."
                 ) {
                     Button("Use ⇧⌘3 / ⇧⌘4 / ⇧⌘5") {
                         for (name, key) in Self.assignments {
                             KeyboardShortcuts.setShortcut(.init(key, modifiers: [.command, .shift]), for: name)
                         }
-                        capsoUsesAny = true
+                        knippiUsesAny = true
                     }
                 }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             systemShortcutsOn = SystemScreenshotShortcuts.areEnabled
-            capsoUsesAny = Self.capsoUsesAnySystemKey
+            knippiUsesAny = Self.knippiUsesAnySystemKey
         }
     }
 

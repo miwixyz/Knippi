@@ -23,7 +23,7 @@ public enum ShareDestinationFactory {
 public extension ShareDestination {
     func validateConfig() async throws {
         let testID = IDGenerator.shortID()
-        let testKey = "_capso_test_\(testID).txt"
+        let testKey = "_knippi_test_\(testID).txt"
         let tmpFile = FileManager.default.temporaryDirectory.appendingPathComponent(testKey)
         try "ok".write(to: tmpFile, atomically: true, encoding: .utf8)
         defer { try? FileManager.default.removeItem(at: tmpFile) }

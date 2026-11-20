@@ -192,7 +192,7 @@ extension UpdateManager: SPUUpdaterDelegate {
     }
 }
 
-/// A SwiftUI wrapper around Capso's update manager that keeps manual
+/// A SwiftUI wrapper around Knippi's update manager that keeps manual
 /// no-update feedback non-modal so the app remains capturable.
 struct CheckForUpdatesView: View {
     @ObservedObject var updateManager: UpdateManager

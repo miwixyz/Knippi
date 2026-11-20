@@ -1,6 +1,6 @@
 import AppKit
 
-/// Shows Capso in the Dock and the Cmd+Tab switcher while an editor-style
+/// Shows Knippi in the Dock and the Cmd+Tab switcher while an editor-style
 /// window (Annotate, Settings, the recording editor) is
 /// open, and returns to a menu-bar-only app once the last one closes.
 ///
@@ -8,7 +8,7 @@ import AppKit
 /// panels such as the color picker, OCR overlay, or Quick Access never count.
 @MainActor
 final class DockPresenceController {
-    static let windowIdentifier = NSUserInterfaceItemIdentifier("com.capso.dockPresence")
+    static let windowIdentifier = NSUserInterfaceItemIdentifier("dev.mwlr.knippi.dockPresence")
 
     private var observers: [NSObjectProtocol] = []
     private var updateScheduled = false

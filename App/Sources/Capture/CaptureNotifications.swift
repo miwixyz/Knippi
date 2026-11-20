@@ -3,7 +3,7 @@ import Foundation
 
 extension Notification.Name {
     /// Posted after the desktop (including any system alert) has been frozen.
-    static let capsoCaptureDidFreezeDesktop = Notification.Name("capsoCaptureDidFreezeDesktop")
+    static let knippiCaptureDidFreezeDesktop = Notification.Name("knippiCaptureDidFreezeDesktop")
     /// Posted after the interactive capture overlay has been dismissed.
-    static let capsoCaptureDidEnd = Notification.Name("capsoCaptureDidEnd")
+    static let knippiCaptureDidEnd = Notification.Name("knippiCaptureDidEnd")
 }

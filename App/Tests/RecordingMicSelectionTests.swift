@@ -1,5 +1,5 @@
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 final class RecordingMicSelectionTests: XCTestCase {
     func testDisabledStaysDisabled() {

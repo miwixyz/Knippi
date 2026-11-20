@@ -1,8 +1,8 @@
-// App/Sources/CapsoApp.swift
+// App/Sources/KnippiApp.swift
 import SwiftUI
 
 @main
-enum CapsoMain {
+enum KnippiMain {
     @MainActor
     static func main() {
         // Finish helper requests before SwiftUI/AppKit starts an application
@@ -10,11 +10,11 @@ enum CapsoMain {
         if OCRProcessFallback.runHelperIfRequested() {
             return
         }
-        CapsoApp.main()
+        KnippiApp.main()
     }
 }
 
-struct CapsoApp: App {
+struct KnippiApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {

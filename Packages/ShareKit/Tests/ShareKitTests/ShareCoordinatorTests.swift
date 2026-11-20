@@ -282,10 +282,10 @@ struct ShareCoordinatorTests {
     }
 
     @Test("Every provider knows its public URL before uploading", arguments: [
-        ShareConfig(provider: .r2, urlPrefix: "https://cdn.example.com", bucket: "capso", fields: ["accountID": "abc123", "pathPrefix": "shots"]),
-        ShareConfig(provider: .s3, urlPrefix: "https://cdn.example.com", bucket: "capso", fields: ["region": "us-east-1", "pathPrefix": "shots"]),
-        ShareConfig(provider: .tencentCOS, urlPrefix: "https://cdn.example.com", bucket: "capso-123456", fields: ["region": "ap-guangzhou", "pathPrefix": "shots"]),
-        ShareConfig(provider: .aliyunOSS, urlPrefix: "https://cdn.example.com", bucket: "capso", fields: ["region": "oss-cn-hangzhou", "pathPrefix": "shots"]),
+        ShareConfig(provider: .r2, urlPrefix: "https://cdn.example.com", bucket: "knippi", fields: ["accountID": "abc123", "pathPrefix": "shots"]),
+        ShareConfig(provider: .s3, urlPrefix: "https://cdn.example.com", bucket: "knippi", fields: ["region": "us-east-1", "pathPrefix": "shots"]),
+        ShareConfig(provider: .tencentCOS, urlPrefix: "https://cdn.example.com", bucket: "knippi-123456", fields: ["region": "ap-guangzhou", "pathPrefix": "shots"]),
+        ShareConfig(provider: .aliyunOSS, urlPrefix: "https://cdn.example.com", bucket: "knippi", fields: ["region": "oss-cn-hangzhou", "pathPrefix": "shots"]),
     ])
     func publicURLBeforeUpload(config: ShareConfig) throws {
         let destination = try ShareDestinationFactory.make(config: config, accessKey: "AK", secretKey: "SK")

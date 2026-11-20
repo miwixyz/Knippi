@@ -21,7 +21,7 @@ struct ClipboardImageReaderTests {
         let pasteboard = makePasteboard()
         let image = try makeImage(width: 9, height: 4)
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-clipboard-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-clipboard-\(UUID().uuidString)")
             .appendingPathExtension("png")
         try #require(ImageUtilities.pngData(from: image)).write(to: url)
         defer { try? FileManager.default.removeItem(at: url) }
@@ -42,7 +42,7 @@ struct ClipboardImageReaderTests {
     }
 
     private func makePasteboard() -> NSPasteboard {
-        let name = NSPasteboard.Name("CapsoClipboardImageReaderTests.\(UUID().uuidString)")
+        let name = NSPasteboard.Name("KnippiClipboardImageReaderTests.\(UUID().uuidString)")
         let pasteboard = NSPasteboard(name: name)
         pasteboard.clearContents()
         return pasteboard

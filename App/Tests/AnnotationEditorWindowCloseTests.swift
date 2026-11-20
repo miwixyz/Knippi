@@ -2,7 +2,7 @@ import AppKit
 import XCTest
 import AnnotationKit
 import SharedKit
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class AnnotationEditorWindowCloseTests: XCTestCase {

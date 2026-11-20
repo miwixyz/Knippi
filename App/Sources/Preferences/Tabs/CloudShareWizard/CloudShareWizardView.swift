@@ -168,7 +168,7 @@ struct CloudShareWizardView: View {
     private func save() async {
         // Step 1: Keychain first — if this fails, abort (no AppSettings writes,
         // so the UI never shows a half-saved "configured" state).
-        let keychain = KeychainHelper(service: "com.awesomemacapps.capso.share.\(model.provider.rawValue)")
+        let keychain = KeychainHelper(service: "dev.mwlr.knippi.share.\(model.provider.rawValue)")
         do {
             try keychain.set(model.accessKey, account: "accessKey")
             try keychain.set(model.secretKey, account: "secretKey")
@@ -496,7 +496,7 @@ private struct WelcomeStep: View {
                 Spacer()
             }
 
-            Text(.init(String(localized: "Capso uploads to **your own cloud storage** — never our servers. You bring the bucket, you own the files, you keep the bill. We just hand you the share link.")))
+            Text(.init(String(localized: "Knippi uploads to **your own cloud storage** — never our servers. You bring the bucket, you own the files, you keep the bill. We just hand you the share link.")))
                 .font(.system(size: 13))
                 .foregroundStyle(.white.opacity(0.78))
                 .lineSpacing(3)
@@ -505,7 +505,7 @@ private struct WelcomeStep: View {
             VStack(alignment: .leading, spacing: 14) {
                 CheckBullet(
                     title: String(localized: "Yours forever."),
-                    detail: String(localized: "Files live in your account. Cancel Capso, keep your screenshots.")
+                    detail: String(localized: "Files live in your account. Cancel Knippi, keep your screenshots.")
                 )
                 CheckBullet(
                     title: String(localized: "Free tier friendly."),
@@ -539,7 +539,7 @@ private struct ProviderStep: View {
             StepHeader(
                 stepLabel: String(localized: "Step 2 — Provider"),
                 title: String(localized: "Choose a storage provider"),
-                subtitle: String(localized: "Choose where Capso uploads screenshots. Files stay in your own storage account and Capso copies the public share link.")
+                subtitle: String(localized: "Choose where Knippi uploads screenshots. Files stay in your own storage account and Knippi copies the public share link.")
             )
 
             VStack(spacing: 10) {
@@ -606,9 +606,9 @@ private struct GetKeysStep: View {
     private var steps: [(title: String, detail: AttributedString)] {
         [
             (String(localized: "Create or choose a bucket"),
-             Self.attributed(String(format: String(localized: "Use a bucket in **%@** that Capso can write objects into."), model.providerDisplayName))),
+             Self.attributed(String(format: String(localized: "Use a bucket in **%@** that Knippi can write objects into."), model.providerDisplayName))),
             (String(localized: "Make uploaded files publicly readable"),
-             Self.attributed(String(localized: "Use a public bucket URL or connect a custom domain/CDN. Capso needs a public HTTPS prefix so it can copy a share link."))),
+             Self.attributed(String(localized: "Use a public bucket URL or connect a custom domain/CDN. Knippi needs a public HTTPS prefix so it can copy a share link."))),
             (String(localized: "Create access credentials"),
              Self.attributed(String(localized: "Create a key with object read/write permission scoped to this bucket when your provider supports scoped keys."))),
             (String(localized: "Copy the required values"),
@@ -868,7 +868,7 @@ private struct URLPrefixStep: View {
             StepHeader(
                 stepLabel: String(localized: "Step 5 — Public URL"),
                 title: String(localized: "Public URL & test"),
-                subtitle: String(localized: "Capso uses this HTTPS prefix to build the share link after upload. Use your public bucket URL, custom domain, or CDN URL.")
+                subtitle: String(localized: "Knippi uses this HTTPS prefix to build the share link after upload. Use your public bucket URL, custom domain, or CDN URL.")
             )
 
             FieldGroup(

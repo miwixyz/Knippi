@@ -1,6 +1,6 @@
 import XCTest
 import SharedKit
-@testable import Capso
+@testable import Knippi
 
 /// Phase 1 hides screen recording and scrolling capture (Knippi spec §2).
 final class PhaseOneVisibilityTests: XCTestCase {
@@ -12,12 +12,12 @@ final class PhaseOneVisibilityTests: XCTestCase {
     func testAutomationSheetDropsHiddenCommandsAndEmptySections() {
         let sections = AutomationCommandSection.visible([
             AutomationCommandSection(id: "screenshots", title: "Screenshots", items: [
-                AutomationCommandItem(id: "area", name: "Capture Area", urlString: "capso://grab/area"),
-                AutomationCommandItem(id: "scrolling", name: "Scrolling Capture", urlString: "capso://grab/scrolling"),
+                AutomationCommandItem(id: "area", name: "Capture Area", urlString: "knippi://grab/area"),
+                AutomationCommandItem(id: "scrolling", name: "Scrolling Capture", urlString: "knippi://grab/scrolling"),
             ]),
             AutomationCommandSection(id: "recording", title: "Recording", items: [
-                AutomationCommandItem(id: "record", name: "Record Area", urlString: "capso://grab/record"),
-                AutomationCommandItem(id: "record-fullscreen", name: "Record Full Screen", urlString: "capso://grab/record-fullscreen"),
+                AutomationCommandItem(id: "record", name: "Record Area", urlString: "knippi://grab/record"),
+                AutomationCommandItem(id: "record-fullscreen", name: "Record Full Screen", urlString: "knippi://grab/record-fullscreen"),
             ]),
         ])
 

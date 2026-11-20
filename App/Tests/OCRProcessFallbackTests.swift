@@ -1,7 +1,7 @@
 import CoreGraphics
 import OCRKit
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 final class OCRProcessFallbackTests: XCTestCase {
     private static let engineError = NSError(

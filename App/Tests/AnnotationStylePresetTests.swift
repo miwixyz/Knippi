@@ -1,7 +1,7 @@
 import AnnotationKit
 import XCTest
 
-@testable import Capso
+@testable import Knippi
 
 final class AnnotationStylePresetTests: XCTestCase {
     func testPresetsSurviveSavingAndLoading() {

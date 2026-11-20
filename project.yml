@@ -1,9 +1,9 @@
 # project.yml
-name: Capso
+name: Knippi
 options:
-  bundleIdPrefix: com.awesomemacapps
+  bundleIdPrefix: dev.mwlr
   deploymentTarget:
-    macOS: "15.0"
+    macOS: "26.0"
   xcodeVersion: "26.0"
   generateEmptyDirectories: true
   groupSortPosition: top
@@ -12,15 +12,14 @@ options:
 settings:
   base:
     SWIFT_VERSION: "6.0"
-    MACOSX_DEPLOYMENT_TARGET: "15.0"
-    CODE_SIGN_STYLE: Manual
-    CODE_SIGN_IDENTITY: "Developer ID Application"
-    DEVELOPMENT_TEAM: "T247WTJV77"
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    ARCHS: arm64
+    CODE_SIGN_STYLE: Automatic
     ENABLE_HARDENED_RUNTIME: YES
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
-    MARKETING_VERSION: "1.2.8"
-    CURRENT_PROJECT_VERSION: "69"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
 
 packages:
   SharedKit:
@@ -55,7 +54,7 @@ packages:
     exactVersion: "2.10.1"
 
 targets:
-  Capso:
+  Knippi:
     type: application
     platform: macOS
     sources:
@@ -67,11 +66,11 @@ targets:
         buildPhase: resources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.awesomemacapps.capso
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.knippi
         INFOPLIST_FILE: App/Resources/Info.plist
-        CODE_SIGN_ENTITLEMENTS: App/Entitlements/Capso.entitlements
+        CODE_SIGN_ENTITLEMENTS: App/Entitlements/Knippi.entitlements
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
-        PRODUCT_NAME: Capso
+        PRODUCT_NAME: Knippi
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
       - package: SharedKit
@@ -88,35 +87,35 @@ targets:
       - package: LaunchAtLogin
       - package: Sparkle
     entitlements:
-      path: App/Entitlements/Capso.entitlements
+      path: App/Entitlements/Knippi.entitlements
       properties:
         com.apple.security.device.audio-input: true
         com.apple.security.network.client: true
 
-  CapsoTests:
+  KnippiTests:
     type: bundle.unit-test
     platform: macOS
     sources:
       - path: App/Tests
     dependencies:
-      - target: Capso
+      - target: Knippi
       - package: SharedKit
       - package: AnnotationKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.awesomemacapps.capso.tests
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.knippi.tests
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: "$(TEST_HOST)"
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Capso.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Capso"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Knippi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Knippi"
 
 schemes:
-  Capso:
+  Knippi:
     build:
       targets:
-        Capso: all
+        Knippi: all
     run:
       config: Debug
     test:
       config: Debug
       targets:
-        - CapsoTests
+        - KnippiTests

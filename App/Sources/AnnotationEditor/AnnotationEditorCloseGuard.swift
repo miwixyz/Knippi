@@ -92,7 +92,7 @@ fileprivate final class AnnotationEditorSystemAlertPresenter: NSObject {
     func runModal() -> Outcome {
         isSuspendingForCapture = false
         let observer = NotificationCenter.default.addObserver(
-            forName: .capsoCaptureDidFreezeDesktop,
+            forName: .knippiCaptureDidFreezeDesktop,
             object: nil,
             queue: .main
         ) { _ in
@@ -124,7 +124,7 @@ fileprivate final class AnnotationEditorSystemAlertPresenter: NSObject {
         alert.window.orderFrontRegardless()
 
         captureEndObserver = NotificationCenter.default.addObserver(
-            forName: .capsoCaptureDidEnd,
+            forName: .knippiCaptureDidEnd,
             object: nil,
             queue: .main
         ) { [weak self] _ in
@@ -188,7 +188,7 @@ fileprivate final class AnnotationEditorSystemAlertPresenter: NSObject {
     private func installCaptureFreezeObserver() {
         guard captureFreezeObserver == nil else { return }
         captureFreezeObserver = NotificationCenter.default.addObserver(
-            forName: .capsoCaptureDidFreezeDesktop,
+            forName: .knippiCaptureDidFreezeDesktop,
             object: nil,
             queue: .main
         ) { [weak self] _ in

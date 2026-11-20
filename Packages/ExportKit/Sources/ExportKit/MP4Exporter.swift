@@ -202,7 +202,7 @@ enum MP4Exporter {
         audioOutput: AVAssetReaderOutput,
         audioInput: AVAssetWriterInput
     ) async throws {
-        let queue = DispatchQueue(label: "com.capso.mp4exporter.drain")
+        let queue = DispatchQueue(label: "dev.mwlr.knippi.mp4exporter.drain")
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             queue.async {
                 var videoDone = videoPair == nil

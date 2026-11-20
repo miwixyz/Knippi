@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 /// Coverage for the synthetic ⌘C / ⇧⌘C guard that protects capture and
 /// annotation UI from translation-tool injections.

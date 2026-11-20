@@ -5,15 +5,15 @@ import ImageIO
 import OCRKit
 import UniformTypeIdentifiers
 
-/// Retries Vision OCR in a clean Capso process when the OS's in-process
+/// Retries Vision OCR in a clean Knippi process when the OS's in-process
 /// TextRecognition service has entered its broken Neural Engine state.
 ///
 /// Some macOS preview builds return `TextRecognition.CRImageReaderError` for
 /// every recognition after the first one in a process. A new process uses the
 /// model's initial-load path and succeeds, so this is deliberately a fallback
-/// rather than Capso's normal OCR path.
+/// rather than Knippi's normal OCR path.
 enum OCRProcessFallback {
-    private static let helperArgument = "--capso-ocr-helper"
+    private static let helperArgument = "--knippi-ocr-helper"
     private static let router = OCRFallbackRouter()
 
     static var shouldSkipPrewarm: Bool {
@@ -58,7 +58,7 @@ enum OCRProcessFallback {
         )
     }
 
-    /// Runs before normal Capso startup when this executable was launched by
+    /// Runs before normal Knippi startup when this executable was launched by
     /// `recognizeInFreshProcess`. It intentionally performs only one direct
     /// Vision request, then exits without creating windows or registering
     /// shortcuts.
@@ -88,7 +88,7 @@ enum OCRProcessFallback {
                 try data.write(to: outputURL, options: .atomic)
                 exitCode.value = 0
             } catch {
-                fputs("Capso OCR helper failed: \(error.localizedDescription)\n", stderr)
+                fputs("Knippi OCR helper failed: \(error.localizedDescription)\n", stderr)
             }
         }
         semaphore.wait()
@@ -110,7 +110,7 @@ enum OCRProcessFallback {
         }
 
         let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CapsoOCR-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("KnippiOCR-\(UUID().uuidString)", isDirectory: true)
         let inputURL = directory.appendingPathComponent("input.png")
         let outputURL = directory.appendingPathComponent("regions.json")
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -224,7 +224,7 @@ private enum OCRProcessFallbackError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .executableNotFound: "Could not find Capso's executable."
+        case .executableNotFound: "Could not find Knippi's executable."
         case .explicitLanguagesUnsupported: "OCR fallback does not support explicit languages."
         case .invalidInputImage: "Could not read the temporary OCR image."
         case .cannotEncodeImage: "Could not prepare the image for OCR retry."

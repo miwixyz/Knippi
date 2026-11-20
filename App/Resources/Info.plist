@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>Capso</string>
+    <string>Knippi</string>
     <key>CFBundleDisplayName</key>
-    <string>Capso</string>
+    <string>Knippi</string>
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
     <key>CFBundleVersion</key>
@@ -20,10 +20,10 @@
     <array>
         <dict>
             <key>CFBundleURLName</key>
-            <string>Capso Automation</string>
+            <string>Knippi Automation</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>capso</string>
+                <string>knippi</string>
             </array>
         </dict>
     </array>
@@ -50,18 +50,20 @@
     <string>$(MACOSX_DEPLOYMENT_TARGET)</string>
     <key>LSUIElement</key>
     <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>© 2026 Michael Wildenauer · basiert auf Capso © lzhgus (MIT)</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSScreenCaptureUsageDescription</key>
-    <string>Capso needs screen recording permission to capture screenshots and record your screen.</string>
+    <string>Knippi needs screen recording permission to capture screenshots and record your screen.</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Capso needs microphone access to record audio during screen recordings.</string>
+    <string>Knippi needs microphone access to record audio during screen recordings.</string>
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>SUFeedURL</key>
-    <string>https://lzhgus.github.io/Capso/appcast.xml</string>
+    <string>https://raw.githubusercontent.com/miwixyz/Knippi/main/appcast.xml</string>
     <key>SUPublicEDKey</key>
-    <string>c3xaKUJIOJ3qF9+51iLr1/CxskdbxDaHDjeU5Wqx9aE=</string>
+    <string>iE2bazGoslgGEsgo2MJUwphVYlEKkeRcsWdzwbGge4w=</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
     <key>SUScheduledCheckInterval</key>

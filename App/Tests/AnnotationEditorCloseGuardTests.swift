@@ -1,5 +1,5 @@
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class AnnotationEditorCloseGuardTests: XCTestCase {
@@ -39,7 +39,7 @@ final class AnnotationEditorCloseGuardTests: XCTestCase {
 
     func testSystemAlertSupportsRepeatedAreaCapturesWithoutBecomingModalAgain() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            NotificationCenter.default.post(name: .capsoCaptureDidFreezeDesktop, object: nil)
+            NotificationCenter.default.post(name: .knippiCaptureDidFreezeDesktop, object: nil)
         }
 
         let shouldClose = AnnotationEditorCloseGuard.presentDiscardAlert(above: nil)
@@ -48,7 +48,7 @@ final class AnnotationEditorCloseGuardTests: XCTestCase {
         XCTAssertNil(NSApp.modalWindow)
         XCTAssertTrue(AnnotationEditorCloseGuard.isSuspendedAlertVisibleForTesting)
 
-        NotificationCenter.default.post(name: .capsoCaptureDidEnd, object: nil)
+        NotificationCenter.default.post(name: .knippiCaptureDidEnd, object: nil)
         XCTAssertNil(NSApp.modalWindow)
         XCTAssertTrue(AnnotationEditorCloseGuard.isModelessAlertVisibleForTesting)
 
@@ -58,11 +58,11 @@ final class AnnotationEditorCloseGuardTests: XCTestCase {
         XCTAssertNil(NSApp.modalWindow)
         XCTAssertTrue(AnnotationEditorCloseGuard.isModelessAlertVisibleForTesting)
 
-        NotificationCenter.default.post(name: .capsoCaptureDidFreezeDesktop, object: nil)
+        NotificationCenter.default.post(name: .knippiCaptureDidFreezeDesktop, object: nil)
         XCTAssertNil(NSApp.modalWindow)
         XCTAssertTrue(AnnotationEditorCloseGuard.isSuspendedAlertVisibleForTesting)
 
-        NotificationCenter.default.post(name: .capsoCaptureDidEnd, object: nil)
+        NotificationCenter.default.post(name: .knippiCaptureDidEnd, object: nil)
         XCTAssertNil(NSApp.modalWindow)
         XCTAssertTrue(AnnotationEditorCloseGuard.isModelessAlertVisibleForTesting)
 

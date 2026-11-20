@@ -3,7 +3,7 @@ import AnnotationKit
 import CaptureKit
 import XCTest
 
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class CaptureAllInOneAnnotationShortcutTests: XCTestCase {

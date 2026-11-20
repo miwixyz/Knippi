@@ -1,5 +1,5 @@
 import XCTest
-@testable import Capso
+@testable import Knippi
 import SharedKit
 
 /// Stand-in for Sparkle's `SPUUpdater` so `UpdateManager` can be exercised
@@ -54,7 +54,7 @@ final class ShippedUpdateDefaultsTests: XCTestCase {
 }
 
 /// Sparkle drops `setAutomaticallyDownloadsUpdates:` while automatic checks are
-/// off, so Capso persists the preference by writing Sparkle's own key. These
+/// off, so Knippi persists the preference by writing Sparkle's own key. These
 /// cover that storage directly, since no stand-in updater can catch it.
 final class AutomaticInstallPreferenceTests: XCTestCase {
     private func makeDefaults(_ name: String) -> UserDefaults {

@@ -1,6 +1,6 @@
 import Foundation
 
-private func capsoUncaughtExceptionHandler(_ exception: NSException) {
+private func knippiUncaughtExceptionHandler(_ exception: NSException) {
     guard UserDefaults.standard.object(forKey: "diagnosticLoggingEnabled") as? Bool ?? false else {
         return
     }
@@ -19,17 +19,17 @@ private func capsoUncaughtExceptionHandler(_ exception: NSException) {
 public enum DiagnosticLogger {
     public static let maxLogBytes = 1_000_000
 
-    private static let queue = DispatchQueue(label: "com.awesomemacapps.capso.diagnostic-logger")
+    private static let queue = DispatchQueue(label: "dev.mwlr.knippi.diagnostic-logger")
 
     public static var logDirectory: URL {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         return appSupport
-            .appendingPathComponent("com.awesomemacapps.capso", isDirectory: true)
+            .appendingPathComponent("dev.mwlr.knippi", isDirectory: true)
             .appendingPathComponent("logs", isDirectory: true)
     }
 
     public static var logFileURL: URL {
-        logDirectory.appendingPathComponent("capso.log")
+        logDirectory.appendingPathComponent("knippi.log")
     }
 
     public static var diagnosticReportDirectories: [URL] {
@@ -41,7 +41,7 @@ public enum DiagnosticLogger {
     }
 
     public static func installUncaughtExceptionHandler() {
-        NSSetUncaughtExceptionHandler(capsoUncaughtExceptionHandler)
+        NSSetUncaughtExceptionHandler(knippiUncaughtExceptionHandler)
     }
 
     public static func append(
@@ -95,7 +95,7 @@ public enum DiagnosticLogger {
             return urls.filter { url in
                 let name = url.lastPathComponent.lowercased()
                 let ext = url.pathExtension.lowercased()
-                return (name.contains("capso") || name.contains("com.awesomemacapps.capso"))
+                return (name.contains("knippi") || name.contains("dev.mwlr.knippi"))
                     && ["crash", "ips", "diag"].contains(ext)
             }
         }

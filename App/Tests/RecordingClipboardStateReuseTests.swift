@@ -11,7 +11,7 @@ final class RecordingClipboardStateReuseTests: XCTestCase {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
 
-        let fileURL = directory.appendingPathComponent("capso_clipboard.mp4")
+        let fileURL = directory.appendingPathComponent("knippi_clipboard.mp4")
         try Data([0x00, 0x01]).write(to: fileURL)
         state.markCopied(fileURL)
 

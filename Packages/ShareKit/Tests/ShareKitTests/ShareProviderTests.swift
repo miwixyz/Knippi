@@ -18,11 +18,11 @@ struct ShareProviderTests {
             provider: .r2,
             urlPrefix: "https://pub.example.com/",
             accountID: "abc123",
-            bucket: "capso"
+            bucket: "knippi"
         )
 
         #expect(config.urlPrefix == "https://pub.example.com")
-        #expect(config.bucket == "capso")
+        #expect(config.bucket == "knippi")
         #expect(config.accountID == "abc123")
         #expect(config.value("accountID") == "abc123")
     }
@@ -32,7 +32,7 @@ struct ShareProviderTests {
         let config = ShareConfig(
             provider: .s3,
             urlPrefix: "https://cdn.example.com",
-            bucket: "capso",
+            bucket: "knippi",
             fields: ["region": "us-east-1", "pathPrefix": "/screenshots/"]
         )
 
@@ -42,10 +42,10 @@ struct ShareProviderTests {
 
     @Test("destination factory creates provider-specific destinations")
     func destinationFactory() throws {
-        let r2 = ShareConfig(provider: .r2, urlPrefix: "https://cdn.example.com", bucket: "capso", fields: ["accountID": "abc123"])
-        let s3 = ShareConfig(provider: .s3, urlPrefix: "https://cdn.example.com", bucket: "capso", fields: ["region": "us-east-1"])
-        let cos = ShareConfig(provider: .tencentCOS, urlPrefix: "https://cdn.example.com", bucket: "capso-123456", fields: ["region": "ap-guangzhou"])
-        let oss = ShareConfig(provider: .aliyunOSS, urlPrefix: "https://cdn.example.com", bucket: "capso", fields: ["region": "oss-cn-hangzhou"])
+        let r2 = ShareConfig(provider: .r2, urlPrefix: "https://cdn.example.com", bucket: "knippi", fields: ["accountID": "abc123"])
+        let s3 = ShareConfig(provider: .s3, urlPrefix: "https://cdn.example.com", bucket: "knippi", fields: ["region": "us-east-1"])
+        let cos = ShareConfig(provider: .tencentCOS, urlPrefix: "https://cdn.example.com", bucket: "knippi-123456", fields: ["region": "ap-guangzhou"])
+        let oss = ShareConfig(provider: .aliyunOSS, urlPrefix: "https://cdn.example.com", bucket: "knippi", fields: ["region": "oss-cn-hangzhou"])
 
         #expect(try ShareDestinationFactory.make(config: r2, accessKey: "id", secretKey: "secret") is R2Destination)
         #expect(try ShareDestinationFactory.make(config: s3, accessKey: "id", secretKey: "secret") is S3Destination)

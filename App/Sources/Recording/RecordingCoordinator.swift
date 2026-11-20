@@ -695,7 +695,7 @@ final class RecordingCoordinator {
     }
 
     private func handleRecordingInterrupted(error: Error) {
-        NSLog("[Capso] Recording stream stopped unexpectedly: %@", String(describing: error))
+        NSLog("[Knippi] Recording stream stopped unexpectedly: %@", String(describing: error))
         stopRecording()
     }
 
@@ -854,7 +854,7 @@ final class RecordingCoordinator {
         } catch {
             // Use NSLog so the error is visible in Console.app — `print` only
             // surfaces under Xcode-attached debugging.
-            NSLog("[Capso] Recording export FAILED (format=%@, dest=%@): %@",
+            NSLog("[Knippi] Recording export FAILED (format=%@, dest=%@): %@",
                   String(describing: format), destURL.path,
                   String(describing: error))
             return nil
@@ -872,7 +872,7 @@ final class RecordingCoordinator {
             guard let savedURL = await exportRecording(url, format: .video) else { return }
             CaptureCoordinator.postNotification(
                 title: String(localized: "Recording recovered"),
-                body: String(localized: "Capso quit unexpectedly during a recording. What was captured has been saved to \(savedURL.deletingLastPathComponent().path).")
+                body: String(localized: "Knippi quit unexpectedly during a recording. What was captured has been saved to \(savedURL.deletingLastPathComponent().path).")
             )
         }
     }
@@ -1062,9 +1062,9 @@ final class RecordingCoordinator {
     ) async -> URL? {
         let fileFormat: FileFormat = format == .gif ? .gif : .mp4
         let clipboardDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-clipboard-exports", isDirectory: true)
+            .appendingPathComponent("knippi-clipboard-exports", isDirectory: true)
         let destinationURL = clipboardDir
-            .appendingPathComponent("capso_clipboard_\(UUID().uuidString).\(FileNaming.fileExtension(for: fileFormat))")
+            .appendingPathComponent("knippi_clipboard_\(UUID().uuidString).\(FileNaming.fileExtension(for: fileFormat))")
 
         let exportedURL = await exportRecording(
             tempURL,
@@ -1176,7 +1176,7 @@ final class RecordingCoordinator {
     private func prepareKeyPressOverlayPermission() -> KeyPressOverlayPermissionDecision {
         guard settings.showKeyPressesWhileRecording else { return .continueWithoutOverlay }
 
-        // Window-target capture only includes the selected app window, so Capso's HUD
+        // Window-target capture only includes the selected app window, so Knippi's HUD
         // cannot appear in the file. Skip until we support compositing (if ever).
         if case .window = selectedTarget {
             return .continueWithoutOverlay
@@ -1244,7 +1244,7 @@ final class RecordingCoordinator {
         let alert = NSAlert()
         alert.alertStyle = .informational
         alert.messageText = String(localized: "Input Monitoring Needed")
-        alert.informativeText = String(localized: "To show key presses while recording, enable Capso in System Settings > Privacy & Security > Input Monitoring, then start recording again.")
+        alert.informativeText = String(localized: "To show key presses while recording, enable Knippi in System Settings > Privacy & Security > Input Monitoring, then start recording again.")
         alert.addButton(withTitle: String(localized: "Open Input Monitoring Settings"))
         alert.addButton(withTitle: String(localized: "Continue Without Overlay"))
         alert.window.level = .screenSaver + 2
@@ -1285,7 +1285,7 @@ final class RecordingCoordinator {
         cursorTelemetry = nil
 
         let recordingsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Capso/Recordings", isDirectory: true)
+            .appendingPathComponent("Knippi/Recordings", isDirectory: true)
         try? FileManager.default.createDirectory(at: recordingsDir, withIntermediateDirectories: true)
 
         let telemetryURL = recordingsDir.appendingPathComponent("\(UUID().uuidString).cursor.json")

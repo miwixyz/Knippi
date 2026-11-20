@@ -1,7 +1,7 @@
 import AppKit
 import XCTest
 import SharedKit
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class AnnotationEditorWindowCenteringTests: XCTestCase {

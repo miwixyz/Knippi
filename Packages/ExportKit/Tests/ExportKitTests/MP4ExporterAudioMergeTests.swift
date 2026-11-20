@@ -7,7 +7,7 @@ import Testing
 
 /// Regression coverage for https://github.com/lzhgus/Capso/issues/55
 ///
-/// When both system audio and microphone are captured, Capso writes two
+/// When both system audio and microphone are captured, Knippi writes two
 /// separate AAC tracks into the raw `.mov`. Most consumer tools (Slack,
 /// Linear, macOS Services re-encode) only read the first audio track, so
 /// the exported `.mp4` must merge them into a single mixed track.

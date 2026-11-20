@@ -37,8 +37,8 @@ struct EscapeKeyPressFilter: Equatable {
 
 /// Drops the rest of an Escape press after a capture overlay closes on it.
 ///
-/// The autorepeats and the keyUp of that press keep coming to Capso after the
-/// overlay is gone. With no Capso window key (or with an unrelated one, such
+/// The autorepeats and the keyUp of that press keep coming to Knippi after the
+/// overlay is gone. With no Knippi window key (or with an unrelated one, such
 /// as Settings), AppKit answers each unhandled keyDown with the system alert
 /// sound, so holding Escape beeped repeatedly (#356).
 @MainActor
@@ -46,7 +46,7 @@ final class EscapeKeyPressSwallower {
     static let shared = EscapeKeyPressSwallower()
 
     /// How often to check whether Escape is still held, in case the keyUp is
-    /// delivered somewhere else and never reaches Capso.
+    /// delivered somewhere else and never reaches Knippi.
     private static let releaseCheckInterval: TimeInterval = 1
 
     private var filter = EscapeKeyPressFilter()

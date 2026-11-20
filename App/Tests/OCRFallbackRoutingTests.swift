@@ -1,7 +1,7 @@
 import Foundation
 import OCRKit
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 final class OCRFallbackRoutingTests: XCTestCase {
     private static let visionFailure = NSError(

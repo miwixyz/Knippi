@@ -210,7 +210,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let (imageFiles, remainder) = ImageFileOpenRequest.partition(urls: urls)
 
         // Opening image files is never gated by the Automation URLs toggle —
-        // that setting only governs the `capso://` automation scheme.
+        // that setting only governs the `knippi://` automation scheme.
         if !imageFiles.isEmpty {
             imageFileOpenBuffer.enqueue(imageFiles)
             performPendingImageFileOpen()
@@ -232,7 +232,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         performPendingAutomationURLAction()
     }
 
-    /// Asks once whether other apps may control Capso. Returns whether to run the command.
+    /// Asks once whether other apps may control Knippi. Returns whether to run the command.
     private func askToAllowAutomationURLs(for url: URL) -> Bool {
         guard !settings.automationURLsAsked else { return false }
         settings.automationURLsAsked = true
@@ -240,8 +240,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = String(localized: "Another app wants to control Capso")
-        alert.informativeText = String(localized: "It sent this command:\n\(url.absoluteString)\n\nAllow other apps to start captures and recordings with Capso? You can change this later in Settings → General.")
+        alert.messageText = String(localized: "Another app wants to control Knippi")
+        alert.informativeText = String(localized: "It sent this command:\n\(url.absoluteString)\n\nAllow other apps to start captures with Knippi? You can change this later in Settings → General.")
         alert.addButton(withTitle: String(localized: "Allow"))
         alert.addButton(withTitle: String(localized: "Don't Allow"))
         let allowed = alert.runModal() == .alertFirstButtonReturn
@@ -377,7 +377,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return nil
         }
 
-        let keychain = KeychainHelper(service: "com.awesomemacapps.capso.share.\(provider.rawValue)")
+        let keychain = KeychainHelper(service: "dev.mwlr.knippi.share.\(provider.rawValue)")
         guard
             let access = AppDelegate.keychainString(keychain, account: "accessKey"),
             let secret = AppDelegate.keychainString(keychain, account: "secretKey")

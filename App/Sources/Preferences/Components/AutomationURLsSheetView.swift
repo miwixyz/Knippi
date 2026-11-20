@@ -36,57 +36,57 @@ struct AutomationURLsSheetView: View {
             id: "screenshots",
             title: "Screenshots",
             items: [
-                AutomationCommandItem(id: "all-in-one", name: "All-in-One", urlString: "capso://grab/all-in-one"),
-                AutomationCommandItem(id: "area", name: "Capture Area", urlString: "capso://grab/area"),
-                AutomationCommandItem(id: "fullscreen", name: "Capture Fullscreen", urlString: "capso://grab/fullscreen"),
-                AutomationCommandItem(id: "window", name: "Capture Window", urlString: "capso://grab/window"),
-                AutomationCommandItem(id: "scrolling", name: "Scrolling Capture", urlString: "capso://grab/scrolling"),
-                AutomationCommandItem(id: "self-timer", name: "Self-Timer", urlString: "capso://grab/self-timer"),
-                AutomationCommandItem(id: "last-area", name: "Capture Previous Area", urlString: "capso://grab/last-area"),
-                AutomationCommandItem(id: "clipboard", name: "Capture Area to Clipboard", urlString: "capso://grab/clipboard"),
-                AutomationCommandItem(id: "share", name: "Capture and Share to Cloud", urlString: "capso://grab/share"),
-                AutomationCommandItem(id: "annotate", name: "Capture Area & Annotate", urlString: "capso://grab/annotate"),
-                AutomationCommandItem(id: "area-and-pin", name: "Capture Area & Pin", urlString: "capso://grab/area-and-pin")
+                AutomationCommandItem(id: "all-in-one", name: "All-in-One", urlString: "knippi://grab/all-in-one"),
+                AutomationCommandItem(id: "area", name: "Capture Area", urlString: "knippi://grab/area"),
+                AutomationCommandItem(id: "fullscreen", name: "Capture Fullscreen", urlString: "knippi://grab/fullscreen"),
+                AutomationCommandItem(id: "window", name: "Capture Window", urlString: "knippi://grab/window"),
+                AutomationCommandItem(id: "scrolling", name: "Scrolling Capture", urlString: "knippi://grab/scrolling"),
+                AutomationCommandItem(id: "self-timer", name: "Self-Timer", urlString: "knippi://grab/self-timer"),
+                AutomationCommandItem(id: "last-area", name: "Capture Previous Area", urlString: "knippi://grab/last-area"),
+                AutomationCommandItem(id: "clipboard", name: "Capture Area to Clipboard", urlString: "knippi://grab/clipboard"),
+                AutomationCommandItem(id: "share", name: "Capture and Share to Cloud", urlString: "knippi://grab/share"),
+                AutomationCommandItem(id: "annotate", name: "Capture Area & Annotate", urlString: "knippi://grab/annotate"),
+                AutomationCommandItem(id: "area-and-pin", name: "Capture Area & Pin", urlString: "knippi://grab/area-and-pin")
             ]
         ),
         AutomationCommandSection(
             id: "clipboard",
             title: "Clipboard",
             items: [
-                AutomationCommandItem(id: "pin", name: "Pin from Clipboard", urlString: "capso://grab/pin"),
-                AutomationCommandItem(id: "edit-clipboard", name: "Edit Clipboard Image", urlString: "capso://grab/edit-clipboard"),
-                AutomationCommandItem(id: "open-image", name: "Open Image File", urlString: "capso://grab/open-image")
+                AutomationCommandItem(id: "pin", name: "Pin from Clipboard", urlString: "knippi://grab/pin"),
+                AutomationCommandItem(id: "edit-clipboard", name: "Edit Clipboard Image", urlString: "knippi://grab/edit-clipboard"),
+                AutomationCommandItem(id: "open-image", name: "Open Image File", urlString: "knippi://grab/open-image")
             ]
         ),
         AutomationCommandSection(
             id: "ocr",
             title: "Text Recognition",
             items: [
-                AutomationCommandItem(id: "ocr", name: "Capture Text (OCR)", urlString: "capso://grab/ocr")
+                AutomationCommandItem(id: "ocr", name: "Capture Text (OCR)", urlString: "knippi://grab/ocr")
             ]
         ),
         AutomationCommandSection(
             id: "recording",
             title: "Recording",
             items: [
-                AutomationCommandItem(id: "record", name: "Record Area", urlString: "capso://grab/record"),
-                AutomationCommandItem(id: "record-fullscreen", name: "Record Full Screen", urlString: "capso://grab/record-fullscreen")
+                AutomationCommandItem(id: "record", name: "Record Area", urlString: "knippi://grab/record"),
+                AutomationCommandItem(id: "record-fullscreen", name: "Record Full Screen", urlString: "knippi://grab/record-fullscreen")
             ]
         ),
         AutomationCommandSection(
             id: "desktop",
             title: "Desktop",
             items: [
-                AutomationCommandItem(id: "hide-desktop-icons", name: "Hide Desktop Icons", urlString: "capso://grab/hide-desktop-icons"),
-                AutomationCommandItem(id: "show-desktop-icons", name: "Show Desktop Icons", urlString: "capso://grab/show-desktop-icons"),
-                AutomationCommandItem(id: "toggle-desktop-icons", name: "Toggle Desktop Icons", urlString: "capso://grab/toggle-desktop-icons")
+                AutomationCommandItem(id: "hide-desktop-icons", name: "Hide Desktop Icons", urlString: "knippi://grab/hide-desktop-icons"),
+                AutomationCommandItem(id: "show-desktop-icons", name: "Show Desktop Icons", urlString: "knippi://grab/show-desktop-icons"),
+                AutomationCommandItem(id: "toggle-desktop-icons", name: "Toggle Desktop Icons", urlString: "knippi://grab/toggle-desktop-icons")
             ]
         ),
         AutomationCommandSection(
             id: "settings",
             title: "Settings",
             items: [
-                AutomationCommandItem(id: "preferences", name: "Preferences", urlString: "capso://grab/preferences")
+                AutomationCommandItem(id: "preferences", name: "Preferences", urlString: "knippi://grab/preferences")
             ]
         )
     ])
@@ -97,7 +97,7 @@ struct AutomationURLsSheetView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Automation URLs")
                         .font(.system(size: 16, weight: .semibold))
-                    Text("Trigger Capso actions from Raycast, Alfred, Shortcuts, or shell scripts.")
+                    Text("Trigger Knippi actions from Raycast, Alfred, Shortcuts, or shell scripts.")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }

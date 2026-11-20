@@ -212,7 +212,7 @@ public final class AppSettings: @unchecked Sendable {
     }
 
     /// Whether the user has already answered the prompt shown the first time
-    /// another app sends a `capso://` command while Automation URLs are off.
+    /// another app sends a `knippi://` command while Automation URLs are off.
     public var automationURLsAsked: Bool {
         get { defaults.bool(forKey: "automationURLsAsked") }
         set { defaults.set(newValue, forKey: "automationURLsAsked") }

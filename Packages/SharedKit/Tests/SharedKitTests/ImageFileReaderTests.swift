@@ -29,7 +29,7 @@ struct ImageFileReaderTests {
         #expect(!ImageFileReader.isSupported(URL(fileURLWithPath: "/tmp/x.pdf")))
         #expect(!ImageFileReader.isSupported(URL(fileURLWithPath: "/tmp/x.txt")))
         #expect(!ImageFileReader.isSupported(URL(fileURLWithPath: "/tmp/x")))
-        let remoteURL = try #require(URL(string: "capso://grab/area"))
+        let remoteURL = try #require(URL(string: "knippi://grab/area"))
         #expect(!ImageFileReader.isSupported(remoteURL))
     }
 
@@ -78,7 +78,7 @@ struct ImageFileReaderTests {
     @Test("returns nil for corrupt data")
     func returnsNilForCorruptData() throws {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-imagefile-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-imagefile-\(UUID().uuidString)")
             .appendingPathExtension("png")
         try Data([0x00, 0x01, 0x02, 0x03]).write(to: url)
         defer { try? FileManager.default.removeItem(at: url) }
@@ -89,7 +89,7 @@ struct ImageFileReaderTests {
     @Test("returns nil for a missing file")
     func returnsNilForMissingFile() {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-imagefile-missing-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-imagefile-missing-\(UUID().uuidString)")
             .appendingPathExtension("png")
 
         #expect(ImageFileReader.image(at: url) == nil)
@@ -110,7 +110,7 @@ struct ImageFileReaderTests {
         return try #require(context.makeImage())
     }
 
-    /// Overwriting an opened image reuses its own extension, so a readable format Capso
+    /// Overwriting an opened image reuses its own extension, so a readable format Knippi
     /// cannot write would produce bytes that disagree with the file name.
     @Test("Every readable format can also be written")
     func everyReadableFormatIsWritable() throws {
@@ -118,7 +118,7 @@ struct ImageFileReaderTests {
 
         for type in ImageFileReader.supportedContentTypes {
             let ext = try #require(type.preferredFilenameExtension)
-            let url = URL(fileURLWithPath: "/tmp/capso-invariant.\(ext)")
+            let url = URL(fileURLWithPath: "/tmp/knippi-invariant.\(ext)")
 
             guard let data = ImageFileWriter.data(from: image, matchingFormatOf: url) else {
                 // Absent codec, as on Intel Macs without HEVC.
@@ -138,7 +138,7 @@ struct ImageFileReaderTests {
 
     private func writeImage(_ cgImage: CGImage, extension ext: String, using type: NSBitmapImageRep.FileType) throws -> URL {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-imagefile-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-imagefile-\(UUID().uuidString)")
             .appendingPathExtension(ext)
         let rep = NSBitmapImageRep(cgImage: cgImage)
         let data = try #require(rep.representation(using: type, properties: [:]))
@@ -148,7 +148,7 @@ struct ImageFileReaderTests {
 
     private func writeHEIC(_ cgImage: CGImage) -> URL? {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-imagefile-\(UUID().uuidString)")
+            .appendingPathComponent("knippi-imagefile-\(UUID().uuidString)")
             .appendingPathExtension("heic")
         guard let destination = CGImageDestinationCreateWithURL(
             url as CFURL, UTType.heic.identifier as CFString, 1, nil

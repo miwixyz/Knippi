@@ -2,7 +2,7 @@
 import Foundation
 import Sparkle
 
-/// The slice of Sparkle's updater that Capso drives.
+/// The slice of Sparkle's updater that Knippi drives.
 ///
 /// `UpdateManager` talks to this instead of `SPUUpdater` directly so its behaviour
 /// can be unit tested without starting a real updater. `SPUUpdater` is already
@@ -34,7 +34,7 @@ protocol SoftwareUpdating: AnyObject {
 /// Both of Sparkle's accessors are gated on `allowsAutomaticUpdates`, which is
 /// itself tied to `automaticallyChecksForUpdates`: the getter reports `false`
 /// and the setter silently drops the write while background checks are off
-/// (`SPUUpdaterSettings.setAutomaticallyDownloadsUpdates:`). Capso keeps the two
+/// (`SPUUpdaterSettings.setAutomaticallyDownloadsUpdates:`). Knippi keeps the two
 /// settings independent, so it goes to the stored value directly. Sparkle
 /// observes this key and picks the change up on its own.
 enum AutomaticInstallPreference {

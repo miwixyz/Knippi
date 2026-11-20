@@ -28,7 +28,7 @@ public struct CodableColor: Codable, Sendable, Equatable {
     public static let black = CodableColor(red: 0.0, green: 0.0, blue: 0.0)
     public static let darkGray = CodableColor(red: 0.2, green: 0.2, blue: 0.2)
 
-    // MARK: - Capso Solid Background Palette
+    // MARK: - Knippi Solid Background Palette
     //
     // A warm, desaturated, tinted-neutral palette — never pure #000/#fff,
     // never the AI-slop cyan/purple gradient palette, never full-saturation

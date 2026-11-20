@@ -11,41 +11,41 @@ struct S3CompatibleHTTPTests {
     @Test("Amazon S3 uses virtual-hosted HTTPS when endpoint is empty")
     func amazonVirtualHosted() {
         let target = S3CompatibleHTTP.amazonS3Target(
-            bucket: "capso",
+            bucket: "knippi",
             objectKey: "clips/demo.mp4",
             region: "us-west-2",
             endpoint: nil
         )
         #expect(target.scheme == "https")
-        #expect(target.host == "capso.s3.us-west-2.amazonaws.com")
+        #expect(target.host == "knippi.s3.us-west-2.amazonaws.com")
         #expect(target.canonicalURI == "/clips/demo.mp4")
-        #expect(target.requestURLString == "https://capso.s3.us-west-2.amazonaws.com/clips/demo.mp4")
+        #expect(target.requestURLString == "https://knippi.s3.us-west-2.amazonaws.com/clips/demo.mp4")
     }
 
     @Test("Amazon S3 treats blank endpoint as virtual-hosted")
     func amazonBlankEndpoint() {
         let target = S3CompatibleHTTP.amazonS3Target(
-            bucket: "capso",
+            bucket: "knippi",
             objectKey: "a.png",
             region: "eu-central-1",
             endpoint: "   "
         )
         #expect(target.scheme == "https")
-        #expect(target.host == "capso.s3.eu-central-1.amazonaws.com")
+        #expect(target.host == "knippi.s3.eu-central-1.amazonaws.com")
     }
 
     @Test("custom HTTPS endpoint uses path-style addressing")
     func amazonCustomHTTPSEndpoint() {
         let target = S3CompatibleHTTP.amazonS3Target(
-            bucket: "capso",
+            bucket: "knippi",
             objectKey: "clips/demo one.mp4",
             region: "us-east-1",
             endpoint: "https://minio.example.com/"
         )
         #expect(target.scheme == "https")
         #expect(target.host == "minio.example.com")
-        #expect(target.canonicalURI == "/capso/clips/demo%20one.mp4")
-        #expect(target.requestURLString == "https://minio.example.com/capso/clips/demo%20one.mp4")
+        #expect(target.canonicalURI == "/knippi/clips/demo%20one.mp4")
+        #expect(target.requestURLString == "https://minio.example.com/knippi/clips/demo%20one.mp4")
     }
 
     @Test("custom HTTP endpoint preserves http scheme and port")
@@ -78,15 +78,15 @@ struct S3CompatibleHTTPTests {
     @Test("endpoint path is folded into the canonical URI, not the Host header")
     func endpointPathGoesIntoCanonicalURI() throws {
         let target = S3CompatibleHTTP.amazonS3Target(
-            bucket: "capso",
+            bucket: "knippi",
             objectKey: "a.png",
             region: "us-east-1",
             endpoint: "https://minio.example.com/base"
         )
         #expect(target.scheme == "https")
         #expect(target.host == "minio.example.com")
-        #expect(target.canonicalURI == "/base/capso/a.png")
-        #expect(target.requestURLString == "https://minio.example.com/base/capso/a.png")
+        #expect(target.canonicalURI == "/base/knippi/a.png")
+        #expect(target.requestURLString == "https://minio.example.com/base/knippi/a.png")
 
         let request = try S3CompatibleHTTP.signedPutRequest(
             target: target,
@@ -98,7 +98,7 @@ struct S3CompatibleHTTPTests {
             now: Self.fixedDate
         )
         #expect(request.value(forHTTPHeaderField: "Host") == "minio.example.com")
-        #expect(request.url?.path == "/base/capso/a.png")
+        #expect(request.url?.path == "/base/knippi/a.png")
     }
 
     @Test("bare host endpoint defaults to https")
@@ -111,19 +111,19 @@ struct S3CompatibleHTTPTests {
     func r2Target() {
         let target = S3CompatibleHTTP.r2Target(
             accountID: "abc123",
-            bucket: "capso",
+            bucket: "knippi",
             objectKey: "a/b.png"
         )
         #expect(target.scheme == "https")
         #expect(target.host == "abc123.r2.cloudflarestorage.com")
-        #expect(target.canonicalURI == "/capso/a/b.png")
+        #expect(target.canonicalURI == "/knippi/a/b.png")
     }
 
     @Test("R2 account ID accepts a pasted full endpoint")
     func r2NormalizesAccountID() {
         let target = S3CompatibleHTTP.r2Target(
             accountID: "https://abc123.r2.cloudflarestorage.com",
-            bucket: "capso",
+            bucket: "knippi",
             objectKey: "x.png"
         )
         #expect(target.host == "abc123.r2.cloudflarestorage.com")
@@ -135,11 +135,11 @@ struct S3CompatibleHTTPTests {
 
     @Test("signed PUT uses payload-hash SigV4 shape")
     func signedPutShape() throws {
-        let payload = Data("hello-capso".utf8)
+        let payload = Data("hello-knippi".utf8)
         let payloadHash = Self.sha256Hex(payload)
         let target = S3CompatibleHTTP.Target(
             scheme: "https",
-            host: "capso.s3.us-east-1.amazonaws.com",
+            host: "knippi.s3.us-east-1.amazonaws.com",
             canonicalURI: "/demo.mp4"
         )
 
@@ -158,8 +158,8 @@ struct S3CompatibleHTTPTests {
         #expect(request.value(forHTTPHeaderField: "Content-Type") == "video/mp4")
         #expect(request.value(forHTTPHeaderField: "Content-Length") == "\(payload.count)")
         #expect(request.value(forHTTPHeaderField: "X-Amz-Date") == "20260730T120000Z")
-        #expect(request.value(forHTTPHeaderField: "Host") == "capso.s3.us-east-1.amazonaws.com")
-        #expect(request.url?.absoluteString == "https://capso.s3.us-east-1.amazonaws.com/demo.mp4")
+        #expect(request.value(forHTTPHeaderField: "Host") == "knippi.s3.us-east-1.amazonaws.com")
+        #expect(request.url?.absoluteString == "https://knippi.s3.us-east-1.amazonaws.com/demo.mp4")
 
         let authorization = try #require(request.value(forHTTPHeaderField: "Authorization"))
         #expect(authorization.hasPrefix("AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20260730/us-east-1/s3/aws4_request, "))
@@ -201,7 +201,7 @@ struct S3CompatibleHTTPTests {
 
     @Test("R2 PUT signs with region auto")
     func r2PutUsesAutoRegion() throws {
-        let target = S3CompatibleHTTP.r2Target(accountID: "abc123", bucket: "capso", objectKey: "shot.png")
+        let target = S3CompatibleHTTP.r2Target(accountID: "abc123", bucket: "knippi", objectKey: "shot.png")
         let request = try S3CompatibleHTTP.signedPutRequest(
             target: target,
             region: "auto",
@@ -309,7 +309,7 @@ struct S3CompatibleHTTPTests {
     func signedDeleteShape() throws {
         let target = S3CompatibleHTTP.Target(
             scheme: "https",
-            host: "capso.s3.us-east-1.amazonaws.com",
+            host: "knippi.s3.us-east-1.amazonaws.com",
             canonicalURI: "/old.mp4"
         )
         let request = try S3CompatibleHTTP.signedDeleteRequest(
@@ -331,7 +331,7 @@ struct S3CompatibleHTTPTests {
 
     @Test("signed DELETE Authorization matches independent signer")
     func signedDeleteMatchesIndependentSigner() throws {
-        let target = S3CompatibleHTTP.r2Target(accountID: "abc123", bucket: "capso", objectKey: "old.png")
+        let target = S3CompatibleHTTP.r2Target(accountID: "abc123", bucket: "knippi", objectKey: "old.png")
         let request = try S3CompatibleHTTP.signedDeleteRequest(
             target: target,
             region: "auto",
@@ -358,7 +358,7 @@ struct S3CompatibleHTTPTests {
     @Test("chunked sha256File matches Data(contentsOf:) for small files")
     func sha256FileMatchesDataSmall() throws {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-sha-small-\(UUID().uuidString).bin")
+            .appendingPathComponent("knippi-sha-small-\(UUID().uuidString).bin")
         let data = Data("small-recording-bytes".utf8)
         try data.write(to: url)
         defer { try? FileManager.default.removeItem(at: url) }
@@ -371,7 +371,7 @@ struct S3CompatibleHTTPTests {
     @Test("chunked sha256File matches Data(contentsOf:) across 1MB boundaries")
     func sha256FileMatchesDataLarge() throws {
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-sha-large-\(UUID().uuidString).bin")
+            .appendingPathComponent("knippi-sha-large-\(UUID().uuidString).bin")
         var data = Data(count: 1_500_000)
         for i in data.indices {
             data[i] = UInt8(i % 251)
@@ -388,7 +388,7 @@ struct S3CompatibleHTTPTests {
     func fileHashSignatureMatchesPayloadSignature() throws {
         let payload = Data(repeating: 0x5A, count: 4096)
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-sig-\(UUID().uuidString).bin")
+            .appendingPathComponent("knippi-sig-\(UUID().uuidString).bin")
         try payload.write(to: url)
         defer { try? FileManager.default.removeItem(at: url) }
 
@@ -476,13 +476,13 @@ struct S3CompatibleHTTPTests {
         let s3 = ShareConfig(
             provider: .s3,
             urlPrefix: "https://cdn.example.com",
-            bucket: "capso",
+            bucket: "knippi",
             fields: ["region": "us-east-1", "endpoint": "http://minio.example.com"]
         )
         let r2 = ShareConfig(
             provider: .r2,
             urlPrefix: "https://cdn.example.com",
-            bucket: "capso",
+            bucket: "knippi",
             fields: ["accountID": "abc123"]
         )
         #expect(try ShareDestinationFactory.make(config: s3, accessKey: "id", secretKey: "secret") is S3Destination)
@@ -494,7 +494,7 @@ struct S3CompatibleHTTPTests {
         let config = ShareConfig(
             provider: .s3,
             urlPrefix: "https://cdn.example.com",
-            bucket: "capso",
+            bucket: "knippi",
             fields: ["region": "us-east-1"]
         )
         let url = config.publicURL(forObjectKey: "a/b c.png")

@@ -1,7 +1,7 @@
 import SharedKit
 import ShareKit
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 @MainActor
 final class CaptureSelectionActionTests: XCTestCase {

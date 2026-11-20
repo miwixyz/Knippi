@@ -1367,13 +1367,13 @@
         }
       }
     },
-    "Capso will keep running, and your global shortcuts still work:\n\n• Capture Area: %@\n\nTo open Preferences again, launch Capso from Spotlight, Launchpad, or Finder — even while it's still running." : {
+    "Knippi will keep running, and your global shortcuts still work:\n\n• Capture Area: %@\n\nTo open Preferences again, launch Knippi from Spotlight, Launchpad, or Finder — even while it's still running." : {
       "comment" : "Body text of the confirmation dialog when the user is about to hide the menu bar icon. Shows the Capture Area shortcut and tells the user how to reopen Preferences afterwards.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso läuft weiter und deine globalen Kurzbefehle funktionieren weiterhin:\n\n• Bereich aufnehmen: %@\n\nUm die Einstellungen wieder zu öffnen, starte Capso über Spotlight, Launchpad oder den Finder – auch wenn es bereits läuft."
+            "value" : "Knippi läuft weiter und deine globalen Kurzbefehle funktionieren weiterhin:\n\n• Bereich aufnehmen: %@\n\nUm die Einstellungen wieder zu öffnen, starte Knippi über Spotlight, Launchpad oder den Finder – auch wenn es bereits läuft."
           }
         }
       }
@@ -2859,72 +2859,72 @@
         }
       }
     },
-    "About Capso" : {
+    "About Knippi" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Über Capso"
+            "value" : "Über Knippi"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acerca de Capso"
+            "value" : "Acerca de Knippi"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "À propos de Capso"
+            "value" : "À propos de Knippi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Informazioni su Capso"
+            "value" : "Informazioni su Knippi"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso について"
+            "value" : "Knippi について"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 정보"
+            "value" : "Knippi 정보"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sobre o Capso"
+            "value" : "Sobre o Knippi"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "О программе Capso"
+            "value" : "О программе Knippi"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso Hakkında"
+            "value" : "Knippi Hakkında"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关于 Capso"
+            "value" : "关于 Knippi"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "關於 Capso"
+            "value" : "關於 Knippi"
           }
         }
       }
@@ -4674,142 +4674,142 @@
         }
       }
     },
-    "Another app used Capso to capture your screen." : {
+    "Another app used Knippi to capture your screen." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eine andere App hat mit Capso deinen Bildschirm aufgenommen."
+            "value" : "Eine andere App hat mit Knippi deinen Bildschirm aufgenommen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Otra app ha usado Capso para capturar tu pantalla."
+            "value" : "Otra app ha usado Knippi para capturar tu pantalla."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Une autre app a utilisé Capso pour capturer votre écran."
+            "value" : "Une autre app a utilisé Knippi pour capturer votre écran."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un'altra app ha usato Capso per catturare lo schermo."
+            "value" : "Un'altra app ha usato Knippi per catturare lo schermo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "別のアプリが Capso を使って画面をキャプチャしました。"
+            "value" : "別のアプリが Knippi を使って画面をキャプチャしました。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "다른 앱이 Capso를 사용해 화면을 캡처했습니다."
+            "value" : "다른 앱이 Knippi를 사용해 화면을 캡처했습니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Outro app usou o Capso para capturar sua tela."
+            "value" : "Outro app usou o Knippi para capturar sua tela."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Другое приложение использовало Capso для снимка экрана."
+            "value" : "Другое приложение использовало Knippi для снимка экрана."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Başka bir uygulama ekranınızı yakalamak için Capso'yu kullandı."
+            "value" : "Başka bir uygulama ekranınızı yakalamak için Knippi'yu kullandı."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "另一个 App 使用 Capso 截取了你的屏幕。"
+            "value" : "另一个 App 使用 Knippi 截取了你的屏幕。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "另一個 App 使用 Capso 擷取了你的螢幕。"
+            "value" : "另一個 App 使用 Knippi 擷取了你的螢幕。"
           }
         }
       }
     },
-    "Another app wants to control Capso" : {
+    "Another app wants to control Knippi" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eine andere App möchte Capso steuern"
+            "value" : "Eine andere App möchte Knippi steuern"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Otra app quiere controlar Capso"
+            "value" : "Otra app quiere controlar Knippi"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Une autre app souhaite contrôler Capso"
+            "value" : "Une autre app souhaite contrôler Knippi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un'altra app vuole controllare Capso"
+            "value" : "Un'altra app vuole controllare Knippi"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "別のアプリが Capso を操作しようとしています"
+            "value" : "別のアプリが Knippi を操作しようとしています"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "다른 앱이 Capso를 제어하려고 합니다"
+            "value" : "다른 앱이 Knippi를 제어하려고 합니다"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Outro app quer controlar o Capso"
+            "value" : "Outro app quer controlar o Knippi"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Другое приложение хочет управлять Capso"
+            "value" : "Другое приложение хочет управлять Knippi"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Başka bir uygulama Capso'yu kontrol etmek istiyor"
+            "value" : "Başka bir uygulama Knippi'yu kontrol etmek istiyor"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "另一个 App 想要控制 Capso"
+            "value" : "另一个 App 想要控制 Knippi"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "另一個 App 想要控制 Capso"
+            "value" : "另一個 App 想要控制 Knippi"
           }
         }
       }
@@ -7779,477 +7779,477 @@
         }
       }
     },
-    "Capso prepends this to every uploaded filename to build the share link. If you set up a custom domain in R2, paste that here — otherwise use the pub-…r2.dev URL from your bucket's Public access section." : {
+    "Knippi prepends this to every uploaded filename to build the share link. If you set up a custom domain in R2, paste that here — otherwise use the pub-…r2.dev URL from your bucket's Public access section." : {
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso stellt dies jedem hochgeladenen Dateinamen voran, um den Link zum Teilen zu bilden. Hast du in R2 eine eigene Domain eingerichtet, füge sie hier ein – ansonsten verwende die pub-…r2.dev-URL aus dem Abschnitt „Public access“ deines Buckets."
+            "value" : "Knippi stellt dies jedem hochgeladenen Dateinamen voran, um den Link zum Teilen zu bilden. Hast du in R2 eine eigene Domain eingerichtet, füge sie hier ein – ansonsten verwende die pub-…r2.dev-URL aus dem Abschnitt „Public access“ deines Buckets."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso antepone esto a cada nombre de archivo subido para crear el enlace para compartir. Si has configurado un dominio personalizado en R2, pégalo aquí; si no, usa la URL pub-…r2.dev de la sección Public access de tu bucket."
+            "value" : "Knippi antepone esto a cada nombre de archivo subido para crear el enlace para compartir. Si has configurado un dominio personalizado en R2, pégalo aquí; si no, usa la URL pub-…r2.dev de la sección Public access de tu bucket."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso ajoute ce préfixe à chaque nom de fichier téléversé pour créer le lien de partage. Si vous avez configuré un domaine personnalisé dans R2, collez-le ici — sinon, utilisez l'URL pub-…r2.dev de la section Public access de votre bucket."
+            "value" : "Knippi ajoute ce préfixe à chaque nom de fichier téléversé pour créer le lien de partage. Si vous avez configuré un domaine personnalisé dans R2, collez-le ici — sinon, utilisez l'URL pub-…r2.dev de la section Public access de votre bucket."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso aggiunge questo prefisso al nome di ogni file caricato per creare il link di condivisione. Se hai configurato un dominio personalizzato in R2, incollalo qui; altrimenti usa l'URL pub-…r2.dev dalla sezione Public access del bucket."
+            "value" : "Knippi aggiunge questo prefisso al nome di ogni file caricato per creare il link di condivisione. Se hai configurato un dominio personalizzato in R2, incollalo qui; altrimenti usa l'URL pub-…r2.dev dalla sezione Public access del bucket."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso はこれをアップロードされたファイル名の先頭に付加して共有リンクを生成します。R2 でカスタムドメインを設定した場合はそれを貼り付けてください — そうでない場合はバケットの Public access セクションにある pub-…r2.dev の URL を使用してください。"
+            "value" : "Knippi はこれをアップロードされたファイル名の先頭に付加して共有リンクを生成します。R2 でカスタムドメインを設定した場合はそれを貼り付けてください — そうでない場合はバケットの Public access セクションにある pub-…r2.dev の URL を使用してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso는 업로드된 파일명 앞에 이것을 붙여 공유 링크를 만듭니다. R2에서 커스텀 도메인을 설정했다면 여기에 붙여 넣으세요 — 그렇지 않은 경우 버킷의 Public access 섹션에 있는 pub-…r2.dev URL을 사용하세요."
+            "value" : "Knippi는 업로드된 파일명 앞에 이것을 붙여 공유 링크를 만듭니다. R2에서 커스텀 도메인을 설정했다면 여기에 붙여 넣으세요 — 그렇지 않은 경우 버킷의 Public access 섹션에 있는 pub-…r2.dev URL을 사용하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Capso adiciona isto antes de cada nome de arquivo enviado para montar o link de compartilhamento. Se você configurou um domínio personalizado no R2, cole-o aqui — caso contrário, use o URL pub-…r2.dev da seção Public access do seu bucket."
+            "value" : "O Knippi adiciona isto antes de cada nome de arquivo enviado para montar o link de compartilhamento. Se você configurou um domínio personalizado no R2, cole-o aqui — caso contrário, use o URL pub-…r2.dev da seção Public access do seu bucket."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso добавляет это значение перед именем каждого загруженного файла, чтобы получить ссылку для обмена. Если вы настроили в R2 собственный домен, вставьте его сюда, иначе используйте URL вида pub-…r2.dev из раздела Public access вашего бакета."
+            "value" : "Knippi добавляет это значение перед именем каждого загруженного файла, чтобы получить ссылку для обмена. Если вы настроили в R2 собственный домен, вставьте его сюда, иначе используйте URL вида pub-…r2.dev из раздела Public access вашего бакета."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 会将此前缀拼接到每个上传文件名前，生成分享链接。如果您在 R2 中配置了自定义域名，请粘贴于此 — 否则请使用存储桶 Public access 部分中的 pub-…r2.dev URL。"
+            "value" : "Knippi 会将此前缀拼接到每个上传文件名前，生成分享链接。如果您在 R2 中配置了自定义域名，请粘贴于此 — 否则请使用存储桶 Public access 部分中的 pub-…r2.dev URL。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 會將此前綴加在每個上傳的檔案名稱前面，以產生分享連結。如果你在 R2 中設定了自訂網域，請貼在這裡 — 否則請使用儲存貯體 Public access 區段中的 pub-…r2.dev URL。"
+            "value" : "Knippi 會將此前綴加在每個上傳的檔案名稱前面，以產生分享連結。如果你在 R2 中設定了自訂網域，請貼在這裡 — 否則請使用儲存貯體 Public access 區段中的 pub-…r2.dev URL。"
           }
         }
       }
     },
-    "Capso prepends this to every uploaded filename to build the share link. Use your custom domain if you connected one, otherwise use the pub-…r2.dev URL from the Public Development URL section." : {
+    "Knippi prepends this to every uploaded filename to build the share link. Use your custom domain if you connected one, otherwise use the pub-…r2.dev URL from the Public Development URL section." : {
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso stellt dies jedem hochgeladenen Dateinamen voran, um den Link zum Teilen zu bilden. Verwende deine eigene Domain, falls verbunden, ansonsten die pub-…r2.dev-URL aus dem Abschnitt „Public Development URL“."
+            "value" : "Knippi stellt dies jedem hochgeladenen Dateinamen voran, um den Link zum Teilen zu bilden. Verwende deine eigene Domain, falls verbunden, ansonsten die pub-…r2.dev-URL aus dem Abschnitt „Public Development URL“."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso antepone esto a cada nombre de archivo subido para crear el enlace para compartir. Usa tu dominio personalizado si has conectado uno; si no, usa la URL pub-…r2.dev de la sección Public Development URL."
+            "value" : "Knippi antepone esto a cada nombre de archivo subido para crear el enlace para compartir. Usa tu dominio personalizado si has conectado uno; si no, usa la URL pub-…r2.dev de la sección Public Development URL."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso ajoute ce préfixe à chaque nom de fichier téléversé pour créer le lien de partage. Utilisez votre domaine personnalisé si vous en avez connecté un, sinon l'URL pub-…r2.dev de la section Public Development URL."
+            "value" : "Knippi ajoute ce préfixe à chaque nom de fichier téléversé pour créer le lien de partage. Utilisez votre domaine personnalisé si vous en avez connecté un, sinon l'URL pub-…r2.dev de la section Public Development URL."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso aggiunge questo prefisso al nome di ogni file caricato per creare il link di condivisione. Usa il tuo dominio personalizzato se ne hai collegato uno, altrimenti usa l'URL pub-…r2.dev dalla sezione Public Development URL."
+            "value" : "Knippi aggiunge questo prefisso al nome di ogni file caricato per creare il link di condivisione. Usa il tuo dominio personalizzato se ne hai collegato uno, altrimenti usa l'URL pub-…r2.dev dalla sezione Public Development URL."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso はアップロードされたファイル名の前にこれを付加して共有リンクを生成します。カスタムドメインを接続した場合はそれを、そうでなければ Public Development URL セクションの pub-…r2.dev URL を使用してください。"
+            "value" : "Knippi はアップロードされたファイル名の前にこれを付加して共有リンクを生成します。カスタムドメインを接続した場合はそれを、そうでなければ Public Development URL セクションの pub-…r2.dev URL を使用してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso는 업로드된 모든 파일 이름 앞에 이것을 붙여 공유 링크를 만듭니다. 사용자 지정 도메인을 연결한 경우 해당 도메인을, 그렇지 않으면 Public Development URL 섹션의 pub-…r2.dev URL을 사용하세요."
+            "value" : "Knippi는 업로드된 모든 파일 이름 앞에 이것을 붙여 공유 링크를 만듭니다. 사용자 지정 도메인을 연결한 경우 해당 도메인을, 그렇지 않으면 Public Development URL 섹션의 pub-…r2.dev URL을 사용하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Capso adiciona isto antes de cada nome de arquivo enviado para montar o link de compartilhamento. Use seu domínio personalizado, se tiver conectado um; caso contrário, use o URL pub-…r2.dev da seção Public Development URL."
+            "value" : "O Knippi adiciona isto antes de cada nome de arquivo enviado para montar o link de compartilhamento. Use seu domínio personalizado, se tiver conectado um; caso contrário, use o URL pub-…r2.dev da seção Public Development URL."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso добавляет это значение перед именем каждого загруженного файла, чтобы получить ссылку для обмена. Используйте собственный домен, если вы его подключили, иначе — URL вида pub-…r2.dev из раздела Public Development URL."
+            "value" : "Knippi добавляет это значение перед именем каждого загруженного файла, чтобы получить ссылку для обмена. Используйте собственный домен, если вы его подключили, иначе — URL вида pub-…r2.dev из раздела Public Development URL."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 会把这段前缀加在每个上传文件名前面来生成分享链接。如果你连接了自定义域名就用那个，否则用 Public Development URL 章节里的 pub-…r2.dev URL。"
+            "value" : "Knippi 会把这段前缀加在每个上传文件名前面来生成分享链接。如果你连接了自定义域名就用那个，否则用 Public Development URL 章节里的 pub-…r2.dev URL。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 會將此前綴加在每個上傳的檔案名稱前面，以產生分享連結。如果你已連接自訂網域，請使用該網域；否則請使用 Public Development URL 區段中的 pub-…r2.dev URL。"
+            "value" : "Knippi 會將此前綴加在每個上傳的檔案名稱前面，以產生分享連結。如果你已連接自訂網域，請使用該網域；否則請使用 Public Development URL 區段中的 pub-…r2.dev URL。"
           }
         }
       }
     },
-    "Capso quit unexpectedly during a recording. What was captured has been saved to %@." : {
+    "Knippi quit unexpectedly during a recording. What was captured has been saved to %@." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso wurde während einer Aufzeichnung unerwartet beendet. Das bisher Aufgezeichnete wurde unter %@ gesichert."
+            "value" : "Knippi wurde während einer Aufzeichnung unerwartet beendet. Das bisher Aufgezeichnete wurde unter %@ gesichert."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso se cerró inesperadamente durante una grabación. Lo que se capturó se ha guardado en %@."
+            "value" : "Knippi se cerró inesperadamente durante una grabación. Lo que se capturó se ha guardado en %@."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso a quitté de manière inattendue pendant un enregistrement. Ce qui a été capturé a été enregistré dans %@."
+            "value" : "Knippi a quitté de manière inattendue pendant un enregistrement. Ce qui a été capturé a été enregistré dans %@."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso si è chiuso inaspettatamente durante una registrazione. Quanto catturato è stato salvato in %@."
+            "value" : "Knippi si è chiuso inaspettatamente durante una registrazione. Quanto catturato è stato salvato in %@."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "録画中に Capso が予期せず終了しました。それまでに収録された内容は %@ に保存されています。"
+            "value" : "録画中に Knippi が予期せず終了しました。それまでに収録された内容は %@ に保存されています。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "녹화 중 Capso가 예기치 않게 종료되었습니다. 그때까지 녹화된 내용은 %@에 저장되었습니다."
+            "value" : "녹화 중 Knippi가 예기치 않게 종료되었습니다. 그때까지 녹화된 내용은 %@에 저장되었습니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Capso foi encerrado inesperadamente durante uma gravação. O que foi gravado foi salvo em %@."
+            "value" : "O Knippi foi encerrado inesperadamente durante uma gravação. O que foi gravado foi salvo em %@."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso неожиданно завершил работу во время записи. Записанное сохранено в %@."
+            "value" : "Knippi неожиданно завершил работу во время записи. Записанное сохранено в %@."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso bir kayıt sırasında beklenmedik biçimde kapandı. Yakalanan kısım %@ konumuna kaydedildi."
+            "value" : "Knippi bir kayıt sırasında beklenmedik biçimde kapandı. Yakalanan kısım %@ konumuna kaydedildi."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 在录制期间意外退出。已录制的内容已保存到 %@。"
+            "value" : "Knippi 在录制期间意外退出。已录制的内容已保存到 %@。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 在錄製期間意外結束。已錄製的內容已儲存到 %@。"
+            "value" : "Knippi 在錄製期間意外結束。已錄製的內容已儲存到 %@。"
           }
         }
       }
     },
-    "Capso Settings" : {
+    "Knippi Settings" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso-Einstellungen"
+            "value" : "Knippi-Einstellungen"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ajustes de Capso"
+            "value" : "Ajustes de Knippi"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Réglages de Capso"
+            "value" : "Réglages de Knippi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impostazioni di Capso"
+            "value" : "Impostazioni di Knippi"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 設定"
+            "value" : "Knippi 設定"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 설정"
+            "value" : "Knippi 설정"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ajustes do Capso"
+            "value" : "Ajustes do Knippi"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Настройки Capso"
+            "value" : "Настройки Knippi"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso Ayarları"
+            "value" : "Knippi Ayarları"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 设置"
+            "value" : "Knippi 设置"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 設定"
+            "value" : "Knippi 設定"
           }
         }
       }
     },
-    "Capso speaks the S3 protocol, so any S3-compatible bucket works. We recommend Cloudflare R2 — generous free tier and no egress fees." : {
+    "Knippi speaks the S3 protocol, so any S3-compatible bucket works. We recommend Cloudflare R2 — generous free tier and no egress fees." : {
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso spricht das S3-Protokoll, daher funktioniert jeder S3-kompatible Bucket. Wir empfehlen Cloudflare R2 – großzügige Gratisstufe und keine Egress-Gebühren."
+            "value" : "Knippi spricht das S3-Protokoll, daher funktioniert jeder S3-kompatible Bucket. Wir empfehlen Cloudflare R2 – großzügige Gratisstufe und keine Egress-Gebühren."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso usa el protocolo S3, así que funciona con cualquier bucket compatible con S3. Recomendamos Cloudflare R2: plan gratuito generoso y sin tarifas de salida."
+            "value" : "Knippi usa el protocolo S3, así que funciona con cualquier bucket compatible con S3. Recomendamos Cloudflare R2: plan gratuito generoso y sin tarifas de salida."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso utilise le protocole S3 : tout bucket compatible S3 fonctionne. Nous recommandons Cloudflare R2 — une offre gratuite généreuse et aucuns frais de sortie."
+            "value" : "Knippi utilise le protocole S3 : tout bucket compatible S3 fonctionne. Nous recommandons Cloudflare R2 — une offre gratuite généreuse et aucuns frais de sortie."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso usa il protocollo S3, quindi funziona con qualsiasi bucket compatibile S3. Consigliamo Cloudflare R2: piano gratuito generoso e nessun costo di egress."
+            "value" : "Knippi usa il protocollo S3, quindi funziona con qualsiasi bucket compatibile S3. Consigliamo Cloudflare R2: piano gratuito generoso e nessun costo di egress."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso は S3 プロトコルに対応しているため、S3 互換のバケットであれば利用できます。Cloudflare R2 を推奨します — 無料枠が充実しており、下り転送費もかかりません。"
+            "value" : "Knippi は S3 プロトコルに対応しているため、S3 互換のバケットであれば利用できます。Cloudflare R2 を推奨します — 無料枠が充実しており、下り転送費もかかりません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso는 S3 프로토콜을 지원하므로 S3 호환 버킷이라면 모두 사용할 수 있습니다. Cloudflare R2를 권장합니다 — 무료 용량이 넉넉하고 이그레스 요금이 없습니다."
+            "value" : "Knippi는 S3 프로토콜을 지원하므로 S3 호환 버킷이라면 모두 사용할 수 있습니다. Cloudflare R2를 권장합니다 — 무료 용량이 넉넉하고 이그레스 요금이 없습니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Capso usa o protocolo S3, então qualquer bucket compatível com S3 funciona. Recomendamos o Cloudflare R2 — plano gratuito generoso e sem taxas de egress."
+            "value" : "O Knippi usa o protocolo S3, então qualquer bucket compatível com S3 funciona. Recomendamos o Cloudflare R2 — plano gratuito generoso e sem taxas de egress."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso поддерживает протокол S3, поэтому подойдет любой S3-совместимый бакет. Мы рекомендуем Cloudflare R2 — щедрый бесплатный тариф и без платы за исходящий трафик."
+            "value" : "Knippi поддерживает протокол S3, поэтому подойдет любой S3-совместимый бакет. Мы рекомендуем Cloudflare R2 — щедрый бесплатный тариф и без платы за исходящий трафик."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 支持 S3 协议，任何 S3 兼容的存储桶均可使用。推荐 Cloudflare R2 — 免费额度充足，且无出流量费用。"
+            "value" : "Knippi 支持 S3 协议，任何 S3 兼容的存储桶均可使用。推荐 Cloudflare R2 — 免费额度充足，且无出流量费用。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 使用 S3 通訊協定，因此任何相容 S3 的儲存貯體皆可使用。我們推薦 Cloudflare R2 — 免費額度充足，且無輸出流量費用。"
+            "value" : "Knippi 使用 S3 通訊協定，因此任何相容 S3 的儲存貯體皆可使用。我們推薦 Cloudflare R2 — 免費額度充足，且無輸出流量費用。"
           }
         }
       }
     },
-    "Capso uploads to **your own cloud storage** — never our servers. You bring the bucket, you own the files, you keep the bill. We just hand you the share link." : {
+    "Knippi uploads to **your own cloud storage** — never our servers. You bring the bucket, you own the files, you keep the bill. We just hand you the share link." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso lädt in **deinen eigenen Cloud-Speicher** hoch – niemals auf unsere Server. Du stellst den Bucket, dir gehören die Dateien, du trägst die Kosten. Wir liefern dir nur den Link zum Teilen."
+            "value" : "Knippi lädt in **deinen eigenen Cloud-Speicher** hoch – niemals auf unsere Server. Du stellst den Bucket, dir gehören die Dateien, du trägst die Kosten. Wir liefern dir nur den Link zum Teilen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso sube los archivos a **tu propio almacenamiento en la nube**, nunca a nuestros servidores. Tú pones el bucket, los archivos son tuyos y tú pagas la factura. Nosotros solo te damos el enlace para compartir."
+            "value" : "Knippi sube los archivos a **tu propio almacenamiento en la nube**, nunca a nuestros servidores. Tú pones el bucket, los archivos son tuyos y tú pagas la factura. Nosotros solo te damos el enlace para compartir."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso téléverse vers **votre propre stockage cloud** — jamais vers nos serveurs. Vous fournissez le bucket, les fichiers vous appartiennent et vous gardez la maîtrise des coûts. Nous vous donnons simplement le lien de partage."
+            "value" : "Knippi téléverse vers **votre propre stockage cloud** — jamais vers nos serveurs. Vous fournissez le bucket, les fichiers vous appartiennent et vous gardez la maîtrise des coûts. Nous vous donnons simplement le lien de partage."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso carica i file sul **tuo spazio di archiviazione cloud**, mai sui nostri server. Il bucket è tuo, i file sono tuoi, la fattura è tua. Noi ti diamo solo il link di condivisione."
+            "value" : "Knippi carica i file sul **tuo spazio di archiviazione cloud**, mai sui nostri server. Il bucket è tuo, i file sono tuoi, la fattura è tua. Noi ti diamo solo il link di condivisione."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso はファイルを**あなた自身のクラウドストレージ**にアップロードします — 当社のサーバーには送りません。バケットはあなたのもの、ファイルもあなたのもの、料金もあなた負担。私たちは共有リンクをお渡しするだけです。"
+            "value" : "Knippi はファイルを**あなた自身のクラウドストレージ**にアップロードします — 当社のサーバーには送りません。バケットはあなたのもの、ファイルもあなたのもの、料金もあなた負担。私たちは共有リンクをお渡しするだけです。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso는 파일을 **내 클라우드 스토리지**에 업로드합니다 — 저희 서버에는 절대 저장되지 않습니다. 버킷은 내 것, 파일도 내 것, 비용도 내가 냅니다. 저희는 공유 링크만 전달합니다."
+            "value" : "Knippi는 파일을 **내 클라우드 스토리지**에 업로드합니다 — 저희 서버에는 절대 저장되지 않습니다. 버킷은 내 것, 파일도 내 것, 비용도 내가 냅니다. 저희는 공유 링크만 전달합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Capso envia para **o seu próprio armazenamento na nuvem** — nunca para nossos servidores. O bucket é seu, os arquivos são seus e a conta também. Nós só entregamos o link de compartilhamento."
+            "value" : "O Knippi envia para **o seu próprio armazenamento na nuvem** — nunca para nossos servidores. O bucket é seu, os arquivos são seus e a conta também. Nós só entregamos o link de compartilhamento."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso загружает файлы в **ваше собственное облачное хранилище** — никогда на наши серверы. Бакет ваш, файлы ваши, счета тоже ваши. Мы лишь даем вам ссылку для обмена."
+            "value" : "Knippi загружает файлы в **ваше собственное облачное хранилище** — никогда на наши серверы. Бакет ваш, файлы ваши, счета тоже ваши. Мы лишь даем вам ссылку для обмена."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso **kendi bulut depolama alanınıza** yükler, bizim sunucularımıza asla. Kovayı siz getirirsiniz, dosyalar sizindir, faturayı da siz ödersiniz. Biz yalnızca size paylaşım bağlantısını veririz."
+            "value" : "Knippi **kendi bulut depolama alanınıza** yükler, bizim sunucularımıza asla. Kovayı siz getirirsiniz, dosyalar sizindir, faturayı da siz ödersiniz. Biz yalnızca size paylaşım bağlantısını veririz."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 将文件上传到**您自己的云存储** — 从不经过我们的服务器。存储桶是您的，文件是您的，费用也由您支付。我们只是把分享链接交到您手中。"
+            "value" : "Knippi 将文件上传到**您自己的云存储** — 从不经过我们的服务器。存储桶是您的，文件是您的，费用也由您支付。我们只是把分享链接交到您手中。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 會上傳到**你自己的雲端儲存空間** — 絕不經過我們的伺服器。儲存貯體由你提供，檔案歸你所有，費用由你負擔。我們只負責把分享連結交給你。"
+            "value" : "Knippi 會上傳到**你自己的雲端儲存空間** — 絕不經過我們的伺服器。儲存貯體由你提供，檔案歸你所有，費用由你負擔。我們只負責把分享連結交給你。"
           }
         }
       }
     },
-    "Capso uses this HTTPS prefix to build the share link after upload. Use your public bucket URL, custom domain, or CDN URL." : {
+    "Knippi uses this HTTPS prefix to build the share link after upload. Use your public bucket URL, custom domain, or CDN URL." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso erstellt mit diesem HTTPS-Präfix nach dem Upload den Freigabelink. Verwende deine öffentliche Bucket-URL, eine eigene Domain oder eine CDN-URL."
+            "value" : "Knippi erstellt mit diesem HTTPS-Präfix nach dem Upload den Freigabelink. Verwende deine öffentliche Bucket-URL, eine eigene Domain oder eine CDN-URL."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso usa este prefijo HTTPS para crear el enlace para compartir tras la subida. Usa la URL pública de tu bucket, un dominio personalizado o la URL de tu CDN."
+            "value" : "Knippi usa este prefijo HTTPS para crear el enlace para compartir tras la subida. Usa la URL pública de tu bucket, un dominio personalizado o la URL de tu CDN."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso utilise ce préfixe HTTPS pour créer le lien de partage après le téléversement. Utilisez l'URL publique de votre bucket, un domaine personnalisé ou une URL de CDN."
+            "value" : "Knippi utilise ce préfixe HTTPS pour créer le lien de partage après le téléversement. Utilisez l'URL publique de votre bucket, un domaine personnalisé ou une URL de CDN."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso usa questo prefisso HTTPS per creare il link di condivisione dopo il caricamento. Usa l'URL pubblico del bucket, un dominio personalizzato o l'URL della CDN."
+            "value" : "Knippi usa questo prefisso HTTPS per creare il link di condivisione dopo il caricamento. Usa l'URL pubblico del bucket, un dominio personalizzato o l'URL della CDN."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso はアップロード後、この HTTPS プレフィックスを使って共有リンクを作成します。公開バケット URL、カスタムドメイン、または CDN URL を使用してください。"
+            "value" : "Knippi はアップロード後、この HTTPS プレフィックスを使って共有リンクを作成します。公開バケット URL、カスタムドメイン、または CDN URL を使用してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso는 업로드 후 이 HTTPS 접두사로 공유 링크를 만듭니다. 공개 버킷 URL, 사용자 지정 도메인 또는 CDN URL을 사용하세요."
+            "value" : "Knippi는 업로드 후 이 HTTPS 접두사로 공유 링크를 만듭니다. 공개 버킷 URL, 사용자 지정 도메인 또는 CDN URL을 사용하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Capso usa este prefixo HTTPS para montar o link de compartilhamento após o envio. Use o URL público do bucket, um domínio personalizado ou um URL de CDN."
+            "value" : "O Knippi usa este prefixo HTTPS para montar o link de compartilhamento após o envio. Use o URL público do bucket, um domínio personalizado ou um URL de CDN."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso использует этот HTTPS-префикс, чтобы сформировать ссылку после загрузки. Укажите публичный URL бакета, собственный домен или URL CDN."
+            "value" : "Knippi использует этот HTTPS-префикс, чтобы сформировать ссылку после загрузки. Укажите публичный URL бакета, собственный домен или URL CDN."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso, yükleme sonrasında paylaşım bağlantısını oluşturmak için bu HTTPS önekini kullanır. Herkese açık kova URL'nizi, özel alan adınızı veya CDN URL'nizi kullanın."
+            "value" : "Knippi, yükleme sonrasında paylaşım bağlantısını oluşturmak için bu HTTPS önekini kullanır. Herkese açık kova URL'nizi, özel alan adınızı veya CDN URL'nizi kullanın."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上传后，Capso 会使用此 HTTPS 前缀生成分享链接。请使用存储桶的公开 URL、自定义域名或 CDN URL。"
+            "value" : "上传后，Knippi 会使用此 HTTPS 前缀生成分享链接。请使用存储桶的公开 URL、自定义域名或 CDN URL。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上傳後，Capso 會使用此 HTTPS 前綴產生分享連結。請使用儲存貯體的公開 URL、自訂網域或 CDN URL。"
+            "value" : "上傳後，Knippi 會使用此 HTTPS 前綴產生分享連結。請使用儲存貯體的公開 URL、自訂網域或 CDN URL。"
           }
         }
       }
@@ -9929,72 +9929,72 @@
         }
       }
     },
-    "Choose where Capso uploads screenshots. Files stay in your own storage account and Capso copies the public share link." : {
+    "Choose where Knippi uploads screenshots. Files stay in your own storage account and Knippi copies the public share link." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wähle, wohin Capso Bildschirmfotos hochlädt. Die Dateien bleiben in deinem eigenen Speicherkonto und Capso kopiert den öffentlichen Freigabelink."
+            "value" : "Wähle, wohin Knippi Bildschirmfotos hochlädt. Die Dateien bleiben in deinem eigenen Speicherkonto und Knippi kopiert den öffentlichen Freigabelink."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elige dónde sube Capso las capturas. Los archivos se quedan en tu propia cuenta de almacenamiento y Capso copia el enlace público para compartir."
+            "value" : "Elige dónde sube Knippi las capturas. Los archivos se quedan en tu propia cuenta de almacenamiento y Knippi copia el enlace público para compartir."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choisissez où Capso téléverse les captures d'écran. Les fichiers restent dans votre propre compte de stockage et Capso copie le lien de partage public."
+            "value" : "Choisissez où Knippi téléverse les captures d'écran. Les fichiers restent dans votre propre compte de stockage et Knippi copie le lien de partage public."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scegli dove Capso carica le istantanee. I file restano nel tuo account di archiviazione e Capso copia il link pubblico di condivisione."
+            "value" : "Scegli dove Knippi carica le istantanee. I file restano nel tuo account di archiviazione e Knippi copia il link pubblico di condivisione."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso がスクリーンショットをアップロードする先を選択します。ファイルはご自身のストレージアカウントに保存され、Capso は公開共有リンクをコピーします。"
+            "value" : "Knippi がスクリーンショットをアップロードする先を選択します。ファイルはご自身のストレージアカウントに保存され、Knippi は公開共有リンクをコピーします。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso가 스크린샷을 업로드할 위치를 선택하세요. 파일은 사용자의 스토리지 계정에 보관되며 Capso는 공개 공유 링크를 복사합니다."
+            "value" : "Knippi가 스크린샷을 업로드할 위치를 선택하세요. 파일은 사용자의 스토리지 계정에 보관되며 Knippi는 공개 공유 링크를 복사합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escolha para onde o Capso envia as capturas de tela. Os arquivos ficam na sua própria conta de armazenamento e o Capso copia o link público de compartilhamento."
+            "value" : "Escolha para onde o Knippi envia as capturas de tela. Os arquivos ficam na sua própria conta de armazenamento e o Knippi copia o link público de compartilhamento."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выберите, куда Capso будет загружать снимки экрана. Файлы хранятся в вашем собственном хранилище, а Capso копирует публичную ссылку."
+            "value" : "Выберите, куда Knippi будет загружать снимки экрана. Файлы хранятся в вашем собственном хранилище, а Knippi копирует публичную ссылку."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso'nun ekran görüntülerini nereye yükleyeceğini seçin. Dosyalar kendi depolama hesabınızda kalır ve Capso herkese açık paylaşım bağlantısını kopyalar."
+            "value" : "Knippi'nun ekran görüntülerini nereye yükleyeceğini seçin. Dosyalar kendi depolama hesabınızda kalır ve Knippi herkese açık paylaşım bağlantısını kopyalar."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择 Capso 上传截图的位置。文件保存在你自己的存储账户中，Capso 会复制公开分享链接。"
+            "value" : "选择 Knippi 上传截图的位置。文件保存在你自己的存储账户中，Knippi 会复制公开分享链接。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "選擇 Capso 上傳截圖的位置。檔案會保留在你自己的儲存空間帳號中，Capso 會拷貝公開分享連結。"
+            "value" : "選擇 Knippi 上傳截圖的位置。檔案會保留在你自己的儲存空間帳號中，Knippi 會拷貝公開分享連結。"
           }
         }
       }
@@ -21804,72 +21804,72 @@
         }
       }
     },
-    "Files live in your account. Cancel Capso, keep your screenshots." : {
+    "Files live in your account. Cancel Knippi, keep your screenshots." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Dateien liegen in deinem Account. Kündige Capso, behalte deine Bildschirmfotos."
+            "value" : "Die Dateien liegen in deinem Account. Kündige Knippi, behalte deine Bildschirmfotos."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los archivos están en tu cuenta. Aunque dejes Capso, conservas tus capturas."
+            "value" : "Los archivos están en tu cuenta. Aunque dejes Knippi, conservas tus capturas."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les fichiers restent dans votre compte. Arrêtez d'utiliser Capso, gardez vos captures d'écran."
+            "value" : "Les fichiers restent dans votre compte. Arrêtez d'utiliser Knippi, gardez vos captures d'écran."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I file restano nel tuo account. Anche se smetti di usare Capso, le istantanee restano tue."
+            "value" : "I file restano nel tuo account. Anche se smetti di usare Knippi, le istantanee restano tue."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ファイルはあなたのアカウントに保存されます。Capso を解約しても、スクリーンショットはそのまま残ります。"
+            "value" : "ファイルはあなたのアカウントに保存されます。Knippi を解約しても、スクリーンショットはそのまま残ります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "파일은 내 계정에 저장됩니다. Capso를 취소해도 스크린샷은 그대로 유지됩니다."
+            "value" : "파일은 내 계정에 저장됩니다. Knippi를 취소해도 스크린샷은 그대로 유지됩니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os arquivos ficam na sua conta. Deixe de usar o Capso e mantenha suas capturas de tela."
+            "value" : "Os arquivos ficam na sua conta. Deixe de usar o Knippi e mantenha suas capturas de tela."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Файлы хранятся в вашей учетной записи. Откажетесь от Capso — снимки останутся у вас."
+            "value" : "Файлы хранятся в вашей учетной записи. Откажетесь от Knippi — снимки останутся у вас."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dosyalar sizin hesabınızda durur. Capso'yu bırakın, ekran görüntüleriniz sizde kalsın."
+            "value" : "Dosyalar sizin hesabınızda durur. Knippi'yu bırakın, ekran görüntüleriniz sizde kalsın."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "文件保存在您的账户中。取消 Capso 订阅，截图依然保留。"
+            "value" : "文件保存在您的账户中。取消 Knippi 订阅，截图依然保留。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "檔案存放在你的帳號中。即使不再使用 Capso，截圖依然保留。"
+            "value" : "檔案存放在你的帳號中。即使不再使用 Knippi，截圖依然保留。"
           }
         }
       }
@@ -22784,72 +22784,6 @@
         }
       }
     },
-    "Follow" : {
-      "comment" : "Button label in About → Follow on X row. Opens the creator's X profile.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Folgen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seguir"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suivre"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Segui"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "フォロー"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "팔로우"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seguir"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Следить"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关注"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "追蹤"
-          }
-        }
-      }
-    },
     "Follow Cursor" : {
       "localizations" : {
         "de" : {
@@ -22916,76 +22850,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "跟隨游標"
-          }
-        }
-      }
-    },
-    "Follow on X" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auf X folgen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seguir en X"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suivre sur X"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seguimi su X"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "X をフォロー"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "X에서 팔로우"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siga no X"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Следить в X"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "X'te Takip Et"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 X 上关注"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 X 上追蹤"
           }
         }
       }
@@ -26050,67 +25914,67 @@
         }
       }
     },
-    "In `R2 → Overview`, click `Create bucket`. Name it something memorable like `capso-shares`." : {
+    "In `R2 → Overview`, click `Create bucket`. Name it something memorable like `knippi-shares`." : {
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Klicke unter `R2 → Overview` auf `Create bucket`. Gib ihm einen einprägsamen Namen wie `capso-shares`."
+            "value" : "Klicke unter `R2 → Overview` auf `Create bucket`. Gib ihm einen einprägsamen Namen wie `knippi-shares`."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En `R2 → Overview`, haz clic en `Create bucket`. Ponle un nombre fácil de recordar, como `capso-shares`."
+            "value" : "En `R2 → Overview`, haz clic en `Create bucket`. Ponle un nombre fácil de recordar, como `knippi-shares`."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dans `R2 → Overview`, cliquez sur `Create bucket`. Donnez-lui un nom facile à retenir, comme `capso-shares`."
+            "value" : "Dans `R2 → Overview`, cliquez sur `Create bucket`. Donnez-lui un nom facile à retenir, comme `knippi-shares`."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In `R2 → Overview`, fai clic su `Create bucket`. Dagli un nome facile da ricordare, come `capso-shares`."
+            "value" : "In `R2 → Overview`, fai clic su `Create bucket`. Dagli un nome facile da ricordare, come `knippi-shares`."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "`R2 → Overview` で `Create bucket` をクリックします。`capso-shares` のような覚えやすい名前を付けます。"
+            "value" : "`R2 → Overview` で `Create bucket` をクリックします。`knippi-shares` のような覚えやすい名前を付けます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "`R2 → Overview`에서 `Create bucket`을 클릭하세요. `capso-shares`처럼 기억하기 쉬운 이름을 지정하세요."
+            "value" : "`R2 → Overview`에서 `Create bucket`을 클릭하세요. `knippi-shares`처럼 기억하기 쉬운 이름을 지정하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Em `R2 → Overview`, clique em `Create bucket`. Dê um nome fácil de lembrar, como `capso-shares`."
+            "value" : "Em `R2 → Overview`, clique em `Create bucket`. Dê um nome fácil de lembrar, como `knippi-shares`."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В `R2 → Overview` нажмите `Create bucket`. Дайте ему запоминающееся имя, например `capso-shares`."
+            "value" : "В `R2 → Overview` нажмите `Create bucket`. Дайте ему запоминающееся имя, например `knippi-shares`."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 `R2 → Overview` 中点击 `Create bucket`。取一个容易记住的名称，比如 `capso-shares`。"
+            "value" : "在 `R2 → Overview` 中点击 `Create bucket`。取一个容易记住的名称，比如 `knippi-shares`。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 `R2 → Overview` 中按一下 `Create bucket`。取一個好記的名稱，例如 `capso-shares`。"
+            "value" : "在 `R2 → Overview` 中按一下 `Create bucket`。取一個好記的名稱，例如 `knippi-shares`。"
           }
         }
       }
@@ -26740,72 +26604,72 @@
         }
       }
     },
-    "It sent this command:\n%@\n\nAllow other apps to start captures and recordings with Capso? You can change this later in Settings → General." : {
+    "It sent this command:\n%@\n\nAllow other apps to start captures with Knippi? You can change this later in Settings → General." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sie hat diesen Befehl gesendet:\n%@\n\nAnderen Apps erlauben, mit Capso Aufnahmen und Aufzeichnungen zu starten? Du kannst das später unter Einstellungen → Allgemein ändern."
+            "value" : "Sie hat diesen Befehl gesendet:\n%@\n\nAnderen Apps erlauben, mit Knippi Aufnahmen zu starten? Du kannst das später unter Einstellungen → Allgemein ändern."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ha enviado este comando:\n%@\n\n¿Permitir que otras apps inicien capturas y grabaciones con Capso? Puedes cambiarlo más tarde en Ajustes → General."
+            "value" : "Ha enviado este comando:\n%@\n\n¿Permitir que otras apps inicien capturas con Knippi? Puedes cambiarlo más tarde en Ajustes → General."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elle a envoyé cette commande :\n%@\n\nAutoriser d'autres apps à lancer des captures et des enregistrements avec Capso ? Vous pourrez modifier ce choix plus tard dans Réglages → Général."
+            "value" : "Elle a envoyé cette commande :\n%@\n\nAutoriser d'autres apps à lancer des captures avec Knippi ? Vous pourrez modifier ce choix plus tard dans Réglages → Général."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ha inviato questo comando:\n%@\n\nConsentire ad altre app di avviare catture e registrazioni con Capso? Puoi modificarlo in seguito in Impostazioni → Generali."
+            "value" : "Ha inviato questo comando:\n%@\n\nConsentire ad altre app di avviare catture con Knippi? Puoi modificarlo in seguito in Impostazioni → Generali."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "次のコマンドが送信されました:\n%@\n\n他のアプリが Capso でキャプチャや録画を開始することを許可しますか？この設定は後で 設定 → 一般 で変更できます。"
+            "value" : "次のコマンドが送信されました:\n%@\n\n他のアプリが Knippi でキャプチャを開始することを許可しますか？この設定は後で 設定 → 一般 で変更できます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "다음 명령을 보냈습니다:\n%@\n\n다른 앱이 Capso로 캡처 및 녹화를 시작하도록 허용하시겠습니까? 나중에 설정 → 일반에서 변경할 수 있습니다."
+            "value" : "다음 명령을 보냈습니다:\n%@\n\n다른 앱이 Knippi로 캡처를 시작하도록 허용하시겠습니까? 나중에 설정 → 일반에서 변경할 수 있습니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ele enviou este comando:\n%@\n\nPermitir que outros apps iniciem capturas e gravações com o Capso? Você pode alterar isso depois em Ajustes → Geral."
+            "value" : "Ele enviou este comando:\n%@\n\nPermitir que outros apps iniciem capturas com o Knippi? Você pode alterar isso depois em Ajustes → Geral."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Оно отправило эту команду:\n%@\n\nРазрешить другим приложениям запускать снимки и записи с помощью Capso? Это можно изменить позже в разделе Настройки → Основные."
+            "value" : "Оно отправило эту команду:\n%@\n\nРазрешить другим приложениям запускать снимки с помощью Knippi? Это можно изменить позже в разделе Настройки → Основные."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Şu komutu gönderdi:\n%@\n\nDiğer uygulamaların Capso ile yakalama ve kayıt başlatmasına izin verilsin mi? Bunu daha sonra Ayarlar → Genel bölümünden değiştirebilirsiniz."
+            "value" : "Şu komutu gönderdi:\n%@\n\nDiğer uygulamaların Knippi ile yakalama başlatmasına izin verilsin mi? Bunu daha sonra Ayarlar → Genel bölümünden değiştirebilirsiniz."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "它发送了以下命令：\n%@\n\n允许其他 App 通过 Capso 开始截图和录制吗？你之后可以在“设置” → “通用”中更改。"
+            "value" : "它发送了以下命令：\n%@\n\n允许其他 App 通过 Knippi 开始截图吗？你之后可以在“设置” → “通用”中更改。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "它傳送了以下指令：\n%@\n\n要允許其他 App 透過 Capso 開始擷取和錄製嗎？你之後可以在「設定」→「一般」中更改。"
+            "value" : "它傳送了以下指令：\n%@\n\n要允許其他 App 透過 Knippi 開始擷取嗎？你之後可以在「設定」→「一般」中更改。"
           }
         }
       }
@@ -28335,72 +28199,72 @@
         }
       }
     },
-    "macOS still uses ⇧⌘3, ⇧⌘4 and ⇧⌘5 for its own screenshots. To use them for Capso, turn off the shortcuts under Keyboard Shortcuts → Screenshots." : {
+    "macOS still uses ⇧⌘3, ⇧⌘4 and ⇧⌘5 for its own screenshots. To use them for Knippi, turn off the shortcuts under Keyboard Shortcuts → Screenshots." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS verwendet ⇧⌘3, ⇧⌘4 und ⇧⌘5 noch für eigene Bildschirmfotos. Um sie für Capso zu nutzen, deaktiviere die Kurzbefehle unter Tastaturkurzbefehle → Bildschirmfotos."
+            "value" : "macOS verwendet ⇧⌘3, ⇧⌘4 und ⇧⌘5 noch für eigene Bildschirmfotos. Um sie für Knippi zu nutzen, deaktiviere die Kurzbefehle unter Tastaturkurzbefehle → Bildschirmfotos."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS sigue usando ⇧⌘3, ⇧⌘4 y ⇧⌘5 para sus propias capturas. Para usarlos con Capso, desactiva esos atajos en Funciones rápidas de teclado → Capturas de pantalla."
+            "value" : "macOS sigue usando ⇧⌘3, ⇧⌘4 y ⇧⌘5 para sus propias capturas. Para usarlos con Knippi, desactiva esos atajos en Funciones rápidas de teclado → Capturas de pantalla."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS utilise toujours ⇧⌘3, ⇧⌘4 et ⇧⌘5 pour ses propres captures d'écran. Pour les utiliser avec Capso, désactivez les raccourcis dans Raccourcis clavier → Captures d'écran."
+            "value" : "macOS utilise toujours ⇧⌘3, ⇧⌘4 et ⇧⌘5 pour ses propres captures d'écran. Pour les utiliser avec Knippi, désactivez les raccourcis dans Raccourcis clavier → Captures d'écran."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS usa ancora ⇧⌘3, ⇧⌘4 e ⇧⌘5 per le proprie istantanee. Per usarle con Capso, disattiva le abbreviazioni in Abbreviazioni da tastiera → Istantanee schermo."
+            "value" : "macOS usa ancora ⇧⌘3, ⇧⌘4 e ⇧⌘5 per le proprie istantanee. Per usarle con Knippi, disattiva le abbreviazioni in Abbreviazioni da tastiera → Istantanee schermo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS はまだ ⇧⌘3、⇧⌘4、⇧⌘5 を自身のスクリーンショットに使用しています。Capso で使うには、キーボードショートカット → スクリーンショット でこれらのショートカットをオフにしてください。"
+            "value" : "macOS はまだ ⇧⌘3、⇧⌘4、⇧⌘5 を自身のスクリーンショットに使用しています。Knippi で使うには、キーボードショートカット → スクリーンショット でこれらのショートカットをオフにしてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS가 아직 ⇧⌘3, ⇧⌘4, ⇧⌘5를 자체 스크린샷에 사용하고 있습니다. Capso에서 사용하려면 키보드 단축키 → 스크린샷에서 해당 단축키를 끄세요."
+            "value" : "macOS가 아직 ⇧⌘3, ⇧⌘4, ⇧⌘5를 자체 스크린샷에 사용하고 있습니다. Knippi에서 사용하려면 키보드 단축키 → 스크린샷에서 해당 단축키를 끄세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O macOS ainda usa ⇧⌘3, ⇧⌘4 e ⇧⌘5 para as próprias capturas de tela. Para usá-los no Capso, desative os atalhos em Atalhos de Teclado → Capturas de Tela."
+            "value" : "O macOS ainda usa ⇧⌘3, ⇧⌘4 e ⇧⌘5 para as próprias capturas de tela. Para usá-los no Knippi, desative os atalhos em Atalhos de Teclado → Capturas de Tela."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS по-прежнему использует ⇧⌘3, ⇧⌘4 и ⇧⌘5 для собственных снимков экрана. Чтобы назначить их Capso, отключите эти сочетания в разделе Сочетания клавиш → Снимки экрана."
+            "value" : "macOS по-прежнему использует ⇧⌘3, ⇧⌘4 и ⇧⌘5 для собственных снимков экрана. Чтобы назначить их Knippi, отключите эти сочетания в разделе Сочетания клавиш → Снимки экрана."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS kendi ekran görüntüleri için hâlâ ⇧⌘3, ⇧⌘4 ve ⇧⌘5 kullanıyor. Bunları Capso için kullanmak üzere Klavye Kısayolları → Ekran Görüntüleri altındaki kısayolları kapatın."
+            "value" : "macOS kendi ekran görüntüleri için hâlâ ⇧⌘3, ⇧⌘4 ve ⇧⌘5 kullanıyor. Bunları Knippi için kullanmak üzere Klavye Kısayolları → Ekran Görüntüleri altındaki kısayolları kapatın."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS 仍在使用 ⇧⌘3、⇧⌘4 和 ⇧⌘5 进行系统截图。若要将它们用于 Capso，请在“键盘快捷键” → “截屏”中关闭这些快捷键。"
+            "value" : "macOS 仍在使用 ⇧⌘3、⇧⌘4 和 ⇧⌘5 进行系统截图。若要将它们用于 Knippi，请在“键盘快捷键” → “截屏”中关闭这些快捷键。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS 仍在使用 ⇧⌘3、⇧⌘4 和 ⇧⌘5 進行系統截圖。若要將它們用於 Capso，請在「鍵盤快速鍵」→「截圖」中關閉這些快速鍵。"
+            "value" : "macOS 仍在使用 ⇧⌘3、⇧⌘4 和 ⇧⌘5 進行系統截圖。若要將它們用於 Knippi，請在「鍵盤快速鍵」→「截圖」中關閉這些快速鍵。"
           }
         }
       }
@@ -30777,72 +30641,72 @@
         }
       }
     },
-    "Open Capso's local log folder" : {
+    "Open Knippi's local log folder" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lokalen Protokollordner von Capso öffnen"
+            "value" : "Lokalen Protokollordner von Knippi öffnen"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abrir la carpeta de registros locales de Capso"
+            "value" : "Abrir la carpeta de registros locales de Knippi"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ouvrir le dossier des journaux locaux de Capso"
+            "value" : "Ouvrir le dossier des journaux locaux de Knippi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apri la cartella dei log locali di Capso"
+            "value" : "Apri la cartella dei log locali di Knippi"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capsoのローカルログフォルダを開く"
+            "value" : "Knippiのローカルログフォルダを開く"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 로컬 로그 폴더 열기"
+            "value" : "Knippi 로컬 로그 폴더 열기"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abrir a pasta local de registros do Capso"
+            "value" : "Abrir a pasta local de registros do Knippi"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Открыть папку с локальными журналами Capso"
+            "value" : "Открыть папку с локальными журналами Knippi"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso'nun yerel günlük klasörünü aç"
+            "value" : "Knippi'nun yerel günlük klasörünü aç"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开 Capso 的本地日志文件夹"
+            "value" : "打开 Knippi 的本地日志文件夹"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開 Capso 的本機記錄檔案夾"
+            "value" : "打開 Knippi 的本機記錄檔案夾"
           }
         }
       }
@@ -35285,72 +35149,72 @@
         }
       }
     },
-    "Quit Capso" : {
+    "Quit Knippi" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso beenden"
+            "value" : "Knippi beenden"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Salir de Capso"
+            "value" : "Salir de Knippi"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quitter Capso"
+            "value" : "Quitter Knippi"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esci da Capso"
+            "value" : "Esci da Knippi"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso を終了"
+            "value" : "Knippi を終了"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso 종료"
+            "value" : "Knippi 종료"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Encerrar o Capso"
+            "value" : "Encerrar o Knippi"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Завершить Capso"
+            "value" : "Завершить Knippi"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso'dan Çık"
+            "value" : "Knippi'dan Çık"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退出 Capso"
+            "value" : "退出 Knippi"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "結束 Capso"
+            "value" : "結束 Knippi"
           }
         }
       }
@@ -43357,72 +43221,72 @@
         }
       }
     },
-    "Some credentials may still be in Keychain: %@.\n\nOpen 'Keychain Access.app' and search for 'com.awesomemacapps.capso.share' to remove them manually." : {
+    "Some credentials may still be in Keychain: %@.\n\nOpen 'Keychain Access.app' and search for 'dev.mwlr.knippi.share' to remove them manually." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Einige Zugangsdaten befinden sich eventuell noch im Schlüsselbund: %@.\n\nÖffne „Schlüsselbundverwaltung.app“ und suche nach 'com.awesomemacapps.capso.share', um sie manuell zu entfernen."
+            "value" : "Einige Zugangsdaten befinden sich eventuell noch im Schlüsselbund: %@.\n\nÖffne „Schlüsselbundverwaltung.app“ und suche nach 'dev.mwlr.knippi.share', um sie manuell zu entfernen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Puede que queden credenciales en el llavero: %@.\n\nAbre «Acceso a Llaveros.app» y busca «com.awesomemacapps.capso.share» para eliminarlas manualmente."
+            "value" : "Puede que queden credenciales en el llavero: %@.\n\nAbre «Acceso a Llaveros.app» y busca «dev.mwlr.knippi.share» para eliminarlas manualmente."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Certains identifiants sont peut-être encore dans le trousseau : %@.\n\nOuvrez « Trousseaux d'accès.app » et recherchez « com.awesomemacapps.capso.share » pour les supprimer manuellement."
+            "value" : "Certains identifiants sont peut-être encore dans le trousseau : %@.\n\nOuvrez « Trousseaux d'accès.app » et recherchez « dev.mwlr.knippi.share » pour les supprimer manuellement."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alcune credenziali potrebbero essere ancora nel Portachiavi: %@.\n\nApri 'Accesso Portachiavi.app' e cerca 'com.awesomemacapps.capso.share' per rimuoverle manualmente."
+            "value" : "Alcune credenziali potrebbero essere ancora nel Portachiavi: %@.\n\nApri 'Accesso Portachiavi.app' e cerca 'dev.mwlr.knippi.share' per rimuoverle manualmente."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "一部の資格情報が Keychain に残っている可能性があります：%@。\n\n「キーチェーンアクセス.app」を開き、'com.awesomemacapps.capso.share' で検索して手動で削除してください。"
+            "value" : "一部の資格情報が Keychain に残っている可能性があります：%@。\n\n「キーチェーンアクセス.app」を開き、'dev.mwlr.knippi.share' で検索して手動で削除してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "일부 자격 증명이 Keychain에 남아 있을 수 있습니다: %@.\n\n'키체인 접근.app'을 열고 'com.awesomemacapps.capso.share'를 검색하여 수동으로 삭제하세요."
+            "value" : "일부 자격 증명이 Keychain에 남아 있을 수 있습니다: %@.\n\n'키체인 접근.app'을 열고 'dev.mwlr.knippi.share'를 검색하여 수동으로 삭제하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Algumas credenciais ainda podem estar nas Chaves: %@.\n\nAbra o 'Acesso às Chaves.app' e procure por 'com.awesomemacapps.capso.share' para removê-las manualmente."
+            "value" : "Algumas credenciais ainda podem estar nas Chaves: %@.\n\nAbra o 'Acesso às Chaves.app' e procure por 'dev.mwlr.knippi.share' para removê-las manualmente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Некоторые учетные данные могут остаться в Связке ключей: %@.\n\nОткройте «Связка ключей.app» и найдите «com.awesomemacapps.capso.share», чтобы удалить их вручную."
+            "value" : "Некоторые учетные данные могут остаться в Связке ключей: %@.\n\nОткройте «Связка ключей.app» и найдите «dev.mwlr.knippi.share», чтобы удалить их вручную."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bazı kimlik bilgileri hâlâ Anahtar Zinciri'nde olabilir: %@.\n\n'Anahtar Zinciri Erişimi.app' uygulamasını açın ve elle kaldırmak için 'com.awesomemacapps.capso.share' araması yapın."
+            "value" : "Bazı kimlik bilgileri hâlâ Anahtar Zinciri'nde olabilir: %@.\n\n'Anahtar Zinciri Erişimi.app' uygulamasını açın ve elle kaldırmak için 'dev.mwlr.knippi.share' araması yapın."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分凭据可能仍保留在 Keychain 中：%@。\n\n请打开“钥匙串访问.app”，搜索 'com.awesomemacapps.capso.share' 手动删除。"
+            "value" : "部分凭据可能仍保留在 Keychain 中：%@。\n\n请打开“钥匙串访问.app”，搜索 'dev.mwlr.knippi.share' 手动删除。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分憑證可能仍保留在鑰匙圈中：%@。\n\n請打開「鑰匙圈存取.app」並搜尋「com.awesomemacapps.capso.share」以手動移除。"
+            "value" : "部分憑證可能仍保留在鑰匙圈中：%@。\n\n請打開「鑰匙圈存取.app」並搜尋「dev.mwlr.knippi.share」以手動移除。"
           }
         }
       }
@@ -43842,72 +43706,72 @@
         }
       }
     },
-    "Start Capso when you log in" : {
+    "Start Knippi when you log in" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso bei der Anmeldung starten"
+            "value" : "Knippi bei der Anmeldung starten"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abrir Capso al iniciar sesión"
+            "value" : "Abrir Knippi al iniciar sesión"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ouvrir Capso lorsque vous ouvrez une session"
+            "value" : "Ouvrir Knippi lorsque vous ouvrez une session"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avvia Capso al login"
+            "value" : "Avvia Knippi al login"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mac にログインしたときに Capso を自動起動"
+            "value" : "Mac にログインしたときに Knippi を自動起動"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mac에 로그인할 때 Capso 자동 실행"
+            "value" : "Mac에 로그인할 때 Knippi 자동 실행"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abrir o Capso ao iniciar sessão"
+            "value" : "Abrir o Knippi ao iniciar sessão"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Открывать Capso при входе в систему"
+            "value" : "Открывать Knippi при входе в систему"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oturum açıldığında Capso'yu başlat"
+            "value" : "Oturum açıldığında Knippi'yu başlat"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登录 Mac 时自动启动 Capso"
+            "value" : "登录 Mac 时自动启动 Knippi"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登入時啟動 Capso"
+            "value" : "登入時啟動 Knippi"
           }
         }
       }
@@ -47044,72 +46908,72 @@
         }
       }
     },
-    "The macOS screenshot shortcuts are off. Capso can take them over: ⇧⌘3 Capture Fullscreen, ⇧⌘4 Capture Area, ⇧⌘5 All-in-One." : {
+    "The macOS screenshot shortcuts are off. Knippi can take them over: ⇧⌘3 Capture Fullscreen, ⇧⌘4 Capture Area, ⇧⌘5 All-in-One." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Bildschirmfoto-Kurzbefehle von macOS sind deaktiviert. Capso kann sie übernehmen: ⇧⌘3 Vollbild aufnehmen, ⇧⌘4 Bereich aufnehmen, ⇧⌘5 Alles in einem."
+            "value" : "Die Bildschirmfoto-Kurzbefehle von macOS sind deaktiviert. Knippi kann sie übernehmen: ⇧⌘3 Vollbild aufnehmen, ⇧⌘4 Bereich aufnehmen, ⇧⌘5 Alles in einem."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los atajos de captura de macOS están desactivados. Capso puede usarlos: ⇧⌘3 Capturar pantalla completa, ⇧⌘4 Capturar área, ⇧⌘5 Todo en uno."
+            "value" : "Los atajos de captura de macOS están desactivados. Knippi puede usarlos: ⇧⌘3 Capturar pantalla completa, ⇧⌘4 Capturar área, ⇧⌘5 Todo en uno."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les raccourcis de capture d'écran de macOS sont désactivés. Capso peut les reprendre : ⇧⌘3 Capturer l'écran entier, ⇧⌘4 Capturer une zone, ⇧⌘5 Tout-en-un."
+            "value" : "Les raccourcis de capture d'écran de macOS sont désactivés. Knippi peut les reprendre : ⇧⌘3 Capturer l'écran entier, ⇧⌘4 Capturer une zone, ⇧⌘5 Tout-en-un."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le abbreviazioni per le istantanee di macOS sono disattivate. Capso può usarle: ⇧⌘3 Cattura schermo intero, ⇧⌘4 Cattura area, ⇧⌘5 Tutto in uno."
+            "value" : "Le abbreviazioni per le istantanee di macOS sono disattivate. Knippi può usarle: ⇧⌘3 Cattura schermo intero, ⇧⌘4 Cattura area, ⇧⌘5 Tutto in uno."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS のスクリーンショットショートカットはオフです。Capso で引き継げます: ⇧⌘3 フルスクリーンをキャプチャ、⇧⌘4 エリアをキャプチャ、⇧⌘5 オールインワン。"
+            "value" : "macOS のスクリーンショットショートカットはオフです。Knippi で引き継げます: ⇧⌘3 フルスクリーンをキャプチャ、⇧⌘4 エリアをキャプチャ、⇧⌘5 オールインワン。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS 스크린샷 단축키가 꺼져 있습니다. Capso가 대신 사용할 수 있습니다: ⇧⌘3 전체 화면 캡처, ⇧⌘4 영역 캡처, ⇧⌘5 올인원."
+            "value" : "macOS 스크린샷 단축키가 꺼져 있습니다. Knippi가 대신 사용할 수 있습니다: ⇧⌘3 전체 화면 캡처, ⇧⌘4 영역 캡처, ⇧⌘5 올인원."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os atalhos de captura de tela do macOS estão desativados. O Capso pode assumi-los: ⇧⌘3 Capturar Tela Inteira, ⇧⌘4 Capturar Área, ⇧⌘5 Tudo em Um."
+            "value" : "Os atalhos de captura de tela do macOS estão desativados. O Knippi pode assumi-los: ⇧⌘3 Capturar Tela Inteira, ⇧⌘4 Capturar Área, ⇧⌘5 Tudo em Um."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Сочетания клавиш macOS для снимков экрана отключены. Capso может взять их на себя: ⇧⌘3 — Снять весь экран, ⇧⌘4 — Снять область, ⇧⌘5 — Все в одном."
+            "value" : "Сочетания клавиш macOS для снимков экрана отключены. Knippi может взять их на себя: ⇧⌘3 — Снять весь экран, ⇧⌘4 — Снять область, ⇧⌘5 — Все в одном."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS ekran görüntüsü kısayolları kapalı. Capso bunları devralabilir: ⇧⌘3 Tam Ekranı Yakala, ⇧⌘4 Alanı Yakala, ⇧⌘5 Hepsi Bir Arada."
+            "value" : "macOS ekran görüntüsü kısayolları kapalı. Knippi bunları devralabilir: ⇧⌘3 Tam Ekranı Yakala, ⇧⌘4 Alanı Yakala, ⇧⌘5 Hepsi Bir Arada."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS 截屏快捷键已关闭。Capso 可以接管它们：⇧⌘3 截取全屏、⇧⌘4 截取区域、⇧⌘5 全能截图。"
+            "value" : "macOS 截屏快捷键已关闭。Knippi 可以接管它们：⇧⌘3 截取全屏、⇧⌘4 截取区域、⇧⌘5 全能截图。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS 截圖快速鍵已關閉。Capso 可以接管它們：⇧⌘3 擷取全螢幕、⇧⌘4 擷取區域、⇧⌘5 全能擷取。"
+            "value" : "macOS 截圖快速鍵已關閉。Knippi 可以接管它們：⇧⌘3 擷取全螢幕、⇧⌘4 擷取區域、⇧⌘5 全能擷取。"
           }
         }
       }
@@ -48019,72 +47883,72 @@
         }
       }
     },
-    "To show key presses while recording, enable Capso in System Settings > Privacy & Security > Input Monitoring, then start recording again." : {
+    "To show key presses while recording, enable Knippi in System Settings > Privacy & Security > Input Monitoring, then start recording again." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Um Tastenanschläge beim Aufzeichnen anzuzeigen, aktiviere Capso unter Systemeinstellungen > Datenschutz & Sicherheit > Eingabeüberwachung und starte die Aufzeichnung erneut."
+            "value" : "Um Tastenanschläge beim Aufzeichnen anzuzeigen, aktiviere Knippi unter Systemeinstellungen > Datenschutz & Sicherheit > Eingabeüberwachung und starte die Aufzeichnung erneut."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para mostrar las pulsaciones de teclas al grabar, activa Capso en Ajustes del Sistema > Privacidad y seguridad > Monitorización de entrada y vuelve a iniciar la grabación."
+            "value" : "Para mostrar las pulsaciones de teclas al grabar, activa Knippi en Ajustes del Sistema > Privacidad y seguridad > Monitorización de entrada y vuelve a iniciar la grabación."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour afficher les touches pressées pendant l'enregistrement, activez Capso dans Réglages Système > Confidentialité et sécurité > Surveillance de l'entrée, puis relancez l'enregistrement."
+            "value" : "Pour afficher les touches pressées pendant l'enregistrement, activez Knippi dans Réglages Système > Confidentialité et sécurité > Surveillance de l'entrée, puis relancez l'enregistrement."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Per mostrare i tasti premuti durante la registrazione, attiva Capso in Impostazioni di Sistema > Privacy e sicurezza > Monitoraggio input, poi avvia di nuovo la registrazione."
+            "value" : "Per mostrare i tasti premuti durante la registrazione, attiva Knippi in Impostazioni di Sistema > Privacy e sicurezza > Monitoraggio input, poi avvia di nuovo la registrazione."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "録画中にキー入力を表示するには、システム設定 > プライバシーとセキュリティ > 入力監視 で Capso を有効にしてから、録画をやり直してください。"
+            "value" : "録画中にキー入力を表示するには、システム設定 > プライバシーとセキュリティ > 入力監視 で Knippi を有効にしてから、録画をやり直してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "녹화 중 키 입력을 표시하려면 시스템 설정 > 개인정보 보호 및 보안 > 입력 모니터링에서 Capso를 활성화한 후 녹화를 다시 시작하세요."
+            "value" : "녹화 중 키 입력을 표시하려면 시스템 설정 > 개인정보 보호 및 보안 > 입력 모니터링에서 Knippi를 활성화한 후 녹화를 다시 시작하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para mostrar as teclas pressionadas durante a gravação, ative o Capso em Ajustes do Sistema > Privacidade e Segurança > Monitoramento de Entrada e inicie a gravação novamente."
+            "value" : "Para mostrar as teclas pressionadas durante a gravação, ative o Knippi em Ajustes do Sistema > Privacidade e Segurança > Monitoramento de Entrada e inicie a gravação novamente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Чтобы показывать нажатия клавиш во время записи, включите Capso в разделе Системные настройки > Конфиденциальность и безопасность > Мониторинг ввода, затем снова начните запись."
+            "value" : "Чтобы показывать нажатия клавиш во время записи, включите Knippi в разделе Системные настройки > Конфиденциальность и безопасность > Мониторинг ввода, затем снова начните запись."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kayıt sırasında tuş basışlarını göstermek için Sistem Ayarları > Gizlilik ve Güvenlik > Giriş İzleme bölümünden Capso'yu etkinleştirin, sonra kayda yeniden başlayın."
+            "value" : "Kayıt sırasında tuş basışlarını göstermek için Sistem Ayarları > Gizlilik ve Güvenlik > Giriş İzleme bölümünden Knippi'yu etkinleştirin, sonra kayda yeniden başlayın."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "若要在录制时显示按键，请在“系统设置” > “隐私与安全性” > “输入监控”中启用 Capso，然后重新开始录制。"
+            "value" : "若要在录制时显示按键，请在“系统设置” > “隐私与安全性” > “输入监控”中启用 Knippi，然后重新开始录制。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "若要在錄製時顯示按鍵，請在「系統設定」>「隱私權與安全性」>「輸入監控」中啟用 Capso，然後重新開始錄製。"
+            "value" : "若要在錄製時顯示按鍵，請在「系統設定」>「隱私權與安全性」>「輸入監控」中啟用 Knippi，然後重新開始錄製。"
           }
         }
       }
@@ -48229,72 +48093,72 @@
         }
       }
     },
-    "Trigger Capso actions from Raycast, Alfred, Shortcuts, or shell scripts." : {
+    "Trigger Knippi actions from Raycast, Alfred, Shortcuts, or shell scripts." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso-Aktionen aus Raycast, Alfred, Kurzbefehlen oder Shell-Skripten auslösen."
+            "value" : "Knippi-Aktionen aus Raycast, Alfred, Kurzbefehlen oder Shell-Skripten auslösen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ejecuta acciones de Capso desde Raycast, Alfred, Atajos o scripts de shell."
+            "value" : "Ejecuta acciones de Knippi desde Raycast, Alfred, Atajos o scripts de shell."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Déclenchez des actions Capso depuis Raycast, Alfred, Raccourcis ou des scripts shell."
+            "value" : "Déclenchez des actions Knippi depuis Raycast, Alfred, Raccourcis ou des scripts shell."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Attiva le azioni di Capso da Raycast, Alfred, Comandi Rapidi o script shell."
+            "value" : "Attiva le azioni di Knippi da Raycast, Alfred, Comandi Rapidi o script shell."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raycast、Alfred、ショートカット、シェルスクリプトから Capso の操作を実行できます。"
+            "value" : "Raycast、Alfred、ショートカット、シェルスクリプトから Knippi の操作を実行できます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Raycast, Alfred, 단축어 또는 셸 스크립트에서 Capso 동작을 실행합니다."
+            "value" : "Raycast, Alfred, 단축어 또는 셸 스크립트에서 Knippi 동작을 실행합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acione ações do Capso pelo Raycast, Alfred, Atalhos ou scripts de shell."
+            "value" : "Acione ações do Knippi pelo Raycast, Alfred, Atalhos ou scripts de shell."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Запускайте действия Capso из Raycast, Alfred, Быстрых команд или скриптов оболочки."
+            "value" : "Запускайте действия Knippi из Raycast, Alfred, Быстрых команд или скриптов оболочки."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso eylemlerini Raycast, Alfred, Kestirmeler veya kabuk betiklerinden tetikleyin."
+            "value" : "Knippi eylemlerini Raycast, Alfred, Kestirmeler veya kabuk betiklerinden tetikleyin."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "从 Raycast、Alfred、快捷指令或 Shell 脚本触发 Capso 操作。"
+            "value" : "从 Raycast、Alfred、快捷指令或 Shell 脚本触发 Knippi 操作。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "從 Raycast、Alfred、捷徑或 Shell 腳本觸發 Capso 動作。"
+            "value" : "從 Raycast、Alfred、捷徑或 Shell 腳本觸發 Knippi 動作。"
           }
         }
       }
@@ -48570,76 +48434,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更新項目"
-          }
-        }
-      }
-    },
-    "Updates from @lzhgus" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neuigkeiten von @lzhgus"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Novedades de @lzhgus"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Actualités de @lzhgus"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aggiornamenti da @lzhgus"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "@lzhgus の最新情報"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "@lzhgus의 업데이트"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Novidades de @lzhgus"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Новости от @lzhgus"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "@lzhgus'tan güncellemeler"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "来自 @lzhgus 的更新"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "來自 @lzhgus 的最新消息"
           }
         }
       }
@@ -49409,142 +49203,142 @@
         }
       }
     },
-    "Use a bucket in **%@** that Capso can write objects into." : {
+    "Use a bucket in **%@** that Knippi can write objects into." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verwende einen Bucket in **%@**, in den Capso Objekte schreiben kann."
+            "value" : "Verwende einen Bucket in **%@**, in den Knippi Objekte schreiben kann."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa un bucket de **%@** en el que Capso pueda escribir objetos."
+            "value" : "Usa un bucket de **%@** en el que Knippi pueda escribir objetos."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilisez un bucket dans **%@** dans lequel Capso peut écrire des objets."
+            "value" : "Utilisez un bucket dans **%@** dans lequel Knippi peut écrire des objets."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa un bucket in **%@** in cui Capso possa scrivere oggetti."
+            "value" : "Usa un bucket in **%@** in cui Knippi possa scrivere oggetti."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso がオブジェクトを書き込める **%@** のバケットを使用してください。"
+            "value" : "Knippi がオブジェクトを書き込める **%@** のバケットを使用してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso가 객체를 쓸 수 있는 **%@**의 버킷을 사용하세요."
+            "value" : "Knippi가 객체를 쓸 수 있는 **%@**의 버킷을 사용하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use um bucket em **%@** no qual o Capso possa gravar objetos."
+            "value" : "Use um bucket em **%@** no qual o Knippi possa gravar objetos."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Используйте бакет в **%@**, в который Capso может записывать объекты."
+            "value" : "Используйте бакет в **%@**, в который Knippi может записывать объекты."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**%@** bölgesinde Capso'nun nesne yazabileceği bir kova kullanın."
+            "value" : "**%@** bölgesinde Knippi'nun nesne yazabileceği bir kova kullanın."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请使用位于 **%@** 且 Capso 可写入对象的存储桶。"
+            "value" : "请使用位于 **%@** 且 Knippi 可写入对象的存储桶。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請使用位於 **%@** 且 Capso 可寫入物件的儲存貯體。"
+            "value" : "請使用位於 **%@** 且 Knippi 可寫入物件的儲存貯體。"
           }
         }
       }
     },
-    "Use a public bucket URL or connect a custom domain/CDN. Capso needs a public HTTPS prefix so it can copy a share link." : {
+    "Use a public bucket URL or connect a custom domain/CDN. Knippi needs a public HTTPS prefix so it can copy a share link." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verwende eine öffentliche Bucket-URL oder verbinde eine eigene Domain/ein CDN. Capso braucht ein öffentliches HTTPS-Präfix, um einen Freigabelink kopieren zu können."
+            "value" : "Verwende eine öffentliche Bucket-URL oder verbinde eine eigene Domain/ein CDN. Knippi braucht ein öffentliches HTTPS-Präfix, um einen Freigabelink kopieren zu können."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa una URL pública del bucket o conecta un dominio personalizado/CDN. Capso necesita un prefijo HTTPS público para poder copiar un enlace para compartir."
+            "value" : "Usa una URL pública del bucket o conecta un dominio personalizado/CDN. Knippi necesita un prefijo HTTPS público para poder copiar un enlace para compartir."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilisez une URL de bucket publique ou connectez un domaine personnalisé/CDN. Capso a besoin d'un préfixe HTTPS public pour copier un lien de partage."
+            "value" : "Utilisez une URL de bucket publique ou connectez un domaine personnalisé/CDN. Knippi a besoin d'un préfixe HTTPS public pour copier un lien de partage."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usa un URL pubblico del bucket o collega un dominio personalizzato/CDN. Capso ha bisogno di un prefisso HTTPS pubblico per copiare un link di condivisione."
+            "value" : "Usa un URL pubblico del bucket o collega un dominio personalizzato/CDN. Knippi ha bisogno di un prefisso HTTPS pubblico per copiare un link di condivisione."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "公開バケット URL を使用するか、カスタムドメイン/CDN を接続してください。共有リンクをコピーするには、Capso に公開 HTTPS プレフィックスが必要です。"
+            "value" : "公開バケット URL を使用するか、カスタムドメイン/CDN を接続してください。共有リンクをコピーするには、Knippi に公開 HTTPS プレフィックスが必要です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "공개 버킷 URL을 사용하거나 사용자 지정 도메인/CDN을 연결하세요. 공유 링크를 복사하려면 Capso에 공개 HTTPS 접두사가 필요합니다."
+            "value" : "공개 버킷 URL을 사용하거나 사용자 지정 도메인/CDN을 연결하세요. 공유 링크를 복사하려면 Knippi에 공개 HTTPS 접두사가 필요합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use um URL público do bucket ou conecte um domínio personalizado/CDN. O Capso precisa de um prefixo HTTPS público para copiar um link de compartilhamento."
+            "value" : "Use um URL público do bucket ou conecte um domínio personalizado/CDN. O Knippi precisa de um prefixo HTTPS público para copiar um link de compartilhamento."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Используйте публичный URL бакета или подключите собственный домен/CDN. Capso нужен публичный HTTPS-префикс, чтобы копировать ссылку."
+            "value" : "Используйте публичный URL бакета или подключите собственный домен/CDN. Knippi нужен публичный HTTPS-префикс, чтобы копировать ссылку."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Herkese açık bir kova URL'si kullanın veya özel bir alan adı/CDN bağlayın. Capso'nun paylaşım bağlantısını kopyalayabilmesi için herkese açık bir HTTPS önekine ihtiyacı var."
+            "value" : "Herkese açık bir kova URL'si kullanın veya özel bir alan adı/CDN bağlayın. Knippi'nun paylaşım bağlantısını kopyalayabilmesi için herkese açık bir HTTPS önekine ihtiyacı var."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请使用存储桶的公开 URL，或连接自定义域名/CDN。Capso 需要公开的 HTTPS 前缀才能复制分享链接。"
+            "value" : "请使用存储桶的公开 URL，或连接自定义域名/CDN。Knippi 需要公开的 HTTPS 前缀才能复制分享链接。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請使用儲存貯體的公開 URL，或連接自訂網域／CDN。Capso 需要公開的 HTTPS 前綴才能拷貝分享連結。"
+            "value" : "請使用儲存貯體的公開 URL，或連接自訂網域／CDN。Knippi 需要公開的 HTTPS 前綴才能拷貝分享連結。"
           }
         }
       }
@@ -51447,7 +51241,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capso è aggiornato!"
+            "value" : "Knippi è aggiornato!"
           }
         },
         "ja" : {

@@ -2,7 +2,7 @@ import AppKit
 import SharedKit
 import SwiftUI
 import XCTest
-@testable import Capso
+@testable import Knippi
 
 final class BeautifyRendererTests: XCTestCase {
     func testTransparentImageCornersShowTheBackground() throws {

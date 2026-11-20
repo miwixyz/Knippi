@@ -29,7 +29,7 @@ import CoreGraphics
 ///
 /// `addGlobalMonitorForEvents` receives events posted to other apps
 /// (the common case: user is in Figma / VS Code / a browser).
-/// `addLocalMonitorForEvents` receives events posted to Capso itself
+/// `addLocalMonitorForEvents` receives events posted to Knippi itself
 /// (rare during recording but covers the corner case). The two are
 /// mutually exclusive per Apple's docs — no duplicate delivery.
 ///

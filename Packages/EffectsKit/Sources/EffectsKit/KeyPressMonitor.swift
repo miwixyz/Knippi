@@ -4,7 +4,7 @@ import CoreGraphics
 /// Monitors global keyboard events during screen recording and emits
 /// KeyCastr-style display strings for each key-down.
 ///
-/// Capture strategy (KeyCastr `KCEventTap` + Capso click-monitor lessons):
+/// Capture strategy (KeyCastr `KCEventTap` + Knippi click-monitor lessons):
 /// 1. Prefer a **listen-only** `CGEventTap` at the session level (same as KeyCastr)
 /// 2. Re-enable the tap if macOS disables it (`tapDisabledByTimeout` / user input)
 /// 3. Fall back to `NSEvent` global+local monitors if the tap cannot be created
