@@ -3,7 +3,7 @@ import Foundation
 import CoreGraphics
 @testable import AnnotationKit
 
-@Suite("Redaction object")
+@Suite("Redaction object", .serialized)
 struct RedactionObjectTests {
     @Test("Pixelate object copy preserves redaction mode")
     func copyPreservesRedactionMode() {
@@ -144,6 +144,23 @@ struct RedactionObjectTests {
         #expect(sampled.g > 180)
         #expect(sampled.r < 100)
         #expect(sampled.b < 100)
+    }
+
+    @Test("Pixelate falls back to a solid black fill when the filter fails")
+    func pixelateFailsClosed() throws {
+        let source = try makeTestImage(width: 16, height: 16, color: CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+        let redaction = PixelateObject(
+            rect: CGRect(x: 4, y: 4, width: 8, height: 8),
+            blockSize: 12,
+            mode: .pixelate
+        )
+        PixelateObject.redactorOverride = { _, _, _ in nil }
+        defer { PixelateObject.redactorOverride = nil }
+
+        let rendered = try #require(AnnotationRenderer.render(sourceImage: source, objects: [redaction]))
+
+        #expect(sampleRGBA(rendered, x: 8, y: 8) == RGBA(r: 0, g: 0, b: 0, a: 255))
+        #expect(sampleRGBA(rendered, x: 1, y: 1) == RGBA(r: 255, g: 255, b: 255, a: 255))
     }
 }
 

@@ -54,6 +54,12 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
     /// Apply the selected redaction filter on the source image region.
     /// `rect` is in image coordinates (top-left origin, matching source image pixel dimensions).
     /// The CGContext is assumed to be in a flipped coordinate system (isFlipped NSView).
+    /// Nur für Tests: ersetzt den Filter, um Fehlerpfade zu prüfen.
+    nonisolated(unsafe) static var redactorOverride: ((CGImage, CGFloat, RedactionMode) -> CGImage?)?
+
+    /// Wird aufgerufen, wenn der Filter scheitert; die App zeigt dann einen Hinweis.
+    nonisolated(unsafe) public static var reportFailure: (@Sendable () -> Void)?
+
     public func renderWithSource(in ctx: CGContext, sourceImage: CGImage) {
         guard rect.width > 0, rect.height > 0 else { return }
 
@@ -63,22 +69,27 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         }
 
         // Redaction bounds already use source-image pixel coordinates with a top-left origin.
-        let cropRect = CGRect(
-            x: rect.origin.x,
-            y: rect.origin.y,
-            width: rect.width,
-            height: rect.height
-        ).intersection(CGRect(
+        let cropRect = rect.intersection(CGRect(
             x: 0,
             y: 0,
             width: CGFloat(sourceImage.width),
             height: CGFloat(sourceImage.height)
         ))
+        guard !cropRect.isEmpty else { return }
 
-        guard !cropRect.isEmpty,
-              let cropped = sourceImage.cropping(to: cropRect),
-              let redacted = Self.makeRedactedImage(from: cropped, blockSize: blockSize, mode: mode)
-        else { return }
+        let redactor: (CGImage, CGFloat, RedactionMode) -> CGImage? =
+            Self.redactorOverride ?? { Self.makeRedactedImage(from: $0, blockSize: $1, mode: $2) }
+        guard let cropped = sourceImage.cropping(to: cropRect),
+              let redacted = redactor(cropped, blockSize, mode)
+        else {
+            // Fail closed: lieber schwarz als Klartext.
+            ctx.saveGState()
+            ctx.setFillColor(CGColor(gray: 0, alpha: 1))
+            ctx.fill(cropRect)
+            ctx.restoreGState()
+            Self.reportFailure?()
+            return
+        }
 
         draw(redacted, in: cropRect, context: ctx)
     }

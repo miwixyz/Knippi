@@ -1,5 +1,6 @@
 // App/Sources/AppDelegate.swift
 import AppKit
+import AnnotationKit
 import SharedKit
 import ShareKit
 import OCRKit
@@ -16,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarController: MenuBarController?
     let settings = AppSettings()
     let permissionManager = PermissionManager()
+    private var pixelateFailureToast: ToastWindow?
     private(set) var captureCoordinator: CaptureCoordinator?
     private(set) var recordingCoordinator: RecordingCoordinator?
     let desktopIconsCover = DesktopIconsCover()
@@ -29,6 +31,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var imageFileOpenBuffer = ImageFileOpenBuffer()
     /// Sparkle update coordinator used by preferences and manual update checks.
     let updateManager = UpdateManager()
+
+    func showPixelateFailureToast() {
+        pixelateFailureToast?.orderOut(nil)
+        pixelateFailureToast = ToastWindow(
+            message: "Verpixeln fehlgeschlagen – Bereich wurde geschwärzt.",
+            icon: "exclamationmark.triangle.fill",
+            iconColor: .systemOrange
+        )
+        pixelateFailureToast?.show()
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // A hosted unit-test bundle only needs the AppKit run loop. Avoid
@@ -47,6 +59,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Show tooltips faster (default is ~2s, reduce to 0.3s)
         UserDefaults.standard.set(300, forKey: "NSInitialToolTipDelay")
+
+        // Fail-closed-Hinweis: der Filter ist gescheitert, der Bereich wurde schwarz gefüllt.
+        PixelateObject.reportFailure = {
+            Task { @MainActor in
+                AppDelegate.shared?.showPixelateFailureToast()
+            }
+        }
 
         migrateShortcutsIfNeeded()
         settings.startTrial()
