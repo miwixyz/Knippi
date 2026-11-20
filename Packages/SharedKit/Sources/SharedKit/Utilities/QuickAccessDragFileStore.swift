@@ -121,24 +121,7 @@ public final class QuickAccessDragFileStore {
     }
 
     private func availableFileURL(for preferredURL: URL) -> URL {
-        guard fileManager.fileExists(atPath: preferredURL.path) else {
-            return preferredURL
-        }
-
-        let directory = preferredURL.deletingLastPathComponent()
-        let baseName = preferredURL.deletingPathExtension().lastPathComponent
-        let pathExtension = preferredURL.pathExtension
-
-        var index = 2
-        while true {
-            let candidate = directory
-                .appendingPathComponent("\(baseName) \(index)", isDirectory: false)
-                .appendingPathExtension(pathExtension)
-            if !fileManager.fileExists(atPath: candidate.path) {
-                return candidate
-            }
-            index += 1
-        }
+        FileNaming.availableFileURL(for: preferredURL, fileManager: fileManager)
     }
 
     private func prepareStorage() throws {

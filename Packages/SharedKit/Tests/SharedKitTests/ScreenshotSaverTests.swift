@@ -45,6 +45,24 @@ struct ScreenshotSaverTests {
         #expect(folder.standardizedFileURL.path == blocker.standardizedFileURL.path)
     }
 
+    @Test("Never overwrites: a second write with the same name gets \" 2\", a third \" 3\"")
+    func neverOverwrites() throws {
+        let root = try tempDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let url = root.appendingPathComponent("Knippi 2026-11-20 um 13.05.12.png")
+
+        let first = try ScreenshotSaver.write(Data([1]), to: url).get()
+        let second = try ScreenshotSaver.write(Data([2]), to: url).get()
+        let third = try ScreenshotSaver.write(Data([3]), to: url).get()
+
+        #expect(first == url)
+        #expect(second.lastPathComponent == "Knippi 2026-11-20 um 13.05.12 2.png")
+        #expect(third.lastPathComponent == "Knippi 2026-11-20 um 13.05.12 3.png")
+        #expect(try Data(contentsOf: first) == Data([1]), "the first screenshot is untouched")
+        #expect(try Data(contentsOf: second) == Data([2]))
+        #expect(try Data(contentsOf: third) == Data([3]))
+    }
+
     @Test("Clipboard copy is needed after a failed save only when not already copied")
     func clipboardDecision() {
         #expect(ScreenshotSaver.failureNeedsClipboardCopy(alreadyCopied: false))

@@ -236,6 +236,29 @@ public enum FileNaming {
         return result
     }
 
+    /// `preferredURL` if nothing exists there, otherwise the first free
+    /// "name 2.ext", "name 3.ext", … in the same folder (Finder's numbering).
+    public static func availableFileURL(for preferredURL: URL, fileManager: FileManager = .default) -> URL {
+        guard fileManager.fileExists(atPath: preferredURL.path) else {
+            return preferredURL
+        }
+
+        let directory = preferredURL.deletingLastPathComponent()
+        let baseName = preferredURL.deletingPathExtension().lastPathComponent
+        let pathExtension = preferredURL.pathExtension
+
+        var index = 2
+        while true {
+            let candidate = directory
+                .appendingPathComponent("\(baseName) \(index)", isDirectory: false)
+                .appendingPathExtension(pathExtension)
+            if !fileManager.fileExists(atPath: candidate.path) {
+                return candidate
+            }
+            index += 1
+        }
+    }
+
     private static func defaultTemplate(for type: CaptureType) -> String {
         switch type {
         case .screenshot:
