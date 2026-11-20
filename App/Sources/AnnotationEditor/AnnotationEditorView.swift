@@ -72,7 +72,7 @@ struct AnnotationEditorView: View {
     @AppStorage("annotationBlockSize") private var savedBlockSize: Double = 12
     @AppStorage("annotationCounterSize") private var savedCounterSize: Double = 20
     @AppStorage("annotationHighlighterWidth") private var savedHighlighterWidth: Double = 20
-    @AppStorage("annotationRedactionMode") private var redactionMode: RedactionMode = .pixelate
+    @AppStorage("annotationRedactionMode") private var redactionMode: RedactionMode = .solid
     @AppStorage("annotationStrokePattern") private var savedStrokePattern: StrokePattern = .solid
     @AppStorage("annotationArrowHead") private var arrowHead: ArrowHeadStyle = .standard
     @AppStorage("annotationTextFillEnabled") private var textFillEnabled: Bool = false

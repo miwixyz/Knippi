@@ -162,7 +162,9 @@ struct AnnotationToolbar: View {
                 .pickerStyle(.segmented)
                 .labelsHidden()
                 .frame(width: 184)
-                .help("Redaction Mode")
+                .help(redactionMode == .solid
+                      ? String(localized: "Redaction Mode")
+                      : String(localized: "Not for confidential data – use the black bar."))
 
                 if redactionMode != .solid {
                     Slider(value: $lineWidth, in: 4...48, step: 2)

@@ -41,6 +41,15 @@ struct RedactionObjectTests {
         #expect(sampleRGBA(rendered, x: 0, y: 0) == RGBA(r: 255, g: 255, b: 255, a: 255))
     }
 
+    @Test("Solid redaction is always opaque black, regardless of stroke style")
+    func solidRedactionIgnoresStyle() throws {
+        let source = try makeTestImage(width: 8, height: 8, color: CGColor(gray: 1, alpha: 1))
+        let redaction = PixelateObject(rect: CGRect(x: 2, y: 2, width: 4, height: 4), blockSize: 12, mode: .solid)
+        redaction.style = StrokeStyle(color: .red, lineWidth: 3, opacity: 0.4)
+        let rendered = try #require(AnnotationRenderer.render(sourceImage: source, objects: [redaction]))
+        #expect(sampleRGBA(rendered, x: 3, y: 3) == RGBA(r: 0, g: 0, b: 0, a: 255))
+    }
+
     @Test("Blur redaction changes source pixels inside the selected region")
     func blurRedactionChangesInteriorPixels() throws {
         let source = try makeSplitImage(width: 16, height: 16)

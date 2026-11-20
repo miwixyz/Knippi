@@ -26,8 +26,9 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         ctx.saveGState()
         switch mode {
         case .solid:
-            ctx.setAlpha(style.opacity)
-            ctx.setFillColor(style.color.cgColor)
+            // Schwärzen ist ein Sicherheitswerkzeug: immer deckend schwarz.
+            ctx.setAlpha(1)
+            ctx.setFillColor(CGColor(gray: 0, alpha: 1))
             ctx.fill(rect)
         case .pixelate, .blur:
             ctx.setFillColor(CGColor(gray: 0.5, alpha: 0.3))

@@ -151,7 +151,7 @@ private struct InlineAnnotationEditorView: View {
     @AppStorage("annotationBlockSize") private var savedBlockSize: Double = 12
     @AppStorage("annotationCounterSize") private var savedCounterSize: Double = 20
     @AppStorage("annotationHighlighterWidth") private var savedHighlighterWidth: Double = 20
-    @AppStorage("annotationRedactionMode") private var redactionMode: RedactionMode = .pixelate
+    @AppStorage("annotationRedactionMode") private var redactionMode: RedactionMode = .solid
     @AppStorage("annotationTextFontSize") private var savedTextFontSize: Double = 48
     @AppStorage("annotationStrokePattern") private var savedStrokePattern: StrokePattern = .solid
     @AppStorage("annotationTextFillEnabled") private var textFillEnabled: Bool = false
@@ -733,7 +733,9 @@ private struct InlineAnnotationToolbar: View {
                 .pickerStyle(.segmented)
                 .labelsHidden()
                 .frame(width: 168)
-                .help("Redaction Mode")
+                .help(redactionMode == .solid
+                      ? String(localized: "Redaction Mode")
+                      : String(localized: "Not for confidential data – use the black bar."))
             }
 
             if currentTool == .arrow || currentTool == .line {

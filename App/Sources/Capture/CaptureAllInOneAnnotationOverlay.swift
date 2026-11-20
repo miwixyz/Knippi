@@ -534,8 +534,9 @@ final class AllInOneAnnotationSession: ObservableObject {
     }
 
     private static func storedRedactionMode() -> RedactionMode {
-        let value = UserDefaults.standard.integer(forKey: "annotationRedactionMode")
-        return RedactionMode(rawValue: value) ?? .pixelate
+        // Neue Installation (kein gespeicherter Wert): schwarzer Balken.
+        guard let value = UserDefaults.standard.object(forKey: "annotationRedactionMode") as? Int else { return .solid }
+        return RedactionMode(rawValue: value) ?? .solid
     }
 
     private static func storedTextStrokeEnabled() -> Bool {
@@ -1139,13 +1140,17 @@ private struct AllInOneAnnotationToolbarView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .help(Text(mode.label))
+                .help(mode == .solid ? Text(mode.label) : Text("\(mode.label) – \(redactionConfidentialHint)"))
             }
         }
         .padding(2)
         .background(optionGroupBackground)
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .help("Redaction Mode")
+    }
+
+    private var redactionConfidentialHint: String {
+        String(localized: "Not for confidential data – use the black bar.")
     }
 
     private var strokePatternControl: some View {

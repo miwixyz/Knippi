@@ -108,7 +108,7 @@ final class AnnotationCanvasNSView: NSView {
     var currentStyle: StrokeStyle = StrokeStyle() {
         didSet { syncEditorStyle() }
     }
-    var redactionMode: RedactionMode = .pixelate
+    var redactionMode: RedactionMode = .solid
     /// Font size used for newly created TextObjects and propagated live to
     /// the inline editor. Pushed from SwiftUI by AnnotationCanvasView.
     var currentTextFontSize: CGFloat = 48 {
@@ -862,7 +862,14 @@ final class AnnotationCanvasNSView: NSView {
         case .arrow, .line: ctx.move(to: start); ctx.addLine(to: end); ctx.strokePath()
         case .rectangle, .spotlight: ctx.stroke(rect)
         case .ellipse: ctx.strokeEllipse(in: rect)
-        case .pixelate: ctx.setFillColor(CGColor(gray: 0.5, alpha: 0.3)); ctx.fill(rect)
+        case .pixelate:
+            if redactionMode == .solid {
+                ctx.setAlpha(1)
+                ctx.setFillColor(CGColor(gray: 0, alpha: 1))
+            } else {
+                ctx.setFillColor(CGColor(gray: 0.5, alpha: 0.3))
+            }
+            ctx.fill(rect)
         case .counter:
             let tip = counterTip(from: start, to: end, radius: currentStyle.lineWidth)
             CounterObject(center: start, tip: tip, number: nextCounterNumber(), radius: currentStyle.lineWidth, style: currentStyle)
@@ -1285,7 +1292,7 @@ final class AnnotationCanvasNSView: NSView {
                         blockSize: currentStyle.lineWidth,
                         mode: redactionMode
                     )
-                    redaction.style = currentStyle
+                    if redactionMode != .solid { redaction.style = currentStyle }
                     doc.addObject(redaction)
                 }
             case .counter:

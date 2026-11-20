@@ -36599,6 +36599,16 @@
         }
       }
     },
+    "Not for confidential data – use the black bar." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht für vertrauliche Daten – dafür den schwarzen Balken verwenden."
+          }
+        }
+      }
+    },
     "Redaction Mode" : {
       "localizations" : {
         "de" : {
