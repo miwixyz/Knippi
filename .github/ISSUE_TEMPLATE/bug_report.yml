@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a reproducible problem in Capso
+description: Report a reproducible problem in Knippi
 title: "[Bug] "
 labels: ["bug"]
 body:
@@ -38,10 +38,10 @@ body:
       required: true
 
   - type: input
-    id: capso-version
+    id: knippi-version
     attributes:
-      label: Capso version
-      placeholder: e.g. 1.0.0 (from About Capso)
+      label: Knippi version
+      placeholder: e.g. 1.0.0 (from About Knippi)
     validations:
       required: true
 
@@ -70,4 +70,4 @@ body:
     id: screenshots
     attributes:
       label: Screenshots or screen recordings
-      description: Drag and drop images/videos here — or, if you can, capture the bug with Capso itself!
+      description: Drag and drop images/videos here — or, if you can, capture the bug with Knippi itself!

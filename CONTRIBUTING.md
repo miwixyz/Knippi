@@ -1,6 +1,6 @@
-# Contributing to Capso
+# Contributing to Knippi
 
-Thanks for your interest in contributing to Capso! This document covers the development setup and contribution guidelines.
+Thanks for your interest in contributing to Knippi! This document covers the development setup and contribution guidelines.
 
 ## Development Setup
 
@@ -14,10 +14,10 @@ Thanks for your interest in contributing to Capso! This document covers the deve
 ### Getting Started
 
 ```bash
-git clone https://github.com/lzhgus/Capso.git
-cd Capso
+git clone https://github.com/miwixyz/Knippi.git
+cd Knippi
 xcodegen generate
-open Capso.xcodeproj
+open Knippi.xcodeproj
 ```
 
 Build and run with `Cmd+R` in Xcode. The app requires screen recording, camera, and microphone permissions.
@@ -40,12 +40,12 @@ swift test --package-path Packages/EffectsKit
 Or run all tests via Xcode:
 
 ```bash
-xcodebuild test -project Capso.xcodeproj -scheme Capso
+xcodebuild test -project Knippi.xcodeproj -scheme Knippi
 ```
 
 ### Project Structure
 
-Capso uses a modular architecture with 8 independent SPM packages. See [README.md](README.md#architecture) for the full breakdown.
+Knippi uses a modular architecture with 8 independent SPM packages. See [README.md](README.md#architecture) for the full breakdown.
 
 **Key convention:** The `App/` target is a thin shell. Business logic belongs in the appropriate package under `Packages/`.
 
@@ -71,7 +71,7 @@ Capso uses a modular architecture with 8 independent SPM packages. See [README.m
 2. Create a feature branch: `git checkout -b feature/your-feature`
 3. Make your changes
 4. Run `xcodegen generate` if you modified `project.yml` or added/removed source files
-5. Build successfully: `xcodebuild -project Capso.xcodeproj -scheme Capso build`
+5. Build successfully: `xcodebuild -project Knippi.xcodeproj -scheme Knippi build`
 6. Run relevant package tests
 7. Submit a PR with a clear description of what changed and why
 

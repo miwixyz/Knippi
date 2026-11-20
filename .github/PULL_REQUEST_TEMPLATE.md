@@ -1,10 +1,10 @@
 <!--
-Thanks for contributing to Capso! A few quick reminders:
+Thanks for contributing to Knippi! A few quick reminders:
 
 - Keep PRs focused — one feature or fix per PR.
 - If you changed project.yml or added/removed source files, run `xcodegen generate`.
 - Make sure the Debug build passes before pushing.
-- For UI changes, please include a screenshot or screen recording (use Capso to capture it!).
+- For UI changes, please include a screenshot or screen recording (use Knippi to capture it!).
 -->
 
 ## What changed
@@ -22,7 +22,7 @@ Thanks for contributing to Capso! A few quick reminders:
 ## Checklist
 
 - [ ] `xcodegen generate` run if `project.yml` or source layout changed
-- [ ] `xcodebuild -project Capso.xcodeproj -scheme Capso -configuration Debug build` passes
+- [ ] `xcodebuild -project Knippi.xcodeproj -scheme Knippi -configuration Debug build` passes
 - [ ] Tests for any touched package pass (`swift test --package-path Packages/<Kit>`)
 - [ ] No new `TODO` / `FIXME` / debug prints left behind
 - [ ] Code follows Swift 6.0 strict concurrency (`@MainActor`, `Sendable` where needed)

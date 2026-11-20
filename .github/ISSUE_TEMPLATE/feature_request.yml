@@ -1,5 +1,5 @@
 name: Feature Request
-description: Suggest a new capability or improvement for Capso
+description: Suggest a new capability or improvement for Knippi
 title: "[Feature] "
 labels: ["enhancement"]
 body:
@@ -28,7 +28,7 @@ body:
   - type: dropdown
     id: scope
     attributes:
-      label: Which part of Capso does this touch?
+      label: Which part of Knippi does this touch?
       multiple: true
       options:
         - Screenshots (area / window / fullscreen)

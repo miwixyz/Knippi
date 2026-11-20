@@ -35,8 +35,8 @@ jobs:
 
       - name: Build
         run: |
-          xcodebuild -project Capso.xcodeproj \
-            -scheme Capso \
+          xcodebuild -project Knippi.xcodeproj \
+            -scheme Knippi \
             -configuration Debug \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
@@ -58,12 +58,12 @@ jobs:
       - name: Test OCRKit
         run: swift test --package-path Packages/OCRKit
 
-      - name: Test Capso app interactions
+      - name: Test Knippi app interactions
         run: |
-          xcodebuild test -project Capso.xcodeproj \
-            -scheme Capso \
+          xcodebuild test -project Knippi.xcodeproj \
+            -scheme Knippi \
             -configuration Debug \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            -only-testing:CapsoTests
+            -only-testing:KnippiTests
