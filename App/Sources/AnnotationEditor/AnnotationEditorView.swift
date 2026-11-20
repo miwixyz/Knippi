@@ -397,9 +397,10 @@ struct AnnotationEditorView: View {
             onDragPreviewImage: dragPreviewImage,
             onDragStarted: onDragStarted,
             onDragEnded: onDragEnded,
-            isDragDisabled: isEditingText,
+            isDragDisabled: isEditingText || sensitiveSuggestions.isScanning,
+            isExportBlocked: sensitiveSuggestions.isScanning,
             onCancel: onCancel,
-            onCrop: { sensitiveSuggestions.cancel(); isCropMode = true },
+            onCrop: startCrop,
             isFindingSensitiveData: sensitiveSuggestions.isScanning,
             onFindSensitiveData: findSensitiveData,
             presets: presets,
@@ -427,7 +428,11 @@ struct AnnotationEditorView: View {
             }
             .animation(.easeOut(duration: 0.2), value: sensitiveSuggestions.isShowing)
             // A drag file rendered before the suggestions appeared would skip them.
-            .onChange(of: sensitiveSuggestions.isShowing) { _, _ in invalidateDragCache() }
+            .onChange(of: sensitiveSuggestions.isShowing) { wasShowing, isShowing in
+                if Self.suggestionsChangeInvalidatesDragCache(wasShowing: wasShowing, isShowing: isShowing) {
+                    invalidateDragCache()
+                }
+            }
             .onAppear {
                 handleCanvasAppear(size: geo.size)
                 if beautifySettings.isEnabled { reloadBeautifyBackgroundPreview() }
@@ -578,6 +583,45 @@ struct AnnotationEditorView: View {
         outputSize = newOutputSize
         isCropMode = false
         invalidateDragCache()
+    }
+
+    private func startCrop() {
+        let screen = NSApp.keyWindow?.screen
+        let mayCrop = Self.beginCrop(
+            document: document,
+            suggestions: sensitiveSuggestions,
+            onSuggestionsApplied: {
+                handleDocumentChanged()
+                SensitiveSuggestionsToast.showSuggestionsApplied(screen: screen)
+            },
+            onBlockedWhileScanning: { SensitiveSuggestionsToast.showStillScanning(screen: screen) }
+        )
+        if mayCrop { isCropMode = true }
+    }
+
+    /// Crop goes through the same gate as export: blocked while scanning,
+    /// pending suggestions are blacked out first instead of being discarded.
+    static func beginCrop(
+        document: AnnotationDocument,
+        suggestions: SensitiveSuggestionsModel,
+        onSuggestionsApplied: () -> Void = {},
+        onBlockedWhileScanning: () -> Void = {}
+    ) -> Bool {
+        switch suggestions.prepareForExport(document) {
+        case .blockedWhileScanning:
+            onBlockedWhileScanning()
+            return false
+        case .ready(let applied):
+            if applied { onSuggestionsApplied() }
+            return true
+        }
+    }
+
+    /// Only suggestions appearing make a cached drag/share render stale. When
+    /// they disappear because an export just applied them, the file written
+    /// for that share/drag must survive.
+    static func suggestionsChangeInvalidatesDragCache(wasShowing: Bool, isShowing: Bool) -> Bool {
+        !wasShowing && isShowing
     }
 
     private func findSensitiveData() {
@@ -757,12 +801,10 @@ struct AnnotationEditorView: View {
             outputSize: outputSize,
             onSuggestionsApplied: {
                 handleDocumentChanged()
-                SensitiveSuggestionsToast.show(
-                    String(localized: "Selected suggestions were blacked out"),
-                    icon: "eye.slash.fill",
-                    color: .systemGreen,
-                    screen: NSApp.keyWindow?.screen
-                )
+                SensitiveSuggestionsToast.showSuggestionsApplied(screen: NSApp.keyWindow?.screen)
+            },
+            onBlockedWhileScanning: {
+                SensitiveSuggestionsToast.showStillScanning(screen: NSApp.keyWindow?.screen)
             },
             onWarning: Self.showBeautifyWarning
         )
@@ -778,7 +820,8 @@ struct AnnotationEditorView: View {
         )
     }
 
-    /// The single export entry. Pending sensitive-data suggestions are blacked
+    /// The single export entry. While a sensitive-data scan runs it returns nil
+    /// (and calls `onBlockedWhileScanning`); pending suggestions are blacked
     /// out first ("over-redact, never leak"), exactly like Black Out All.
     static func renderForExport(
         sourceImage: CGImage,
@@ -787,10 +830,15 @@ struct AnnotationEditorView: View {
         beautifySettings: BeautifySettings,
         outputSize: CGSize?,
         onSuggestionsApplied: () -> Void = {},
+        onBlockedWhileScanning: () -> Void = {},
         onWarning: (String) -> Void
     ) -> CGImage? {
-        if suggestions.applyPendingRedactions(to: document) {
-            onSuggestionsApplied()
+        switch suggestions.prepareForExport(document) {
+        case .blockedWhileScanning:
+            onBlockedWhileScanning()
+            return nil
+        case .ready(let applied):
+            if applied { onSuggestionsApplied() }
         }
         guard let annotated = AnnotationRenderer.render(
             sourceImage: sourceImage,
@@ -816,7 +864,7 @@ struct AnnotationEditorView: View {
     }
 
     private func dragFileURL() -> URL? {
-        guard !isEditingText else {
+        guard !isEditingText, !sensitiveSuggestions.isScanning else {
             return nil
         }
         if let fileURL = dragRenderCache?.fileURL,
@@ -846,7 +894,7 @@ struct AnnotationEditorView: View {
     }
 
     private func dragPreviewImage() -> NSImage? {
-        guard !isEditingText else { return nil }
+        guard !isEditingText, !sensitiveSuggestions.isScanning else { return nil }
         return (dragRenderCache ?? makeDragRenderCache())?.previewImage
     }
 
@@ -905,6 +953,10 @@ struct AnnotationEditorView: View {
     private func share(from anchor: SystemShareAnchor) {
         commitEditingTrigger += 1
         DispatchQueue.main.async {
+            guard !sensitiveSuggestions.isScanning else {
+                SensitiveSuggestionsToast.showStillScanning(screen: NSApp.keyWindow?.screen)
+                return
+            }
             // Never reuse a cached render: suggestions may have arrived since it was made.
             invalidateDragCache()
             guard let fileURL = dragFileURL(), anchor.present(fileURL: fileURL) else {

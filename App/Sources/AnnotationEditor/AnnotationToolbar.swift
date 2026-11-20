@@ -37,6 +37,9 @@ struct AnnotationToolbar: View {
     let onDragStarted: () -> Void
     let onDragEnded: () -> Void
     let isDragDisabled: Bool
+    /// A sensitive-data scan is running: Copy, Pin, Share, Save and Crop look
+    /// disabled and only explain why (the editor shows a toast, never exports).
+    var isExportBlocked: Bool = false
     let onCancel: () -> Void
     let onCrop: () -> Void
     var isFindingSensitiveData: Bool = false
@@ -295,7 +298,8 @@ struct AnnotationToolbar: View {
                 .overlay(toolbarButtonStroke)
         }
         .buttonStyle(.plain)
-        .help("Crop")
+        .opacity(isExportBlocked ? 0.45 : 1)
+        .help(isExportBlocked ? "Still looking for sensitive data …" : "Crop")
         .disabled(isEditingText)
     }
 
@@ -363,14 +367,14 @@ struct AnnotationToolbar: View {
 
             copyActionButton
 
-            actionButton(icon: "pin", help: "Pin", action: onPin)
+            actionButton(icon: "pin", help: "Pin", isBlockable: true, action: onPin)
                 .keyboardShortcut("p", modifiers: .command)
 
-            actionButton(icon: "square.and.arrow.up", help: "Share", action: { onShare(shareAnchor) })
+            actionButton(icon: "square.and.arrow.up", help: "Share", isBlockable: true, action: { onShare(shareAnchor) })
                 .background(SystemShareAnchorView(anchor: shareAnchor))
                 .disabled(isEditingText)
 
-            actionButton(icon: "square.and.arrow.down", help: "Save", isPrimary: true, action: onSave)
+            actionButton(icon: "square.and.arrow.down", help: "Save", isPrimary: true, isBlockable: true, action: onSave)
                 .keyboardShortcut("s", modifiers: .command)
         }
     }
@@ -396,7 +400,7 @@ struct AnnotationToolbar: View {
             .disabled(isDragDisabled)
             .accessibilityHidden(true)
         }
-        .help(isDragDisabled ? "Finish text editing before dragging" : "Drag Edited Image")
+        .help(dragHelp)
         .onHover { hovering in
             if hovering && !isDragDisabled {
                 onPrepareDrag()
@@ -406,11 +410,17 @@ struct AnnotationToolbar: View {
         .accessibilityLabel("Drag Edited Image")
     }
 
+    private var dragHelp: LocalizedStringKey {
+        if isExportBlocked { return "Still looking for sensitive data …" }
+        return isDragDisabled ? "Finish text editing before dragging" : "Drag Edited Image"
+    }
+
     @ViewBuilder
     private var copyActionButton: some View {
         let button = actionButton(
             icon: "doc.on.doc",
             help: "Copy Image and Close (⌘C · ⏎ · ⌘⇧C)",
+            isBlockable: true,
             action: onCopy
         )
         .keyboardShortcut("c", modifiers: [.command, .shift])
@@ -446,13 +456,18 @@ struct AnnotationToolbar: View {
         help: LocalizedStringKey,
         isPrimary: Bool = false,
         isDestructive: Bool = false,
+        isBlockable: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
+        let isBlocked = isBlockable && isExportBlocked
+        // Stays clickable (and keeps its shortcut) so a blocked export explains
+        // itself with a toast instead of failing silently.
+        return Button(action: action) {
             actionButtonFace(icon: icon, isPrimary: isPrimary, isDestructive: isDestructive)
+                .opacity(isBlocked ? 0.45 : 1)
         }
         .buttonStyle(.plain)
-        .help(help)
+        .help(isBlocked ? "Still looking for sensitive data …" : help)
     }
 
     private func actionButtonFace(

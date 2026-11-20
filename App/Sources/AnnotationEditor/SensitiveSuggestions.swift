@@ -35,7 +35,14 @@ final class SensitiveSuggestionsModel {
 
     /// Runs OCR on `image` and shows the merged suggestions. Every outcome is
     /// visible: suggestions, a "nothing found" toast, or the error text.
-    func scan(image: CGImage, screen: NSScreen?) {
+    /// `findRegions` is the OCR step; tests pass a stand-in to hold the scan open.
+    func scan(
+        image: CGImage,
+        screen: NSScreen?,
+        findRegions: @escaping @Sendable (CGImage) async throws -> [SensitiveRegion] = {
+            try await OCRProcessFallback.sensitiveRegions(image: $0)
+        }
+    ) {
         guard phase != .scanning else { return }
         cancel()
         generation += 1
@@ -44,7 +51,7 @@ final class SensitiveSuggestionsModel {
         let imageSize = CGSize(width: image.width, height: image.height)
         scanTask = Task { [weak self] in
             do {
-                let regions = try await OCRProcessFallback.sensitiveRegions(image: image)
+                let regions = try await findRegions(image)
                 guard let self, self.generation == token else { return }
                 let suggestions = redactionSuggestions(from: regions, imageSize: imageSize)
                 if suggestions.isEmpty {
@@ -92,6 +99,20 @@ final class SensitiveSuggestionsModel {
         cancel()
         items = suggestions.map { Item(rect: $0.rect, isVerified: $0.isVerified) }
         phase = items.isEmpty ? .idle : .showing
+    }
+
+    enum ExportReadiness: Equatable {
+        /// A scan is still running: nothing may leave the editor (or be cropped)
+        /// until its suggestions are known.
+        case blockedWhileScanning
+        case ready(appliedSuggestions: Bool)
+    }
+
+    /// The one gate in front of every export and crop: blocks while scanning,
+    /// otherwise blacks out pending suggestions ("over-redact, never leak").
+    func prepareForExport(_ document: AnnotationDocument) -> ExportReadiness {
+        if isScanning { return .blockedWhileScanning }
+        return .ready(appliedSuggestions: applyPendingRedactions(to: document))
     }
 
     /// Adds solid black bars for the selected suggestions in one undo step and
@@ -215,5 +236,23 @@ enum SensitiveSuggestionsToast {
         let toast = ToastWindow(message: message, icon: icon, iconColor: color, screen: screen)
         current = toast
         toast.show(autoDismissAfter: duration)
+    }
+
+    static func showStillScanning(screen: NSScreen?) {
+        show(
+            String(localized: "Still looking for sensitive data …"),
+            icon: "hourglass",
+            color: .systemOrange,
+            screen: screen
+        )
+    }
+
+    static func showSuggestionsApplied(screen: NSScreen?) {
+        show(
+            String(localized: "Selected suggestions were blacked out"),
+            icon: "eye.slash.fill",
+            color: .systemGreen,
+            screen: screen
+        )
     }
 }
