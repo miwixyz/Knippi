@@ -175,4 +175,26 @@ struct AnnotationDocumentTests {
         doc.replaceImage(size: CGSize(width: 600, height: 800))
         #expect(doc.hasUnsavedChanges == true)
     }
+
+    @Test("addObjects inserts all and undoes in one step")
+    @MainActor
+    func batchInsertSingleUndo() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 100, height: 100))
+        let a = PixelateObject(rect: CGRect(x: 0, y: 0, width: 4, height: 4), mode: .solid)
+        let b = PixelateObject(rect: CGRect(x: 8, y: 0, width: 4, height: 4), mode: .solid)
+        doc.addObjects([a, b])
+        #expect(doc.objects.count == 2)
+        #expect(doc.selectedObjectID == nil)
+        doc.undo()
+        #expect(doc.objects.isEmpty)
+        #expect(!doc.canUndo)
+    }
+
+    @Test("addObjects with an empty array pushes no undo step")
+    @MainActor
+    func batchInsertEmptyIsNoop() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 100, height: 100))
+        doc.addObjects([])
+        #expect(!doc.canUndo)
+    }
 }

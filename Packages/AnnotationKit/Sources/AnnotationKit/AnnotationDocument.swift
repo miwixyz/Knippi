@@ -41,6 +41,14 @@ public final class AnnotationDocument {
         selectedObjectID = object.id
     }
 
+    /// Inserts several objects as one undo step without changing the selection
+    /// (e.g. blacking out all suggested sensitive regions at once).
+    public func addObjects(_ newObjects: [any AnnotationObject]) {
+        guard !newObjects.isEmpty else { return }
+        pushUndo()
+        objects.append(contentsOf: newObjects)
+    }
+
     public func removeObject(id: ObjectID) {
         pushUndo()
         objects.removeAll { $0.id == id }
