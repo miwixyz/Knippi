@@ -1,4 +1,5 @@
 import Foundation
+import os
 import CoreGraphics
 
 // MARK: - Enums
@@ -651,6 +652,33 @@ public final class AppSettings: @unchecked Sendable {
     public var showMagnifier: Bool {
         get { defaults.object(forKey: "showMagnifier") as? Bool ?? false }
         set { defaults.set(newValue, forKey: "showMagnifier") }
+    }
+
+    // MARK: Color Picker
+
+    /// Text format used when copying a picked colour.
+    public var colorFormat: ColorFormat {
+        get { defaults.string(forKey: "colorFormat").flatMap(ColorFormat.init(rawValue:)) ?? .hex }
+        set { defaults.set(newValue.rawValue, forKey: "colorFormat") }
+    }
+
+    /// Recently picked colours (newest first). Corrupt data reads as an empty list.
+    public var recentColors: RecentColors {
+        get {
+            guard let data = defaults.data(forKey: "recentColors") else { return RecentColors() }
+            do {
+                return try JSONDecoder().decode(RecentColors.self, from: data)
+            } catch {
+                Logger(subsystem: "dev.mwlr.knippi", category: "settings")
+                    .error("Recent colors unreadable, starting empty: \(error.localizedDescription, privacy: .public)")
+                return RecentColors()
+            }
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue) {
+                defaults.set(data, forKey: "recentColors")
+            }
+        }
     }
 
     public var lastCaptureSelection: StoredCaptureSelection? {
