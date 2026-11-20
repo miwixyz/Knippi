@@ -54,8 +54,6 @@
     <string>NSApplication</string>
     <key>NSScreenCaptureUsageDescription</key>
     <string>Capso needs screen recording permission to capture screenshots and record your screen.</string>
-    <key>NSCameraUsageDescription</key>
-    <string>Capso needs camera access to show your webcam during screen recordings.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Capso needs microphone access to record audio during screen recordings.</string>
     <key>CFBundleDevelopmentRegion</key>

@@ -49,9 +49,7 @@ final class CaptureCoordinator {
 
     var lastCaptureResult: CaptureResult?
     var ocrCoordinator: OCRCoordinator?
-    var translationCoordinator: TranslationCoordinator?
     var recordingCoordinator: RecordingCoordinator?
-    var historyCoordinator: HistoryCoordinator?
     var shareCoordinator: ShareCoordinator?
 
     /// Post-capture action override. When set, ignores Settings toggles.
@@ -79,22 +77,13 @@ final class CaptureCoordinator {
         case ocr          // Open visual OCR directly
         case pin          // Pin selected capture to screen
         case save         // Save to file only, no preview
-        case share        // Upload to cloud, skip Quick Access, save to history
+        case share        // Upload to cloud, skip Quick Access
 
         var playsShutterSound: Bool {
             switch self {
             case .annotate, .inlineAnnotate:
                 false
             case .default, .clipboard, .ocr, .pin, .save, .share:
-                true
-            }
-        }
-
-        var savesOriginalCaptureToHistory: Bool {
-            switch self {
-            case .annotate, .inlineAnnotate, .pin:
-                false
-            case .default, .clipboard, .ocr, .save, .share:
                 true
             }
         }
@@ -1665,8 +1654,7 @@ final class CaptureCoordinator {
             Self.shutterSound?.play()
         }
 
-        // Pre-generate the history entry ID so we can wire the cloud URL callback
-        // before the async save completes.
+        // Stable capture ID, used e.g. for the temporary clipboard file.
         let entryID = UUID()
 
         switch action {
@@ -1684,11 +1672,10 @@ final class CaptureCoordinator {
         case .save:
             saveImageToFile(outputResult)
         case .share:
-            // Skip Quick Access, save to history, then upload in background.
+            // Skip Quick Access, then upload in background.
             logDiagnostic("Cloud Share capture completed mode=\(outputResult.mode) displayID=\(outputResult.displayID)")
-            historyCoordinator?.saveCapture(result: outputResult, entryID: entryID)
             if let coord = shareCoordinator {
-                Task { await self.performShareAfterCapture(result: outputResult, entryID: entryID, coord: coord) }
+                Task { await self.performShareAfterCapture(result: outputResult, coord: coord) }
             } else {
                 logDiagnostic("Cloud Share capture completed but coordinator is nil")
                 Self.postNotification(
@@ -1696,7 +1683,6 @@ final class CaptureCoordinator {
                     body: String(localized: "Cloud Share is not configured.")
                 )
             }
-            return  // history already saved above; skip the call below
         case .default:
             let shouldAutoUpload = settings.cloudShareAutoUploadEnabled && shareCoordinator != nil
             let savedFileURL = applyDefaultPostCaptureActions(outputResult, entryID: entryID)
@@ -1712,15 +1698,10 @@ final class CaptureCoordinator {
                 Task {
                     await self.performShareAfterCapture(
                         result: outputResult,
-                        entryID: entryID,
                         coord: coord
                     )
                 }
             }
-        }
-
-        if action.savesOriginalCaptureToHistory {
-            historyCoordinator?.saveCapture(result: action == .ocr ? result : outputResult, entryID: entryID)
         }
     }
 
@@ -1764,11 +1745,6 @@ final class CaptureCoordinator {
             shareCoordinator: shareCoordinator,
             autoUpload: autoUpload
         )
-
-        // Persist the cloud URL to history when an upload succeeds from Quick Access.
-        window.onUploadSucceeded = { [weak self] urlString in
-            self?.historyCoordinator?.setCloudURL(id: entryID, url: urlString)
-        }
 
         // All callbacks capture the specific `window` weakly so the right
         // stack slot gets dismissed — not whichever one happens to be newest.
@@ -1846,12 +1822,6 @@ final class CaptureCoordinator {
             let anchor = window.targetScreen
             self.dismissQuickAccessWindow(window)
             self.ocrCoordinator?.startVisualOCR(image: result.image, anchorScreen: anchor)
-        }
-        window.onTranslate = { [weak self, weak window] in
-            guard let self, let window else { return }
-            let anchor = window.targetScreen
-            self.dismissQuickAccessWindow(window)
-            self.translationCoordinator?.translate(image: result.image, anchorScreen: anchor)
         }
         window.onDismissedUnused = { [weak self] in
             self?.reopenLastClosedQuickAccess = { [weak self] in
@@ -2086,28 +2056,6 @@ final class CaptureCoordinator {
         )
     }
 
-    /// If the currently-focused Quick Access panel can handle the Translate
-    /// action, fire it and return true. Otherwise return false so the caller
-    /// (a global shortcut handler) can fall through to its default behavior.
-    ///
-    /// This exists because the `KeyboardShortcuts` package registers a
-    /// SYSTEM-wide hotkey for the Capture & Translate shortcut, which always
-    /// wins over a SwiftUI `.keyboardShortcut` attached to the Translate button
-    /// in the Quick Access panel. Without this fall-through, pressing the
-    /// global shortcut while hovering a Quick Access preview would trigger a
-    /// fresh capture-and-translate flow instead of translating the capture the
-    /// user was already looking at.
-    @discardableResult
-    func invokeQuickAccessTranslateIfKey() -> Bool {
-        guard let key = NSApp.keyWindow as? QuickAccessWindow,
-              quickAccessWindows.contains(where: { $0 === key }),
-              let handler = key.onTranslate else {
-            return false
-        }
-        handler()
-        return true
-    }
-
     private func pinToScreen(_ result: CaptureResult, anchor: CGRect) {
         pinRenderedImage(
             result.image,
@@ -2313,7 +2261,6 @@ final class CaptureCoordinator {
 
     private func performShareAfterCapture(
         result: CaptureResult,
-        entryID: UUID,
         coord: ShareCoordinator
     ) async {
         let image = result.image
@@ -2351,8 +2298,6 @@ final class CaptureCoordinator {
             let url = try await coord.upload(file: tempURL, contentType: output.format.mimeType)
             // ShareCoordinator already copied the URL to clipboard on success.
             logDiagnostic("Cloud Share upload succeeded host=\(url.host ?? "unknown")")
-            historyCoordinator?.setCloudURL(id: entryID, url: url.absoluteString)
-            logDiagnostic("Cloud Share history URL persisted")
             Self.postNotification(
                 title: String(localized: "Cloud share ready"),
                 body: String(localized: "Link copied to clipboard.")

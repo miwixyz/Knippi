@@ -5,7 +5,6 @@ public enum QuickAccessActionKind: String, CaseIterable, Sendable {
     case upload
     case annotate
     case ocr
-    case translate
     case pin
 }
 
@@ -19,5 +18,5 @@ public enum QuickAccessActionLayout {
         return actions
     }
 
-    public static let overflowActions: [QuickAccessActionKind] = [.ocr, .translate]
+    public static let overflowActions: [QuickAccessActionKind] = [.ocr]
 }

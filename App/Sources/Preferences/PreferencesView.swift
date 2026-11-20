@@ -1,5 +1,6 @@
 // App/Sources/Preferences/PreferencesView.swift
 import Combine
+import SharedKit
 import SwiftUI
 
 enum PreferencesTab: String, CaseIterable, Sendable {
@@ -13,6 +14,11 @@ enum PreferencesTab: String, CaseIterable, Sendable {
     case ocr
     case shortcuts
 
+    /// Tabs shown in the sidebar; Recording is hidden in phase 1.
+    static var visibleCases: [PreferencesTab] {
+        allCases.filter { $0 != .recording || FeatureFlags.screenRecording }
+    }
+
     var title: LocalizedStringKey {
         switch self {
         case .general: "General"
@@ -22,7 +28,7 @@ enum PreferencesTab: String, CaseIterable, Sendable {
         case .quickAccess: "Quick Access"
         case .cloudShare: "Cloud Share"
         case .export: "Export"
-        case .ocr: "Text & Translation"
+        case .ocr: "Text Recognition"
         case .shortcuts: "Shortcuts"
         }
     }
@@ -92,7 +98,7 @@ struct PreferencesView: View {
 
     private var sidebarContent: some View {
         VStack(spacing: 2) {
-            ForEach(PreferencesTab.allCases, id: \.self) { tab in
+            ForEach(PreferencesTab.visibleCases, id: \.self) { tab in
                 SidebarButton(tab: tab, isSelected: selectedTab == tab) {
                     selectedTab = tab
                 }
@@ -139,7 +145,7 @@ struct PreferencesView: View {
                 case .export:
                     ExportSettingsView(viewModel: viewModel)
                 case .ocr:
-                    TextAndTranslationSettingsView(viewModel: viewModel)
+                    OCRSettingsView(viewModel: viewModel)
                 case .shortcuts:
                     ShortcutSettingsView(viewModel: viewModel)
                 }

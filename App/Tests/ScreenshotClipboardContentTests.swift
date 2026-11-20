@@ -223,26 +223,6 @@ final class ScreenshotClipboardContentTests: XCTestCase {
         XCTAssertTrue(FileManager.default.isReadableFile(atPath: savedPath))
     }
 
-    func testHistoryScreenshotCopyUsesExistingReadableFilePath() throws {
-        let settings = makeSettings()
-        settings.screenshotClipboardContent = .filePath
-        let coordinator = HistoryCoordinator(settings: settings)
-        let pasteboard = makePasteboard()
-        let sourceURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("capso-history-\(UUID().uuidString)")
-            .appendingPathExtension("png")
-        try Data([0x89, 0x50, 0x4E, 0x47]).write(to: sourceURL)
-        defer { try? FileManager.default.removeItem(at: sourceURL) }
-
-        XCTAssertTrue(coordinator.copyScreenshotToClipboard(
-            try makeCaptureResult().image,
-            preferredFileURL: sourceURL,
-            pasteboard: pasteboard
-        ))
-
-        XCTAssertEqual(pasteboard.string(forType: .string), sourceURL.path)
-    }
-
     private func makeSettings() -> AppSettings {
         let suite = "ScreenshotClipboardContentTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!

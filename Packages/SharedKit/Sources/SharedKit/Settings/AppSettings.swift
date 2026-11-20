@@ -143,157 +143,10 @@ public enum OpenedImageSaveBehavior: String, CaseIterable, Sendable {
     case copy
 }
 
-public enum TranslationCardPosition: String, CaseIterable, Sendable {
-    case belowSelection
-    case centerScreen
-    case rememberLast
-}
-
-public enum TranslationAutoDismiss: String, CaseIterable, Sendable {
-    case manual
-    case clickOutside
-    case afterDelay
-}
-
-public enum TranslationProviderKind: String, CaseIterable, Sendable {
-    case apple
-    case openAICompatible
-    case deepSeek
-    case openRouter
-    case deepL
-    case googleCloud
-    case custom
-
-    public var displayName: String {
-        descriptor.displayName
-    }
-
-    public var defaultEndpoint: String {
-        descriptor.defaultEndpoint
-    }
-
-    public var defaultModel: String {
-        descriptor.defaultModel
-    }
-
-    public var requiresAPIKey: Bool {
-        descriptor.showsAPIKey
-    }
-
-    public var supportsModel: Bool {
-        descriptor.supportsModel
-    }
-
-    public var supportsEndpoint: Bool {
-        descriptor.supportsEndpoint
-    }
-
-    public var supportsStreaming: Bool {
-        descriptor.supportsStreaming
-    }
-
-    public var connectionSummary: String {
-        descriptor.connectionSummary
-    }
-
-    private var descriptor: TranslationProviderDescriptor {
-        switch self {
-        case .apple:
-            return TranslationProviderDescriptor(
-                displayName: "Apple Translation",
-                connectionSummary: "On-device · High-fidelity when available"
-            )
-        case .openAICompatible:
-            return TranslationProviderDescriptor(
-                displayName: "OpenAI",
-                defaultEndpoint: "https://api.openai.com/v1/chat/completions",
-                defaultModel: "gpt-4o-mini",
-                showsAPIKey: true,
-                supportsModel: true,
-                supportsEndpoint: true,
-                supportsStreaming: true,
-                connectionSummary: "Cloud API · Streaming"
-            )
-        case .deepSeek:
-            return TranslationProviderDescriptor(
-                displayName: "DeepSeek",
-                defaultEndpoint: "https://api.deepseek.com/chat/completions",
-                defaultModel: "deepseek-v4-flash",
-                showsAPIKey: true,
-                supportsModel: true,
-                supportsEndpoint: true,
-                supportsStreaming: true,
-                connectionSummary: "Cloud API · Streaming"
-            )
-        case .openRouter:
-            return TranslationProviderDescriptor(
-                displayName: "OpenRouter",
-                defaultEndpoint: "https://openrouter.ai/api/v1/chat/completions",
-                defaultModel: "openrouter/auto",
-                showsAPIKey: true,
-                supportsModel: true,
-                supportsEndpoint: true,
-                supportsStreaming: true,
-                connectionSummary: "Cloud API · Streaming"
-            )
-        case .deepL:
-            return TranslationProviderDescriptor(
-                displayName: "DeepL",
-                showsAPIKey: true,
-                supportsEndpoint: true,
-                connectionSummary: "Cloud API · Complete response"
-            )
-        case .googleCloud:
-            return TranslationProviderDescriptor(
-                displayName: "Google Cloud",
-                defaultEndpoint: "https://translation.googleapis.com/language/translate/v2",
-                showsAPIKey: true,
-                supportsEndpoint: true,
-                connectionSummary: "Cloud API · Complete response"
-            )
-        case .custom:
-            return TranslationProviderDescriptor(
-                displayName: "Custom",
-                showsAPIKey: true,
-                supportsModel: true,
-                supportsEndpoint: true,
-                connectionSummary: "Configured endpoint · Complete response"
-            )
-        }
-    }
-}
-
-private struct TranslationProviderDescriptor {
-    let displayName: String
-    var defaultEndpoint = ""
-    var defaultModel = ""
-    var showsAPIKey = false
-    var supportsModel = false
-    var supportsEndpoint = false
-    var supportsStreaming = false
-    let connectionSummary: String
-}
-
 public enum ExportQuality: String, CaseIterable, Sendable {
     case maximum
     case social
     case web
-}
-
-public enum CameraShape: String, CaseIterable, Sendable {
-    case circle
-    case square     // 1:1 with rounded corners
-    case landscape  // 16:9
-    case portrait   // 9:16
-
-    /// Aspect ratio (width / height) for this shape.
-    public var aspectRatio: CGFloat {
-        switch self {
-        case .circle, .square: return 1.0
-        case .landscape: return 16.0 / 9.0
-        case .portrait: return 9.0 / 16.0
-        }
-    }
 }
 
 /// The most recent capture, persisted so the user can replay it via the
@@ -320,21 +173,6 @@ public enum StoredCaptureSelection: Codable, Sendable, Equatable {
             height: Double(rect.size.height),
             screenID: screenID
         )
-    }
-}
-
-public enum CameraSize: String, CaseIterable, Sendable {
-    case small   // 100pt shorter dimension
-    case medium  // 150pt
-    case large   // 220pt
-
-    /// Length of the shorter dimension in points.
-    public var shorterDimension: CGFloat {
-        switch self {
-        case .small: return 100
-        case .medium: return 150
-        case .large: return 220
-        }
     }
 }
 
@@ -679,62 +517,6 @@ public final class AppSettings: @unchecked Sendable {
         set { defaults.set(newValue, forKey: "recordingAutoCopy") }
     }
 
-    // MARK: Camera
-    public var cameraShape: CameraShape {
-        get {
-            guard let raw = defaults.string(forKey: "cameraShape"),
-                  let value = CameraShape(rawValue: raw) else { return .circle }
-            return value
-        }
-        set { defaults.set(newValue.rawValue, forKey: "cameraShape") }
-    }
-
-    public var cameraSize: CameraSize {
-        get {
-            guard let raw = defaults.string(forKey: "cameraSize"),
-                  let value = CameraSize(rawValue: raw) else { return .medium }
-            return value
-        }
-        set { defaults.set(newValue.rawValue, forKey: "cameraSize") }
-    }
-
-    public var cameraMirror: Bool {
-        get { defaults.object(forKey: "cameraMirror") as? Bool ?? true }
-        set { defaults.set(newValue, forKey: "cameraMirror") }
-    }
-
-    /// Custom size (shorter dimension in points). 0 means use the cameraSize preset.
-    /// Set when the user drags the corner resize handle.
-    public var cameraCustomSizePt: Double {
-        get { defaults.object(forKey: "cameraCustomSizePt") as? Double ?? 0 }
-        set { defaults.set(newValue, forKey: "cameraCustomSizePt") }
-    }
-
-    /// When `true`, the camera PiP becomes nearly transparent while the pointer is over it
-    /// (so content behind it is readable without moving the window). Idle stays fully solid.
-    /// Presentation / fullscreen mode always stays opaque. Off by default.
-    /// Recorded output matches on-screen opacity.
-    public var cameraPiPFadeOnHover: Bool {
-        get { defaults.object(forKey: "cameraPiPFadeOnHover") as? Bool ?? false }
-        set {
-            guard cameraPiPFadeOnHover != newValue else { return }
-            defaults.set(newValue, forKey: "cameraPiPFadeOnHover")
-            NotificationCenter.default.post(name: .cameraPiPHoverOptionsChanged, object: self)
-        }
-    }
-
-    /// When `true`, mouse clicks pass through the small camera PiP to whatever is behind it
-    /// while the pointer is over it. Independent of fade-on-hover. Off by default.
-    /// Never applies in fullscreen / presentation mode (PiP stays interactive there).
-    public var cameraPiPClickThrough: Bool {
-        get { defaults.object(forKey: "cameraPiPClickThrough") as? Bool ?? false }
-        set {
-            guard cameraPiPClickThrough != newValue else { return }
-            defaults.set(newValue, forKey: "cameraPiPClickThrough")
-            NotificationCenter.default.post(name: .cameraPiPHoverOptionsChanged, object: self)
-        }
-    }
-
     // MARK: Screenshots
     public var screenshotShowPreview: Bool {
         get { defaults.object(forKey: "screenshotShowPreview") as? Bool ?? true }
@@ -1009,18 +791,6 @@ public final class AppSettings: @unchecked Sendable {
         }
     }
 
-    // MARK: History
-    public var historyEnabled: Bool {
-        get { defaults.object(forKey: "historyEnabled") as? Bool ?? true }
-        set { defaults.set(newValue, forKey: "historyEnabled") }
-    }
-
-    /// Raw string value matching HistoryRetention enum in HistoryKit.
-    public var historyRetention: String {
-        get { defaults.string(forKey: "historyRetention") ?? "oneMonth" }
-        set { defaults.set(newValue, forKey: "historyRetention") }
-    }
-
     // MARK: OCR
     public var ocrKeepLineBreaks: Bool {
         get { defaults.object(forKey: "ocrKeepLineBreaks") as? Bool ?? true }
@@ -1040,142 +810,6 @@ public final class AppSettings: @unchecked Sendable {
     public var ocrOnboardingShown: Bool {
         get { defaults.object(forKey: "ocrOnboardingShown") as? Bool ?? false }
         set { defaults.set(newValue, forKey: "ocrOnboardingShown") }
-    }
-
-    // MARK: Translation
-    public var translationTargetLanguage: String {
-        get {
-            defaults.string(forKey: "translationTargetLanguage") ?? Self.systemDefaultLanguage()
-        }
-        set { defaults.set(newValue, forKey: "translationTargetLanguage") }
-    }
-
-    public var translationProvider: TranslationProviderKind {
-        get {
-            guard let raw = defaults.string(forKey: "translationProvider"),
-                  let provider = TranslationProviderKind(rawValue: raw) else { return .apple }
-            return provider
-        }
-        set {
-            migrateLegacyTranslationProviderSettingsIfNeeded()
-            defaults.set(newValue.rawValue, forKey: "translationProvider")
-        }
-    }
-
-    public var translationProviderModel: String {
-        get {
-            migrateLegacyTranslationProviderSettingsIfNeeded()
-            return defaults.string(forKey: translationProviderSettingKey("model"))
-                ?? translationProvider.defaultModel
-        }
-        set {
-            migrateLegacyTranslationProviderSettingsIfNeeded()
-            defaults.set(newValue, forKey: translationProviderSettingKey("model"))
-        }
-    }
-
-    public var translationProviderEndpoint: String {
-        get {
-            migrateLegacyTranslationProviderSettingsIfNeeded()
-            return defaults.string(forKey: translationProviderSettingKey("endpoint"))
-                ?? translationProvider.defaultEndpoint
-        }
-        set {
-            migrateLegacyTranslationProviderSettingsIfNeeded()
-            defaults.set(newValue, forKey: translationProviderSettingKey("endpoint"))
-        }
-    }
-
-    private func translationProviderSettingKey(_ field: String) -> String {
-        "translationProvider.\(translationProvider.rawValue).\(field)"
-    }
-
-    private func migrateLegacyTranslationProviderSettingsIfNeeded() {
-        let migrationKey = "translationProviderSettingsMigrated"
-        guard !defaults.bool(forKey: migrationKey) else { return }
-
-        if let model = defaults.string(forKey: "translationProviderModel") {
-            defaults.set(model, forKey: translationProviderSettingKey("model"))
-        }
-        if let endpoint = defaults.string(forKey: "translationProviderEndpoint") {
-            defaults.set(endpoint, forKey: translationProviderSettingKey("endpoint"))
-        }
-        defaults.set(true, forKey: migrationKey)
-    }
-
-    public var translationAutoCopy: Bool {
-        get { defaults.object(forKey: "translationAutoCopy") as? Bool ?? true }
-        set { defaults.set(newValue, forKey: "translationAutoCopy") }
-    }
-
-    public var translationShowOriginal: Bool {
-        get { defaults.object(forKey: "translationShowOriginal") as? Bool ?? true }
-        set { defaults.set(newValue, forKey: "translationShowOriginal") }
-    }
-
-    public var translationCardPosition: TranslationCardPosition {
-        get {
-            guard let raw = defaults.string(forKey: "translationCardPosition"),
-                  let value = TranslationCardPosition(rawValue: raw) else { return .centerScreen }
-            return value
-        }
-        set { defaults.set(newValue.rawValue, forKey: "translationCardPosition") }
-    }
-
-    public var translationAutoDismiss: TranslationAutoDismiss {
-        get {
-            guard let raw = defaults.string(forKey: "translationAutoDismiss"),
-                  let value = TranslationAutoDismiss(rawValue: raw) else { return .manual }
-            return value
-        }
-        set { defaults.set(newValue.rawValue, forKey: "translationAutoDismiss") }
-    }
-
-    public var translationAutoDismissDelay: TimeInterval {
-        get { defaults.object(forKey: "translationAutoDismissDelay") as? TimeInterval ?? 10 }
-        set { defaults.set(newValue, forKey: "translationAutoDismissDelay") }
-    }
-
-    public var translationOnboardingShown: Bool {
-        get { defaults.object(forKey: "translationOnboardingShown") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "translationOnboardingShown") }
-    }
-
-    public func translationAPIKey() -> String? {
-        try? KeychainHelper(service: "com.awesomemacapps.capso.translation")
-            .get(account: translationProvider.rawValue)
-    }
-
-    public func setTranslationAPIKey(_ value: String?) throws {
-        let keychain = KeychainHelper(service: "com.awesomemacapps.capso.translation")
-        let account = translationProvider.rawValue
-        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        if trimmed.isEmpty {
-            try keychain.delete(account: account)
-        } else {
-            try keychain.set(trimmed, account: account)
-        }
-    }
-
-    /// Chosen at first launch; falls back to English for unsupported locales.
-    /// Kept here (rather than in TranslationKit) so SharedKit has no extra dependency.
-    private static func systemDefaultLanguage() -> String {
-        let locale = Locale.current
-        guard let code = locale.language.languageCode?.identifier else { return "en" }
-        if code == "zh" {
-            let script = locale.language.script?.identifier
-            let region = locale.region?.identifier
-            let traditionalRegions: Set<String> = ["TW", "HK", "MO"]
-            let isTraditional = script == "Hant"
-                || (script == nil && region.map(traditionalRegions.contains) == true)
-            return isTraditional ? "zh-Hant" : "zh-Hans"
-        }
-        if code == "pt" { return "pt-BR" }
-        let supported: Set<String> = [
-            "ar", "de", "en", "es", "fr", "hi", "id", "it", "ja", "ko",
-            "nl", "pl", "ru", "tr", "uk"
-        ]
-        return supported.contains(code) ? code : "en"
     }
 
     // MARK: Export Location
@@ -1270,12 +904,4 @@ public final class AppSettings: @unchecked Sendable {
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
     }
-}
-
-// MARK: - Camera PiP hover option notifications
-
-public extension Notification.Name {
-    /// Posted when `cameraPiPFadeOnHover` or `cameraPiPClickThrough` changes,
-    /// so a live PiP can re-apply opacity / click-through without observing all UserDefaults writes.
-    static let cameraPiPHoverOptionsChanged = Notification.Name("cameraPiPHoverOptionsChanged")
 }

@@ -17,13 +17,10 @@ final class QuickAccessWindow: NSPanel {
     var onSaveAs: (() -> Void)?
     var onAnnotate: (() -> Void)?
     var onOCR: (() -> Void)?
-    var onTranslate: (() -> Void)?
     var onPin: (() -> Void)?
     var onPreview: (() -> Void)?
     var onClose: (() -> Void)?
     var onDismissedUnused: (() -> Void)?
-    /// Called with the public URL string when a cloud upload succeeds.
-    var onUploadSucceeded: ((String) -> Void)?
 
     private var autoDismissTimer: Timer?
     private var alphaValueBeforeDrag: CGFloat?
@@ -101,7 +98,6 @@ final class QuickAccessWindow: NSPanel {
         let nsImage = transitionImage
 
         let dimensions = "\(result.image.width)×\(result.image.height)"
-        let targetDisplay = Self.targetLanguageDisplay(settings: settings)
 
         let view = QuickAccessView(
             thumbnail: nsImage,
@@ -112,16 +108,13 @@ final class QuickAccessWindow: NSPanel {
             sourceWindowTitle: result.windowName,
             screenshotOutput: settings.screenshotOutputOptions,
             screenshotFilenameTemplate: settings.screenshotFilenameTemplate,
-            targetLanguageDisplay: targetDisplay,
             shareCoordinator: shareCoordinator,
             autoUpload: autoUpload,
-            onUploadSucceeded: { [weak self] url in self?.onUploadSucceeded?(url) },
             onCopy:      { [weak self] in self?.onCopy?() },
             onSave:      { [weak self] in self?.onSave?() },
             onSaveAs:    { [weak self] in self?.onSaveAs?() },
             onAnnotate:  { [weak self] in self?.onAnnotate?() },
             onOCR:       { [weak self] in self?.onOCR?() },
-            onTranslate: { [weak self] in self?.onTranslate?() },
             onPin:       { [weak self] in self?.onPin?() },
             onPreview:   { [weak self] in self?.onPreview?() },
             onDragStarted: { [weak self] in self?.hideDuringExternalDrag() },
@@ -140,11 +133,6 @@ final class QuickAccessWindow: NSPanel {
         self.contentView = hostingView
         self.contentView?.wantsLayer = true
         self.contentView?.layer?.backgroundColor = NSColor.clear.cgColor
-    }
-
-    private static func targetLanguageDisplay(settings: AppSettings) -> String? {
-        let target = settings.translationTargetLanguage
-        return Locale.current.localizedString(forIdentifier: target) ?? target
     }
 
     private func hideDuringExternalDrag() {

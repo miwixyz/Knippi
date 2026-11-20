@@ -2,7 +2,6 @@
 import Foundation
 import Observation
 import SharedKit
-import TranslationKit
 
 @MainActor
 @Observable
@@ -13,7 +12,6 @@ final class PreferencesViewModel {
     private(set) var screenRecordingGranted: Bool = false
     private(set) var accessibilityGranted: Bool = false
     private(set) var inputMonitoringGranted: Bool = false
-    private(set) var cameraGranted: Bool = false
     private(set) var microphoneGranted: Bool = false
 
     private static let filenamePreviewDate: Date = {
@@ -486,74 +484,6 @@ final class PreferencesViewModel {
         }
     }
 
-    // MARK: Camera
-    var cameraShape: CameraShape {
-        get {
-            access(keyPath: \.cameraShape)
-            return settings.cameraShape
-        }
-        set {
-            withMutation(keyPath: \.cameraShape) {
-                settings.cameraShape = newValue
-            }
-        }
-    }
-    var cameraSize: CameraSize {
-        get {
-            access(keyPath: \.cameraSize)
-            return settings.cameraSize
-        }
-        set {
-            withMutation(keyPath: \.cameraSize) {
-                settings.cameraSize = newValue
-            }
-        }
-    }
-    var cameraMirror: Bool {
-        get {
-            access(keyPath: \.cameraMirror)
-            return settings.cameraMirror
-        }
-        set {
-            withMutation(keyPath: \.cameraMirror) {
-                settings.cameraMirror = newValue
-            }
-        }
-    }
-    var cameraCustomSizePt: Double {
-        get {
-            access(keyPath: \.cameraCustomSizePt)
-            return settings.cameraCustomSizePt
-        }
-        set {
-            withMutation(keyPath: \.cameraCustomSizePt) {
-                settings.cameraCustomSizePt = newValue
-            }
-        }
-    }
-    var cameraPiPFadeOnHover: Bool {
-        get {
-            access(keyPath: \.cameraPiPFadeOnHover)
-            return settings.cameraPiPFadeOnHover
-        }
-        set {
-            withMutation(keyPath: \.cameraPiPFadeOnHover) {
-                settings.cameraPiPFadeOnHover = newValue
-            }
-        }
-    }
-    var cameraPiPClickThrough: Bool {
-        get {
-            access(keyPath: \.cameraPiPClickThrough)
-            return settings.cameraPiPClickThrough
-        }
-        set {
-            withMutation(keyPath: \.cameraPiPClickThrough) {
-                settings.cameraPiPClickThrough = newValue
-            }
-        }
-    }
-
     // MARK: Quick Access
     var quickAccessPosition: QuickAccessPosition {
         get {
@@ -681,108 +611,6 @@ final class PreferencesViewModel {
         }
     }
 
-    // MARK: Translation
-    var translationTargetLanguage: String {
-        get {
-            access(keyPath: \.translationTargetLanguage)
-            return settings.translationTargetLanguage
-        }
-        set {
-            withMutation(keyPath: \.translationTargetLanguage) {
-                settings.translationTargetLanguage = newValue
-            }
-        }
-    }
-    var translationProvider: TranslationProviderKind {
-        get {
-            access(keyPath: \.translationProvider)
-            return settings.translationProvider
-        }
-        set {
-            withMutation(keyPath: \.translationProvider) {
-                settings.translationProvider = newValue
-            }
-        }
-    }
-    var translationProviderModel: String {
-        get {
-            access(keyPath: \.translationProviderModel)
-            return settings.translationProviderModel
-        }
-        set {
-            withMutation(keyPath: \.translationProviderModel) {
-                settings.translationProviderModel = newValue
-            }
-        }
-    }
-    var translationProviderEndpoint: String {
-        get {
-            access(keyPath: \.translationProviderEndpoint)
-            return settings.translationProviderEndpoint
-        }
-        set {
-            withMutation(keyPath: \.translationProviderEndpoint) {
-                settings.translationProviderEndpoint = newValue
-            }
-        }
-    }
-    func translationAPIKey() -> String {
-        settings.translationAPIKey() ?? ""
-    }
-    func setTranslationAPIKey(_ value: String) throws {
-        try settings.setTranslationAPIKey(value)
-    }
-    func testTranslationProviderConnection() async throws {
-        let provider = settings.translationProvider
-        guard provider != .apple else { return }
-        let result = try await ProviderTranslationService.translate(
-            text: "hello",
-            target: settings.translationTargetLanguage,
-            provider: provider,
-            config: TranslationProviderConfiguration(
-                apiKey: settings.translationAPIKey() ?? "",
-                endpoint: settings.translationProviderEndpoint,
-                model: settings.translationProviderModel
-            )
-        )
-        if result.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            throw ProviderTranslationError.badResponse
-        }
-    }
-    var translationAutoCopy: Bool {
-        get {
-            access(keyPath: \.translationAutoCopy)
-            return settings.translationAutoCopy
-        }
-        set {
-            withMutation(keyPath: \.translationAutoCopy) {
-                settings.translationAutoCopy = newValue
-            }
-        }
-    }
-    var translationShowOriginal: Bool {
-        get {
-            access(keyPath: \.translationShowOriginal)
-            return settings.translationShowOriginal
-        }
-        set {
-            withMutation(keyPath: \.translationShowOriginal) {
-                settings.translationShowOriginal = newValue
-            }
-        }
-    }
-    var translationAutoDismiss: TranslationAutoDismiss {
-        get {
-            access(keyPath: \.translationAutoDismiss)
-            return settings.translationAutoDismiss
-        }
-        set {
-            withMutation(keyPath: \.translationAutoDismiss) {
-                settings.translationAutoDismiss = newValue
-            }
-        }
-    }
-
     // MARK: Permissions
     func refreshPermissions() async {
         await permissionManager.refreshAll()
@@ -799,8 +627,6 @@ final class PreferencesViewModel {
         case .inputMonitoring:
             _ = permissionManager.requestInputMonitoringPermission()
             permissionManager.openSettings(for: kind)
-        case .camera:
-            await permissionManager.requestCameraPermission()
         case .microphone:
             await permissionManager.requestMicrophonePermission()
         }
@@ -815,7 +641,6 @@ final class PreferencesViewModel {
         screenRecordingGranted = permissionManager.screenRecordingGranted
         accessibilityGranted = permissionManager.accessibilityGranted
         inputMonitoringGranted = permissionManager.inputMonitoringGranted
-        cameraGranted = permissionManager.cameraGranted
         microphoneGranted = permissionManager.microphoneGranted
     }
 
@@ -935,31 +760,6 @@ final class PreferencesViewModel {
     }
 
     // MARK: Version
-    // MARK: History
-    var historyEnabled: Bool {
-        get {
-            access(keyPath: \.historyEnabled)
-            return settings.historyEnabled
-        }
-        set {
-            withMutation(keyPath: \.historyEnabled) {
-                settings.historyEnabled = newValue
-            }
-        }
-    }
-
-    var historyRetention: String {
-        get {
-            access(keyPath: \.historyRetention)
-            return settings.historyRetention
-        }
-        set {
-            withMutation(keyPath: \.historyRetention) {
-                settings.historyRetention = newValue
-            }
-        }
-    }
-
     var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"

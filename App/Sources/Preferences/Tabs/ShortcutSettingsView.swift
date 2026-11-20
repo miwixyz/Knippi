@@ -21,10 +21,6 @@ extension KeyboardShortcuts.Name {
     static let captureAreaAndPin = Self("captureAreaAndPin")
     static let pinFromClipboard = Self("pinFromClipboard")
     static let editClipboardImage = Self("editClipboardImage")
-    static let screenshotHistory = Self("screenshotHistory", initial: .init(.nine, modifiers: [.option, .shift]))
-    static let captureAndTranslate = Self("captureAndTranslate", initial: .init(.t, modifiers: [.option, .shift]))
-    static let translateSelectedText = Self("translateSelectedText", initial: .init(.y, modifiers: [.option, .shift]))
-    static let translateTypedText = Self("translateTypedText")
     /// No default binding — opt-in. Self-Timer is discoverable from the
     /// menu bar; shipping a default risks colliding with whatever the user
     /// has already bound in macOS or third-party apps.
@@ -38,8 +34,8 @@ extension KeyboardShortcuts.Name {
     static let allCapso: [Self] = [
         .captureAllInOne, .captureArea, .captureFullscreen, .captureWindow, .captureText, .recordScreen,
         .recordFullscreen, .captureScrolling, .captureAreaToClipboard, .captureAreaAndShare,
-        .captureAreaAndAnnotate, .captureAreaAndPin, .pinFromClipboard, .editClipboardImage, .screenshotHistory,
-        .captureAndTranslate, .translateSelectedText, .translateTypedText, .selfTimerCapture, .captureLastArea, .togglePins,
+        .captureAreaAndAnnotate, .captureAreaAndPin, .pinFromClipboard, .editClipboardImage,
+        .selfTimerCapture, .captureLastArea, .togglePins,
     ]
 }
 
@@ -99,7 +95,9 @@ struct ShortcutSettingsView: View {
                     shortcutRow("Capture Fullscreen", name: .captureFullscreen, showDivider: true)
                     shortcutRow("Capture Window", name: .captureWindow, showDivider: true)
                     shortcutRow("Capture Text (OCR)", name: .captureText, showDivider: true)
-                    shortcutRow("Scrolling Capture", name: .captureScrolling, showDivider: true)
+                    if FeatureFlags.scrollingCapture {
+                        shortcutRow("Scrolling Capture", name: .captureScrolling, showDivider: true)
+                    }
                     shortcutRow("Self-Timer", name: .selfTimerCapture, showDivider: true)
                     shortcutRow("Capture Area to Clipboard", name: .captureAreaToClipboard, showDivider: true)
                     shortcutRow("Capture and Share to Cloud", name: .captureAreaAndShare, showDivider: true)
@@ -118,13 +116,11 @@ struct ShortcutSettingsView: View {
                         help: "Open the image currently copied to the clipboard in Annotate"
                     )
                     shortcutRow("Hide / Show All Pins", name: .togglePins, showDivider: true)
-                    shortcutRow("Capture & Translate", name: .captureAndTranslate, showDivider: true)
-                    shortcutRow("Translate Selected Text", name: .translateSelectedText, showDivider: true)
-                    shortcutRow("Translate Typed Text", name: .translateTypedText, showDivider: true)
                     shortcutRow("Capture Previous Area", name: .captureLastArea, showDivider: true)
-                    shortcutRow("Record Area", name: .recordScreen, showDivider: true)
-                    shortcutRow("Record Full Screen", name: .recordFullscreen, showDivider: true)
-                    shortcutRow("Screenshot History", name: .screenshotHistory, showDivider: true)
+                    if FeatureFlags.screenRecording {
+                        shortcutRow("Record Area", name: .recordScreen, showDivider: true)
+                        shortcutRow("Record Full Screen", name: .recordFullscreen, showDivider: true)
+                    }
                 }
             }
 

@@ -24,6 +24,6 @@ struct QuickAccessActionLayoutTests {
             .annotate,
             .pin,
         ])
-        #expect(QuickAccessActionLayout.overflowActions == [.ocr, .translate])
+        #expect(QuickAccessActionLayout.overflowActions == [.ocr])
     }
 }

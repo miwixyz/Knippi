@@ -8,15 +8,12 @@ import AppKit
 // caching old artefacts; CI's clean build is authoritative.
 @preconcurrency import AVFoundation
 import Observation
-import HistoryKit
 import RecordingKit
-import CameraKit
 import CaptureKit
 import SharedKit
 import ExportKit
 import EffectsKit
 import EditorKit
-import ShareKit
 
 enum KeyPressOverlayPermissionDecision: Equatable {
     case showOverlay
@@ -30,7 +27,7 @@ enum KeyPressOverlayPermissionDecision: Equatable {
 
 /// Orchestrates recording flow:
 /// 1. Show overlay for area selection (drag, or Space to switch to window selection)
-/// 2. Show recording toolbar (format, camera, mic, audio)
+/// 2. Show recording toolbar (format, mic, audio)
 /// 3. User clicks Record → start recording with selected area
 /// 4. Show controls (pause/stop/timer) + red border
 /// 5. Stop → finalize MP4
@@ -39,8 +36,6 @@ enum KeyPressOverlayPermissionDecision: Equatable {
 final class RecordingCoordinator {
     private let settings: AppSettings
     let recorder = ScreenRecorder()
-    let cameraManager = CameraManager()
-    var historyCoordinator: HistoryCoordinator?
     var desktopIconsCover: DesktopIconsCover?
 
     private var overlayWindows: [CaptureOverlayWindow] = []
@@ -51,7 +46,6 @@ final class RecordingCoordinator {
     private var controlsWindow: RecordingControlsWindow?
     private var audioWarningPanel: RecordingWarningPanel?
     private var borderWindow: RecordingBorderWindow?
-    private var cameraPiPWindow: CameraPiPWindow?
     private var recordingPreviewWindow: RecordingPreviewWindow?
     private var editorWindow: RecordingEditorWindow?
     private var editorCoordinator: EditorCoordinator?
@@ -65,7 +59,6 @@ final class RecordingCoordinator {
     private var escLocalMonitor: Any?
     private var escEventTap: CFMachPort?
     private var escEventTapRunLoopSource: CFRunLoopSource?
-    private var automaticUploadSourceTasks: [URL: Task<URL?, Never>] = [:]
     private struct AutomaticClipboardCopyResult {
         let copied: Bool
         let fileURL: URL?
@@ -83,13 +76,11 @@ final class RecordingCoordinator {
 
     // Current recording inputs (used by restart)
     private var currentRecordingFormat: RecordingFormatChoice?
-    private var currentCameraEnabled = false
     private var currentMicEnabled = false
     private var currentSystemAudioEnabled = false
 
     init(settings: AppSettings) {
         self.settings = settings
-        cameraManager.refreshDevices()
         recorder.onStreamInterrupted = { [weak self] error in
             self?.handleRecordingInterrupted(error: error)
         }
@@ -120,7 +111,7 @@ final class RecordingCoordinator {
 
     /// Start a full-screen recording flow for the display under the pointer.
     /// The recording toolbar still appears before capture begins so the user
-    /// can confirm camera, microphone, system audio, format, and countdown.
+    /// can confirm microphone, system audio, format, and countdown.
     func startFullScreenRecordingFlow() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
             self?.selectFullScreenForRecording()
@@ -427,46 +418,15 @@ final class RecordingCoordinator {
             selectionRect: globalSelectionRect,
             screen: screen,
             settings: settings,
-            onRecord: { [weak self] format, cameraEnabled, cameraDeviceID, micEnabled, systemAudioEnabled in
+            onRecord: { [weak self] format, micEnabled, systemAudioEnabled in
                 guard let self else { return }
                 let willShowCountdown = self.settings.showCountdown && self.selectedScreen != nil
-                self.dismissToolbarUI(keepCamera: cameraEnabled, removeEscapeMonitors: !willShowCountdown)
-                if let cameraDeviceID {
-                    self.cameraManager.selectedDeviceID = cameraDeviceID
-                }
+                self.dismissToolbarUI(removeEscapeMonitors: !willShowCountdown)
                 self.startRecording(
                     format: format,
-                    cameraEnabled: cameraEnabled,
                     micEnabled: micEnabled,
                     systemAudioEnabled: systemAudioEnabled
                 )
-            },
-            onCameraToggled: { [weak self] enabled, deviceID in
-                guard let self else { return false }
-                if enabled {
-                    if let deviceID {
-                        self.cameraManager.selectedDeviceID = deviceID
-                    }
-                    self.cameraManager.stop()
-                    do {
-                        try await self.cameraManager.requestAccessAndStart()
-                        self.showCameraPiP()
-                        return true
-                    } catch {
-                        self.cameraPiPWindow?.close()
-                        self.cameraPiPWindow = nil
-                        self.cameraManager.stop()
-                        if error is CameraError {
-                            self.showCameraPermissionDeniedAlert()
-                        }
-                        return false
-                    }
-                } else {
-                    self.cameraPiPWindow?.close()
-                    self.cameraPiPWindow = nil
-                    self.cameraManager.stop()
-                    return true
-                }
             },
             onChangeArea: { [weak self] in
                 guard let self else { return }
@@ -475,9 +435,6 @@ final class RecordingCoordinator {
             },
             onCancel: { [weak self] in
                 self?.cancelPendingRecordingFlow()
-            },
-            onCameraSettingsChanged: { [weak self] in
-                self?.cameraPiPWindow?.applySettings()
             }
         )
         toolbarWindow?.show()
@@ -557,11 +514,6 @@ final class RecordingCoordinator {
     }
 
     private func cancelPendingRecordingFlow() {
-        if cameraPiPWindow?.presentationModeActive == true {
-            cameraPiPWindow?.exitPresentationMode()
-            return
-        }
-
         countdownWindow?.cancel()
         countdownWindow = nil
         desktopIconsCover?.setHiddenForRecording(false)
@@ -569,16 +521,11 @@ final class RecordingCoordinator {
         selectedTarget = nil
     }
 
-    private func dismissToolbarUI(keepCamera: Bool = false, removeEscapeMonitors shouldRemoveEscapeMonitors: Bool = true) {
+    private func dismissToolbarUI(removeEscapeMonitors shouldRemoveEscapeMonitors: Bool = true) {
         toolbarWindow?.close()
         toolbarWindow = nil
         selectionBorderWindow?.close()
         selectionBorderWindow = nil
-        if !keepCamera {
-            cameraPiPWindow?.close()
-            cameraPiPWindow = nil
-            cameraManager.stop()
-        }
         if shouldRemoveEscapeMonitors {
             removeEscapeMonitors()
         }
@@ -618,10 +565,8 @@ final class RecordingCoordinator {
 
     private func startRecording(
         format: RecordingFormatChoice,
-        cameraEnabled: Bool,
         micEnabled: Bool,
-        systemAudioEnabled: Bool,
-        restoredCameraPiPState: CameraPiPRestorationState? = nil
+        systemAudioEnabled: Bool
     ) {
         // Resolve Input Monitoring before creating any recording UI. Opening
         // System Settings cancels this attempt, as the alert instructs the user
@@ -641,7 +586,6 @@ final class RecordingCoordinator {
         let keyPressOverlayReady = keyPressOverlayDecision == .showOverlay
 
         currentRecordingFormat = format
-        currentCameraEnabled = cameraEnabled
         currentMicEnabled = micEnabled
         currentSystemAudioEnabled = systemAudioEnabled
 
@@ -659,14 +603,6 @@ final class RecordingCoordinator {
             // An unplugged device falls back to the system default, matching the toolbar.
             config.microphoneDeviceID = settings.recordingMicDeviceID
                 .flatMap { AVCaptureDevice(uniqueID: $0)?.uniqueID }
-        }
-
-        // Start camera if not already running from toolbar preview.
-        // Permission was already requested in onCameraToggled, so this
-        // uses the sync `start()` — at this point we know it's granted.
-        if cameraEnabled && cameraPiPWindow == nil {
-            try? cameraManager.start()
-            showCameraPiP(restorationState: restoredCameraPiPState)
         }
 
         if settings.hideDesktopIconsWhileRecording {
@@ -700,11 +636,6 @@ final class RecordingCoordinator {
                     self.desktopIconsCover?.setHiddenForRecording(false)
                     self.borderWindow?.hide()
                     self.borderWindow = nil
-                    if cameraEnabled {
-                        self.cameraPiPWindow?.close()
-                        self.cameraPiPWindow = nil
-                        self.cameraManager.stop()
-                    }
                 }
             }
         }
@@ -734,22 +665,8 @@ final class RecordingCoordinator {
 
                 let tempURL = result.fileURL
 
-                // Save to history immediately (before user decides to Save/discard)
                 let format = result.format as RecordingKit.RecordingFormat
-                let entryID = UUID()
-                saveRecordingToHistory(
-                    url: tempURL,
-                    format: format,
-                    entryID: entryID,
-                    cursorTelemetryURL: cursorTelemetryURL,
-                    info: HistoryRecordingInfo(
-                        showsCursor: settings.showCursor,
-                        recordingAreaWidth: result.size.width,
-                        recordingAreaHeight: result.size.height
-                    )
-                )
                 startAutomaticClipboardCopyIfNeeded(url: tempURL, format: format)
-                startAutomaticUploadIfNeeded(url: tempURL, format: format, entryID: entryID)
 
                 if settings.openEditorAfterRecording {
                     // Open the full recording editor (trim, zoom, export)
@@ -854,7 +771,6 @@ final class RecordingCoordinator {
 
     private func restartRecording() {
         guard let format = currentRecordingFormat else { return }
-        let restoredCameraPiPState = currentCameraEnabled ? cameraPiPWindow?.restartRestorationState : nil
 
         Task {
             do {
@@ -865,10 +781,8 @@ final class RecordingCoordinator {
 
                 startRecording(
                     format: format,
-                    cameraEnabled: currentCameraEnabled,
                     micEnabled: currentMicEnabled,
-                    systemAudioEnabled: currentSystemAudioEnabled,
-                    restoredCameraPiPState: restoredCameraPiPState
+                    systemAudioEnabled: currentSystemAudioEnabled
                 )
             } catch {
                 print("Failed to restart recording: \(error)")
@@ -933,9 +847,6 @@ final class RecordingCoordinator {
             }
             let result = try await VideoExporter.export(source: tempURL, options: options, progress: progress)
             if deleteSourceOnSuccess {
-                if let sourceTask = automaticUploadSourceTasks[tempURL] {
-                    _ = await sourceTask.value
-                }
                 // Clean up temp file after successful export
                 try? FileManager.default.removeItem(at: tempURL)
             }
@@ -959,7 +870,6 @@ final class RecordingCoordinator {
                 return
             }
             guard let savedURL = await exportRecording(url, format: .video) else { return }
-            saveRecordingToHistory(url: savedURL, format: .video, entryID: UUID())
             CaptureCoordinator.postNotification(
                 title: String(localized: "Recording recovered"),
                 body: String(localized: "Capso quit unexpectedly during a recording. What was captured has been saved to \(savedURL.deletingLastPathComponent().path).")
@@ -988,7 +898,7 @@ final class RecordingCoordinator {
         if previewAvailable {
             alert.informativeText = String(localized: "Copying the \(kind) to the clipboard failed. The recording is still available in the preview — close this dialog and try Copy again, or use Save.")
         } else {
-            alert.informativeText = String(localized: "Copying the \(kind) to the clipboard failed. Try Copy from History, or export it again from the editor.")
+            alert.informativeText = String(localized: "Copying the \(kind) to the clipboard failed. Export it again from the editor.")
         }
         alert.addButton(withTitle: String(localized: "OK"))
         alert.runModal()
@@ -1185,7 +1095,7 @@ final class RecordingCoordinator {
                         cleaningDirectory: copiedFileURL.deletingLastPathComponent()
                     )
                     if restored {
-                        await waitForUploadStagingThenDeleteSource(tempURL)
+                        try? FileManager.default.removeItem(at: tempURL)
                         return true
                     }
                 }
@@ -1195,7 +1105,7 @@ final class RecordingCoordinator {
                     cleaningDirectory: copiedFileURL.deletingLastPathComponent()
                 )
                 if restored {
-                    await waitForUploadStagingThenDeleteSource(tempURL)
+                    try? FileManager.default.removeItem(at: tempURL)
                     return true
                 }
             }
@@ -1218,13 +1128,6 @@ final class RecordingCoordinator {
             automaticClipboardCopyState[tempURL] = RecordingClipboardState(copiedFileURL: clipboardURL)
         }
         return copied
-    }
-
-    private func waitForUploadStagingThenDeleteSource(_ tempURL: URL) async {
-        if let sourceTask = automaticUploadSourceTasks[tempURL] {
-            _ = await sourceTask.value
-        }
-        try? FileManager.default.removeItem(at: tempURL)
     }
 
     // MARK: - UI Helpers
@@ -1421,44 +1324,6 @@ final class RecordingCoordinator {
         borderWindow?.show()
     }
 
-    private func showCameraPiP(restorationState: CameraPiPRestorationState? = nil) {
-        // Close existing PiP first to prevent duplicates
-        cameraPiPWindow?.orderOut(nil)
-        cameraPiPWindow?.close()
-        cameraPiPWindow = nil
-
-        cameraPiPWindow = CameraPiPWindow(
-            cameraManager: cameraManager,
-            settings: settings,
-            recordingFrame: appKitRecordingFrame(),
-            restorationState: restorationState
-        )
-        cameraPiPWindow?.show()
-    }
-
-    private func showCameraPermissionDeniedAlert() {
-        let shouldRestoreToolbar = toolbarWindow?.isVisible == true
-        toolbarWindow?.orderOut(nil)
-
-        let alert = NSAlert()
-        alert.alertStyle = .warning
-        alert.messageText = String(localized: "Camera Access Needed")
-        alert.informativeText = String(localized: "Camera access is turned off. Enable Capso in System Settings > Privacy & Security > Camera, then try again.")
-        alert.addButton(withTitle: String(localized: "Open Camera Settings"))
-        alert.addButton(withTitle: String(localized: "Cancel"))
-        alert.window.level = .screenSaver + 2
-
-        let response = alert.runModal()
-        if shouldRestoreToolbar {
-            toolbarWindow?.show()
-        }
-        guard response == .alertFirstButtonReturn,
-              let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") else {
-            return
-        }
-        NSWorkspace.shared.open(url)
-    }
-
     private func hideRecordingUI() {
         stopClickHighlight()
         stopKeyPressOverlay()
@@ -1470,110 +1335,5 @@ final class RecordingCoordinator {
         dismissAudioWarning()
         borderWindow?.hide()
         borderWindow = nil
-        // Force PiP window off screen before closing
-        cameraPiPWindow?.orderOut(nil)
-        cameraPiPWindow?.close()
-        cameraPiPWindow = nil
-        cameraManager.stop()
-    }
-
-    private func saveRecordingToHistory(
-        url: URL,
-        format: RecordingKit.RecordingFormat,
-        entryID: UUID,
-        cursorTelemetryURL: URL? = nil,
-        info: HistoryRecordingInfo? = nil
-    ) {
-        guard let historyCoordinator else { return }
-        let mode: HistoryCaptureMode = format == .gif ? .gif : .recording
-        historyCoordinator.saveRecording(
-            url: url,
-            mode: mode,
-            entryID: entryID,
-            cursorTelemetryURL: cursorTelemetryURL,
-            info: info
-        )
-    }
-
-    /// Reopens a recording saved in history in the editor.
-    func openEditor(for source: HistoryRecordingSource) {
-        openEditor(
-            tempURL: source.videoURL,
-            cursorTelemetryURL: source.cursorTelemetryURL,
-            showsCursor: source.info?.showsCursor ?? true,
-            recordingAreaSize: source.info.map { CGSize(width: $0.recordingAreaWidth, height: $0.recordingAreaHeight) } ?? .zero,
-            outputFormat: source.mode == .gif ? .gif : .mp4
-        )
-    }
-
-    private func startAutomaticUploadIfNeeded(
-        url: URL,
-        format: RecordingKit.RecordingFormat,
-        entryID: UUID
-    ) {
-        guard settings.cloudShareAutoUploadEnabled,
-              let historyCoordinator,
-              historyCoordinator.shareCoordinator != nil else {
-            return
-        }
-
-        let mode: HistoryCaptureMode = format == .gif ? .gif : .recording
-        let sourceTask = Task.detached(priority: .utility) { () -> URL? in
-            let stagedURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString)
-                .appendingPathExtension(url.pathExtension)
-            do {
-                try FileManager.default.linkItem(at: url, to: stagedURL)
-                return stagedURL
-            } catch {
-                do {
-                    try FileManager.default.copyItem(at: url, to: stagedURL)
-                    return stagedURL
-                } catch {
-                    return nil
-                }
-            }
-        }
-        automaticUploadSourceTasks[url] = sourceTask
-
-        Task { [weak self] in
-            defer { self?.automaticUploadSourceTasks[url] = nil }
-            guard let self else { return }
-            guard let stagedURL = await sourceTask.value else {
-                CaptureCoordinator.postNotification(
-                    title: String(localized: "Cloud share failed"),
-                    body: String(localized: "Couldn't prepare recording for upload.")
-                )
-                return
-            }
-            defer { try? FileManager.default.removeItem(at: stagedURL) }
-
-            do {
-                let cloudURL = try await historyCoordinator.uploadRecording(
-                    url: stagedURL,
-                    mode: mode,
-                    entryID: entryID
-                )
-                if let copyTask = automaticClipboardCopyTasks[url] {
-                    _ = await copyTask.value
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(cloudURL.absoluteString, forType: .string)
-                }
-                CaptureCoordinator.postNotification(
-                    title: String(localized: "Cloud share ready"),
-                    body: String(localized: "Link copied to clipboard.")
-                )
-            } catch let error as ShareError {
-                CaptureCoordinator.postNotification(
-                    title: String(localized: "Cloud share failed"),
-                    body: CaptureCoordinator.humanizeShareError(error)
-                )
-            } catch {
-                CaptureCoordinator.postNotification(
-                    title: String(localized: "Cloud share failed"),
-                    body: error.localizedDescription
-                )
-            }
-        }
     }
 }

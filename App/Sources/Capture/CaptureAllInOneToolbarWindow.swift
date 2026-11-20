@@ -653,7 +653,9 @@ private final class CaptureAllInOneToolbarState {
 
         var itemHeights: [CGFloat] = []
         if !isCompact || showsOverflow {
-            itemHeights += Array(repeating: rowHeight, count: 7)
+            itemHeights += Array(repeating: rowHeight, count: 5)
+            if FeatureFlags.scrollingCapture { itemHeights.append(rowHeight) }
+            if FeatureFlags.screenRecording { itemHeights.append(rowHeight) }
             itemHeights.append(dividerHeight)
             itemHeights.append(presetHeight)
         }
@@ -719,10 +721,14 @@ private struct CaptureAllInOneToolbarView: View {
                 modeButton(.area, icon: "viewfinder", title: "Area", action: onArea)
                 modeButton(.fullscreen, icon: "display", title: "Fullscreen", action: onFullscreen)
                 modeButton(.window, icon: "macwindow", title: "Window", action: onWindow)
-                modeButton(.scrolling, icon: "arrow.down.to.line.compact", title: "Scrolling", action: onScrolling)
+                if FeatureFlags.scrollingCapture {
+                    modeButton(.scrolling, icon: "arrow.down.to.line.compact", title: "Scrolling", action: onScrolling)
+                }
                 modeButton(.timer, icon: "timer", title: "Timer", action: onTimer)
                 modeButton(.ocr, textIcon: "Aa", title: "OCR", action: onOCR)
-                modeButton(.recording, icon: "video", title: "Recording", action: onRecording)
+                if FeatureFlags.screenRecording {
+                    modeButton(.recording, icon: "video", title: "Recording", action: onRecording)
+                }
             }
 
             divider
@@ -759,10 +765,14 @@ private struct CaptureAllInOneToolbarView: View {
                 railActionButton(.area, icon: "viewfinder", title: "Area", label: String(localized: "Area"), action: onArea)
                 railActionButton(.fullscreen, icon: "display", title: "Fullscreen", label: String(localized: "Full"), action: onFullscreen)
                 railActionButton(.window, icon: "macwindow", title: "Window", label: String(localized: "Window"), action: onWindow)
-                railActionButton(.scrolling, icon: "arrow.down.to.line.compact", title: "Scrolling", label: String(localized: "Scroll"), action: onScrolling)
+                if FeatureFlags.scrollingCapture {
+                    railActionButton(.scrolling, icon: "arrow.down.to.line.compact", title: "Scrolling", label: String(localized: "Scroll"), action: onScrolling)
+                }
                 railActionButton(.timer, icon: "timer", title: "Timer", label: String(localized: "Timer"), action: onTimer)
                 railActionButton(.ocr, textIcon: "Aa", title: "OCR", label: String(localized: "OCR"), action: onOCR)
-                railActionButton(.recording, icon: "video", title: "Recording", label: String(localized: "Record"), action: onRecording)
+                if FeatureFlags.screenRecording {
+                    railActionButton(.recording, icon: "video", title: "Recording", label: String(localized: "Record"), action: onRecording)
+                }
 
                 railDivider
             }

@@ -8,7 +8,6 @@ public enum PermissionKind: String, CaseIterable, Sendable {
     case screenRecording
     case accessibility
     case inputMonitoring
-    case camera
     case microphone
 
     public var settingsURL: URL {
@@ -20,8 +19,6 @@ public enum PermissionKind: String, CaseIterable, Sendable {
         case .inputMonitoring:
             // Input Monitoring pane (ListenEvent) — required for global keystroke visualizer.
             return URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent")!
-        case .camera:
-            return URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera")!
         case .microphone:
             return URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")!
         }
@@ -32,7 +29,6 @@ public enum PermissionKind: String, CaseIterable, Sendable {
 @MainActor
 public final class PermissionManager {
     public private(set) var screenRecordingGranted: Bool = false
-    public private(set) var cameraGranted: Bool = false
     public private(set) var microphoneGranted: Bool = false
     public private(set) var accessibilityGranted: Bool = false
     public private(set) var inputMonitoringGranted: Bool = false
@@ -43,7 +39,6 @@ public final class PermissionManager {
         await checkScreenRecordingPermission()
         checkAccessibilityPermission()
         checkInputMonitoringPermission()
-        checkCameraPermission()
         checkMicrophonePermission()
     }
 
@@ -55,24 +50,6 @@ public final class PermissionManager {
             screenRecordingGranted = true
         } catch {
             screenRecordingGranted = false
-        }
-    }
-
-    // MARK: - Camera
-
-    public func checkCameraPermission() {
-        cameraGranted = AVCaptureDevice.authorizationStatus(for: .video) == .authorized
-    }
-
-    public func requestCameraPermission() async {
-        let status = AVCaptureDevice.authorizationStatus(for: .video)
-        switch status {
-        case .authorized:
-            cameraGranted = true
-        case .notDetermined:
-            cameraGranted = await AVCaptureDevice.requestAccess(for: .video)
-        default:
-            cameraGranted = false
         }
     }
 
@@ -131,10 +108,6 @@ public final class PermissionManager {
 
     public func openScreenRecordingSettings() {
         openSettings(for: .screenRecording)
-    }
-
-    public func openCameraSettings() {
-        openSettings(for: .camera)
     }
 
     public func openMicrophoneSettings() {

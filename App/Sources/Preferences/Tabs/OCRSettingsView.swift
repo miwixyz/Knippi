@@ -2,19 +2,14 @@
 import SwiftUI
 import Vision
 import SharedKit
-import TranslationKit
 
-struct TextAndTranslationSettingsView: View {
+struct OCRSettingsView: View {
     @Bindable var viewModel: PreferencesViewModel
     @State private var supportedLanguages: [(code: String, name: String)] = []
-    @State private var translationLanguages: [(code: String, name: String)] = LanguagePreference.sortedLanguages()
-    @State private var providerAPIKey: String = ""
-    @State private var providerStatusMessage: String?
-    @State private var isTestingProvider = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Text & Translation")
+            Text("Text Recognition")
                 .font(.system(size: 20, weight: .bold))
 
             SettingGroup(title: "Text Recognition") {
@@ -28,99 +23,6 @@ struct TextAndTranslationSettingsView: View {
                         Toggle("", isOn: $viewModel.ocrDetectLinks)
                             .toggleStyle(.switch)
                             .controlSize(.small)
-                    }
-                }
-            }
-
-            SettingGroup(title: "Translation") {
-                SettingCard {
-                    SettingRow(label: "Target Language", sublabel: "Language to translate text into") {
-                        Picker("", selection: $viewModel.translationTargetLanguage) {
-                            ForEach(translationLanguages, id: \.code) { lang in
-                                Text(lang.name).tag(lang.code)
-                            }
-                        }
-                        .frame(width: 180)
-                    }
-                    SettingRow(
-                        label: "Provider",
-                        sublabel: LocalizedStringKey(viewModel.translationProvider.connectionSummary),
-                        showDivider: true
-                    ) {
-                        Picker("", selection: $viewModel.translationProvider) {
-                            ForEach(TranslationProviderKind.allCases, id: \.rawValue) { provider in
-                                Text(provider.displayName).tag(provider)
-                            }
-                        }
-                        .frame(width: 180)
-                        .onChange(of: viewModel.translationProvider) { _, _ in
-                            loadProviderAPIKey()
-                        }
-                    }
-                    if viewModel.translationProvider.requiresAPIKey {
-                        SettingRow(label: "API Key", sublabel: "Stored in Keychain", showDivider: true) {
-                            HStack(spacing: 8) {
-                                SecureField("API Key", text: $providerAPIKey)
-                                    .textFieldStyle(.roundedBorder)
-                                    .frame(width: 180)
-                                    .onSubmit(saveProviderAPIKey)
-                                Button(action: saveProviderAPIKey) {
-                                    Image(systemName: "checkmark")
-                                }
-                                .buttonStyle(.borderless)
-                                .help("Save API key")
-                            }
-                        }
-                        if viewModel.translationProvider.supportsEndpoint {
-                            SettingRow(label: "Endpoint", sublabel: "Leave empty to use the provider default", showDivider: true) {
-                                TextField("", text: $viewModel.translationProviderEndpoint)
-                                    .textFieldStyle(.roundedBorder)
-                                    .frame(width: 260)
-                            }
-                        }
-                        if viewModel.translationProvider.supportsModel {
-                            SettingRow(label: "Model", sublabel: "Leave empty to use the provider default", showDivider: true) {
-                                TextField("", text: $viewModel.translationProviderModel)
-                                    .textFieldStyle(.roundedBorder)
-                                    .frame(width: 180)
-                            }
-                        }
-                        SettingRow(label: "Connection", sublabel: "Verify the current provider settings", showDivider: true) {
-                            HStack(spacing: 8) {
-                                if isTestingProvider {
-                                    ProgressView()
-                                        .controlSize(.small)
-                                }
-                                Button(action: testProviderConnection) {
-                                    Label("Test Connection", systemImage: "network")
-                                }
-                                .controlSize(.small)
-                                .disabled(isTestingProvider)
-                            }
-                        }
-                    }
-                    if let providerStatusMessage {
-                        SettingRow(label: LocalizedStringKey(providerStatusMessage), showDivider: true) {
-                            EmptyView()
-                        }
-                    }
-                    SettingRow(label: "Auto-Copy Translation", sublabel: "Copy result to clipboard automatically") {
-                        Toggle("", isOn: $viewModel.translationAutoCopy)
-                            .toggleStyle(.switch)
-                            .controlSize(.small)
-                    }
-                    SettingRow(label: "Show Original Text", sublabel: "Display source text alongside translation") {
-                        Toggle("", isOn: $viewModel.translationShowOriginal)
-                            .toggleStyle(.switch)
-                            .controlSize(.small)
-                    }
-                    SettingRow(label: "Auto-Dismiss", sublabel: "When to close the translation panel", showDivider: true) {
-                        Picker("", selection: $viewModel.translationAutoDismiss) {
-                            Text("Manual").tag(TranslationAutoDismiss.manual)
-                            Text("Click outside").tag(TranslationAutoDismiss.clickOutside)
-                            Text("After delay").tag(TranslationAutoDismiss.afterDelay)
-                        }
-                        .frame(width: 140)
                     }
                 }
             }
@@ -148,49 +50,8 @@ struct TextAndTranslationSettingsView: View {
             //     }
             // }
         }
-        .task {
-            let codes = await LanguagePreference.loadSupportedLanguageCodes()
-            translationLanguages = LanguagePreference.sortedLanguages(from: codes)
-        }
         .onAppear {
-            loadProviderAPIKey()
             // loadSupportedLanguages()
-        }
-    }
-
-    private func loadProviderAPIKey() {
-        providerAPIKey = viewModel.translationAPIKey()
-        providerStatusMessage = nil
-    }
-
-    private func saveProviderAPIKey() {
-        do {
-            try viewModel.setTranslationAPIKey(providerAPIKey)
-            providerStatusMessage = providerAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                ? "API key cleared"
-                : "API key saved"
-        } catch {
-            providerStatusMessage = "API key could not be saved"
-        }
-    }
-
-    private func testProviderConnection() {
-        isTestingProvider = true
-        providerStatusMessage = nil
-        Task {
-            do {
-                try viewModel.setTranslationAPIKey(providerAPIKey)
-                try await viewModel.testTranslationProviderConnection()
-                await MainActor.run {
-                    providerStatusMessage = "Connection succeeded"
-                    isTestingProvider = false
-                }
-            } catch {
-                await MainActor.run {
-                    providerStatusMessage = "Connection failed: \(error.localizedDescription)"
-                    isTestingProvider = false
-                }
-            }
         }
     }
 

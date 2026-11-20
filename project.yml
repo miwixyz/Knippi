@@ -29,22 +29,16 @@ packages:
     path: Packages/CaptureKit
   RecordingKit:
     path: Packages/RecordingKit
-  CameraKit:
-    path: Packages/CameraKit
   AnnotationKit:
     path: Packages/AnnotationKit
   OCRKit:
     path: Packages/OCRKit
-  TranslationKit:
-    path: Packages/TranslationKit
   ExportKit:
     path: Packages/ExportKit
   EffectsKit:
     path: Packages/EffectsKit
   EditorKit:
     path: Packages/EditorKit
-  HistoryKit:
-    path: Packages/HistoryKit
   ShareKit:
     path: Packages/ShareKit
   KeyboardShortcuts:
@@ -83,14 +77,11 @@ targets:
       - package: SharedKit
       - package: CaptureKit
       - package: RecordingKit
-      - package: CameraKit
       - package: AnnotationKit
       - package: OCRKit
-      - package: TranslationKit
       - package: ExportKit
       - package: EffectsKit
       - package: EditorKit
-      - package: HistoryKit
       - package: ShareKit
       - package: KeyboardShortcuts
       - package: Defaults
@@ -99,7 +90,6 @@ targets:
     entitlements:
       path: App/Entitlements/Capso.entitlements
       properties:
-        com.apple.security.device.camera: true
         com.apple.security.device.audio-input: true
         com.apple.security.network.client: true
 

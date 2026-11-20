@@ -16,12 +16,8 @@ public enum AutomationURLAction: Equatable, Sendable {
     case editClipboardImage
     case openImageFile
     case captureOCR
-    case captureAndTranslate
-    case translateSelectedText
-    case translateTypedText
     case recordArea
     case recordFullscreen
-    case openHistory
     case openPreferences
     case hideDesktopIcons
     case showDesktopIcons
@@ -55,12 +51,8 @@ public enum AutomationURLAction: Equatable, Sendable {
         case "/edit-clipboard", "/edit-clipboard-image": self = .editClipboardImage
         case "/open-image", "/open-image-file": self = .openImageFile
         case "/ocr", "/text", "/capture-text": self = .captureOCR
-        case "/translate", "/capture-and-translate": self = .captureAndTranslate
-        case "/translate-selection", "/translate-selected-text": self = .translateSelectedText
-        case "/translate-text", "/translate-typed-text": self = .translateTypedText
         case "/record", "/record-area", "/record-screen": self = .recordArea
         case "/record-fullscreen", "/record-full-screen": self = .recordFullscreen
-        case "/history", "/screenshot-history": self = .openHistory
         case "/preferences", "/settings": self = .openPreferences
         case "/hide-desktop-icons": self = .hideDesktopIcons
         case "/show-desktop-icons": self = .showDesktopIcons

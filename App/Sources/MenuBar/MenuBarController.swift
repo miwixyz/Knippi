@@ -15,18 +15,14 @@ final class MenuBarController: NSObject {
     private let captureCoordinator: CaptureCoordinator
     private let recordingCoordinator: RecordingCoordinator
     private let ocrCoordinator: OCRCoordinator
-    private let translationCoordinator: TranslationCoordinator
-    private let historyCoordinator: HistoryCoordinator
     private let desktopIconsCover: DesktopIconsCover
     private let onShowPreferences: () -> Void
 
-    init(settings: AppSettings, captureCoordinator: CaptureCoordinator, recordingCoordinator: RecordingCoordinator, ocrCoordinator: OCRCoordinator, translationCoordinator: TranslationCoordinator, historyCoordinator: HistoryCoordinator, desktopIconsCover: DesktopIconsCover, onShowPreferences: @escaping () -> Void) {
+    init(settings: AppSettings, captureCoordinator: CaptureCoordinator, recordingCoordinator: RecordingCoordinator, ocrCoordinator: OCRCoordinator, desktopIconsCover: DesktopIconsCover, onShowPreferences: @escaping () -> Void) {
         self.settings = settings
         self.captureCoordinator = captureCoordinator
         self.recordingCoordinator = recordingCoordinator
         self.ocrCoordinator = ocrCoordinator
-        self.translationCoordinator = translationCoordinator
-        self.historyCoordinator = historyCoordinator
         self.desktopIconsCover = desktopIconsCover
         self.onShowPreferences = onShowPreferences
         super.init()
@@ -117,42 +113,29 @@ final class MenuBarController: NSObject {
         captureText.setShortcut(for: .captureText)
         menu.addItem(captureText)
 
-        let captureAndTranslate = menuItem(String(localized: "Capture & Translate"), action: #selector(self.captureAndTranslate))
-        captureAndTranslate.setShortcut(for: .captureAndTranslate)
-        menu.addItem(captureAndTranslate)
-
-        let translateSelectedText = menuItem(String(localized: "Translate Selected Text"), action: #selector(self.translateSelectedText))
-        translateSelectedText.setShortcut(for: .translateSelectedText)
-        menu.addItem(translateSelectedText)
-
-        let translateTypedText = menuItem(String(localized: "Translate Typed Text"), action: #selector(self.translateTypedText))
-        translateTypedText.setShortcut(for: .translateTypedText)
-        menu.addItem(translateTypedText)
-
-        let captureScrolling = menuItem(String(localized: "Scrolling Capture"), action: #selector(captureScrolling))
-        captureScrolling.setShortcut(for: .captureScrolling)
-        menu.addItem(captureScrolling)
+        if FeatureFlags.scrollingCapture {
+            let captureScrolling = menuItem(String(localized: "Scrolling Capture"), action: #selector(captureScrolling))
+            captureScrolling.setShortcut(for: .captureScrolling)
+            menu.addItem(captureScrolling)
+        }
 
         let selfTimer = selfTimerMenuItem()
         menu.addItem(selfTimer)
 
+        if FeatureFlags.screenRecording {
+            menu.addItem(.separator())
+
+            let recordArea = menuItem(String(localized: "Record Area"), action: #selector(recordArea))
+            recordArea.setShortcut(for: .recordScreen)
+            menu.addItem(recordArea)
+
+            let recordFullscreen = menuItem(String(localized: "Record Full Screen"), action: #selector(recordFullscreen))
+            recordFullscreen.setShortcut(for: .recordFullscreen)
+            menu.addItem(recordFullscreen)
+        }
+
         menu.addItem(.separator())
 
-        let recordArea = menuItem(String(localized: "Record Area"), action: #selector(recordArea))
-        recordArea.setShortcut(for: .recordScreen)
-        menu.addItem(recordArea)
-
-        let recordFullscreen = menuItem(String(localized: "Record Full Screen"), action: #selector(recordFullscreen))
-        recordFullscreen.setShortcut(for: .recordFullscreen)
-        menu.addItem(recordFullscreen)
-
-        menu.addItem(cameraPiPMenuItem())
-
-        menu.addItem(.separator())
-
-        let screenshotHistory = menuItem(String(localized: "Screenshot History..."), action: #selector(openHistory))
-        screenshotHistory.setShortcut(for: .screenshotHistory)
-        menu.addItem(screenshotHistory)
         menu.addItem(menuItem(String(localized: "Hide Desktop Icons"), action: #selector(toggleDesktopIcons)))
         menu.addItem(.separator())
 
@@ -169,59 +152,6 @@ final class MenuBarController: NSObject {
         item.keyEquivalentModifierMask = modifiers
         item.target = self
         return item
-    }
-
-    /// Submenu for camera PiP interaction options (fade / click-through).
-    /// Kept in the status-item menu so users can disable click-through without opening Preferences
-    /// (click-through blocks dragging the PiP while active).
-    private func cameraPiPMenuItem() -> NSMenuItem {
-        let item = NSMenuItem(title: String(localized: "Camera PiP"), action: nil, keyEquivalent: "")
-        let submenu = NSMenu()
-
-        let fadeItem = NSMenuItem(
-            title: String(localized: "Fade on Hover"),
-            action: #selector(toggleCameraPiPFadeOnHover),
-            keyEquivalent: ""
-        )
-        fadeItem.target = self
-        fadeItem.state = settings.cameraPiPFadeOnHover ? .on : .off
-        submenu.addItem(fadeItem)
-
-        let clickThroughItem = NSMenuItem(
-            title: String(localized: "Click Through PiP"),
-            action: #selector(toggleCameraPiPClickThrough),
-            keyEquivalent: ""
-        )
-        clickThroughItem.target = self
-        clickThroughItem.state = settings.cameraPiPClickThrough ? .on : .off
-        submenu.addItem(clickThroughItem)
-
-        item.submenu = submenu
-        return item
-    }
-
-    private func refreshCameraPiPMenuItems(in menu: NSMenu) {
-        for item in menu.items {
-            if let submenu = item.submenu {
-                refreshCameraPiPMenuItems(in: submenu)
-            }
-            switch item.action {
-            case #selector(toggleCameraPiPFadeOnHover):
-                item.state = settings.cameraPiPFadeOnHover ? .on : .off
-            case #selector(toggleCameraPiPClickThrough):
-                item.state = settings.cameraPiPClickThrough ? .on : .off
-            default:
-                break
-            }
-        }
-    }
-
-    @objc private func toggleCameraPiPFadeOnHover() {
-        settings.cameraPiPFadeOnHover.toggle()
-    }
-
-    @objc private func toggleCameraPiPClickThrough() {
-        settings.cameraPiPClickThrough.toggle()
     }
 
     /// Self-Timer menu row. Title is "Self-Timer" with the saved duration
@@ -284,18 +214,6 @@ final class MenuBarController: NSObject {
         ocrCoordinator.startInstantOCR()
     }
 
-    @objc private func captureAndTranslate() {
-        translationCoordinator.startCaptureAndTranslate()
-    }
-
-    @objc private func translateSelectedText() {
-        translationCoordinator.translateSelectedText()
-    }
-
-    @objc private func translateTypedText() {
-        translationCoordinator.translateTypedText()
-    }
-
     @objc private func captureScrolling() {
         captureCoordinator.captureScrolling()
     }
@@ -310,10 +228,6 @@ final class MenuBarController: NSObject {
 
     @objc private func recordFullscreen() {
         recordingCoordinator.startFullScreenRecordingFlow()
-    }
-
-    @objc private func openHistory() {
-        historyCoordinator.showWindow()
     }
 
     @objc private func openPreferences() {
@@ -374,19 +288,14 @@ extension MenuBarController: NSMenuDelegate {
             case #selector(pinFromClipboard): item.setShortcut(for: .pinFromClipboard)
             case #selector(editClipboardImage): item.setShortcut(for: .editClipboardImage)
             case #selector(captureText): item.setShortcut(for: .captureText)
-            case #selector(captureAndTranslate): item.setShortcut(for: .captureAndTranslate)
-            case #selector(translateSelectedText): item.setShortcut(for: .translateSelectedText)
-            case #selector(translateTypedText): item.setShortcut(for: .translateTypedText)
             case #selector(recordArea): item.setShortcut(for: .recordScreen)
             case #selector(recordFullscreen): item.setShortcut(for: .recordFullscreen)
             case #selector(captureScrolling): item.setShortcut(for: .captureScrolling)
             case #selector(captureSelfTimer):
                 item.setShortcut(for: .selfTimerCapture)
                 refreshSelfTimerTitle(item)
-            case #selector(openHistory): item.setShortcut(for: .screenshotHistory)
             default: break
             }
         }
-        refreshCameraPiPMenuItems(in: menu)
     }
 }

@@ -23,8 +23,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var recordingCoordinator: RecordingCoordinator?
     let desktopIconsCover = DesktopIconsCover()
     private(set) var ocrCoordinator: OCRCoordinator?
-    private(set) var translationCoordinator: TranslationCoordinator?
-    private(set) var historyCoordinator: HistoryCoordinator?
     private(set) var shareCoordinator: ShareCoordinator?
     private var preferencesWindow: PreferencesWindow?
     private var dockPresenceController: DockPresenceController?
@@ -75,19 +73,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         captureCoordinator = CaptureCoordinator(settings: settings)
         recordingCoordinator = RecordingCoordinator(settings: settings)
         ocrCoordinator = OCRCoordinator(settings: settings)
-        translationCoordinator = TranslationCoordinator(settings: settings)
-        historyCoordinator = HistoryCoordinator(settings: settings)
         shareCoordinator = makeShareCoordinator(settings: settings)
         captureCoordinator!.ocrCoordinator = ocrCoordinator
-        captureCoordinator!.translationCoordinator = translationCoordinator
         captureCoordinator!.recordingCoordinator = recordingCoordinator
-        captureCoordinator!.historyCoordinator = historyCoordinator
         captureCoordinator!.shareCoordinator = shareCoordinator
-        historyCoordinator!.shareCoordinator = shareCoordinator
-        recordingCoordinator!.historyCoordinator = historyCoordinator
-        historyCoordinator!.onEditRecording = { [weak recordingCoordinator] source in
-            recordingCoordinator?.openEditor(for: source)
-        }
         recordingCoordinator!.desktopIconsCover = desktopIconsCover
         recordingCoordinator!.recoverInterruptedRecording()
         preferencesWindow = PreferencesWindow(settings: settings, permissionManager: permissionManager, updateManager: updateManager)
@@ -103,15 +92,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             captureCoordinator: captureCoordinator!,
             recordingCoordinator: recordingCoordinator!,
             ocrCoordinator: ocrCoordinator!,
-            translationCoordinator: translationCoordinator!,
-            historyCoordinator: historyCoordinator!,
             desktopIconsCover: desktopIconsCover,
             onShowPreferences: { [weak self] in self?.showPreferences() }
         )
         registerGlobalShortcuts()
         performPendingAutomationURLAction()
         performPendingImageFileOpen()
-        historyCoordinator?.runCleanup()
 
         NotificationCenter.default.addObserver(
             forName: .openScreenshotSettings,
@@ -154,14 +140,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             KeyboardShortcuts.reset(.captureArea, .captureFullscreen, .captureWindow, .captureText, .recordScreen)
             UserDefaults.standard.set(true, forKey: migrationKey)
         }
-
-        let translationMigrationKey = "captureAndTranslateShortcutMigratedToOptionShift"
-        guard !UserDefaults.standard.bool(forKey: translationMigrationKey) else { return }
-        let oldDefault = KeyboardShortcuts.Shortcut(.t, modifiers: [.command, .shift])
-        if KeyboardShortcuts.getShortcut(for: .captureAndTranslate) == oldDefault {
-            KeyboardShortcuts.reset(.captureAndTranslate)
-        }
-        UserDefaults.standard.set(true, forKey: translationMigrationKey)
     }
 
     private func registerGlobalShortcuts() {
@@ -180,14 +158,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         KeyboardShortcuts.onKeyDown(for: .captureText) { [weak self] in
             self?.ocrCoordinator?.startInstantOCR()
         }
-        KeyboardShortcuts.onKeyDown(for: .recordScreen) { [weak self] in
-            self?.recordingCoordinator?.startRecordingFlow()
+        if FeatureFlags.screenRecording {
+            KeyboardShortcuts.onKeyDown(for: .recordScreen) { [weak self] in
+                self?.recordingCoordinator?.startRecordingFlow()
+            }
+            KeyboardShortcuts.onKeyDown(for: .recordFullscreen) { [weak self] in
+                self?.recordingCoordinator?.startFullScreenRecordingFlow()
+            }
         }
-        KeyboardShortcuts.onKeyDown(for: .recordFullscreen) { [weak self] in
-            self?.recordingCoordinator?.startFullScreenRecordingFlow()
-        }
-        KeyboardShortcuts.onKeyDown(for: .captureScrolling) { [weak self] in
-            self?.captureCoordinator?.captureScrolling()
+        if FeatureFlags.scrollingCapture {
+            KeyboardShortcuts.onKeyDown(for: .captureScrolling) { [weak self] in
+                self?.captureCoordinator?.captureScrolling()
+            }
         }
         KeyboardShortcuts.onKeyDown(for: .selfTimerCapture) { [weak self] in
             self?.captureCoordinator?.captureAreaWithSelfTimer()
@@ -215,27 +197,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         KeyboardShortcuts.onKeyDown(for: .captureLastArea) { [weak self] in
             self?.captureCoordinator?.replayLastCapture()
-        }
-        KeyboardShortcuts.onKeyDown(for: .screenshotHistory) { [weak self] in
-            self?.historyCoordinator?.toggleWindow()
-        }
-        KeyboardShortcuts.onKeyDown(for: .captureAndTranslate) { [weak self] in
-            guard let self else { return }
-            // If the user pressed the global Translate shortcut while a Quick
-            // Access panel has focus
-            // (hovered / clicked), translate THAT capture rather than
-            // starting a brand-new capture flow. The global hotkey otherwise
-            // always wins over the panel's local `.keyboardShortcut`.
-            if self.captureCoordinator?.invokeQuickAccessTranslateIfKey() == true {
-                return
-            }
-            self.translationCoordinator?.startCaptureAndTranslate()
-        }
-        KeyboardShortcuts.onKeyDown(for: .translateSelectedText) { [weak self] in
-            self?.translationCoordinator?.translateSelectedText()
-        }
-        KeyboardShortcuts.onKeyDown(for: .translateTypedText) { [weak self] in
-            self?.translationCoordinator?.translateTypedText()
         }
     }
 
@@ -313,6 +274,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .captureAllInOne:
             captureCoordinator.captureAllInOne()
         case .captureScrolling:
+            guard FeatureFlags.scrollingCapture else {
+                showFeatureUnavailableNotice(action)
+                return
+            }
             captureCoordinator.captureScrolling()
         case .captureSelfTimer:
             captureCoordinator.captureAreaWithSelfTimer()
@@ -335,18 +300,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             captureCoordinator.openImageFilesWithPanel()
         case .captureOCR:
             ocrCoordinator?.startInstantOCR()
-        case .captureAndTranslate:
-            translationCoordinator?.startCaptureAndTranslate()
-        case .translateSelectedText:
-            translationCoordinator?.translateSelectedText()
-        case .translateTypedText:
-            translationCoordinator?.translateTypedText()
-        case .recordArea:
-            recordingCoordinator?.startRecordingFlow()
-        case .recordFullscreen:
-            recordingCoordinator?.startFullScreenRecordingFlow()
-        case .openHistory:
-            historyCoordinator?.showWindow()
+        case .recordArea, .recordFullscreen:
+            guard FeatureFlags.screenRecording else {
+                showFeatureUnavailableNotice(action)
+                return
+            }
+            if action == .recordArea {
+                recordingCoordinator?.startRecordingFlow()
+            } else {
+                recordingCoordinator?.startFullScreenRecordingFlow()
+            }
         case .openPreferences:
             showPreferences()
         case .hideDesktopIcons:
@@ -357,6 +320,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             desktopIconsCover.setHiddenManually(!desktopIconsCover.isHiddenManually)
         }
         logAutomationURL("Performed action \(String(describing: action))")
+    }
+
+    private var featureUnavailableToast: ToastWindow?
+
+    /// Automation-Befehl für eine in Phase 1 ausgeblendete Funktion: sichtbar ablehnen statt still nichts zu tun.
+    private func showFeatureUnavailableNotice(_ action: AutomationURLAction) {
+        logAutomationURL("Rejected hidden feature \(String(describing: action))")
+        featureUnavailableToast?.orderOut(nil)
+        featureUnavailableToast = ToastWindow(
+            message: "Diese Funktion ist in dieser Version nicht verfügbar.",
+            icon: "exclamationmark.triangle.fill",
+            iconColor: .systemOrange
+        )
+        featureUnavailableToast?.show(autoDismissAfter: 3)
     }
 
     private func logAutomationURL(_ message: String) {
@@ -385,7 +362,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func refreshShareCoordinator() {
         shareCoordinator = makeShareCoordinator(settings: settings)
         captureCoordinator?.shareCoordinator = shareCoordinator
-        historyCoordinator?.shareCoordinator = shareCoordinator
     }
 
     private func makeShareCoordinator(settings: AppSettings) -> ShareCoordinator? {

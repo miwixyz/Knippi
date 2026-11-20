@@ -1,6 +1,7 @@
 // App/Sources/Preferences/Components/AutomationURLsSheetView.swift
 import SwiftUI
 import AppKit
+import SharedKit
 
 struct AutomationCommandItem: Identifiable {
     let id: String
@@ -12,6 +13,17 @@ struct AutomationCommandSection: Identifiable {
     let id: String
     let title: LocalizedStringKey
     let items: [AutomationCommandItem]
+
+    /// Drops commands for features hidden in phase 1, then empty sections.
+    static func visible(_ sections: [AutomationCommandSection]) -> [AutomationCommandSection] {
+        var hidden: Set<String> = []
+        if !FeatureFlags.scrollingCapture { hidden.insert("scrolling") }
+        if !FeatureFlags.screenRecording { hidden.formUnion(["record", "record-fullscreen"]) }
+        return sections.compactMap { section in
+            let items = section.items.filter { !hidden.contains($0.id) }
+            return items.isEmpty ? nil : AutomationCommandSection(id: section.id, title: section.title, items: items)
+        }
+    }
 }
 
 struct AutomationURLsSheetView: View {
@@ -19,7 +31,7 @@ struct AutomationURLsSheetView: View {
     @State private var copiedURL: String? = nil
     @State private var copiedAll = false
 
-    private let sections: [AutomationCommandSection] = [
+    private let sections: [AutomationCommandSection] = AutomationCommandSection.visible([
         AutomationCommandSection(
             id: "screenshots",
             title: "Screenshots",
@@ -47,13 +59,10 @@ struct AutomationURLsSheetView: View {
             ]
         ),
         AutomationCommandSection(
-            id: "ocr-translation",
-            title: "Text & Translation",
+            id: "ocr",
+            title: "Text Recognition",
             items: [
-                AutomationCommandItem(id: "ocr", name: "Capture Text (OCR)", urlString: "capso://grab/ocr"),
-                AutomationCommandItem(id: "translate", name: "Capture & Translate", urlString: "capso://grab/translate"),
-                AutomationCommandItem(id: "translate-selection", name: "Translate Selected Text", urlString: "capso://grab/translate-selection"),
-                AutomationCommandItem(id: "translate-text", name: "Translate Typed Text", urlString: "capso://grab/translate-text")
+                AutomationCommandItem(id: "ocr", name: "Capture Text (OCR)", urlString: "capso://grab/ocr")
             ]
         ),
         AutomationCommandSection(
@@ -74,14 +83,13 @@ struct AutomationURLsSheetView: View {
             ]
         ),
         AutomationCommandSection(
-            id: "app-history",
-            title: "History & Settings",
+            id: "settings",
+            title: "Settings",
             items: [
-                AutomationCommandItem(id: "history", name: "Screenshot History", urlString: "capso://grab/history"),
                 AutomationCommandItem(id: "preferences", name: "Preferences", urlString: "capso://grab/preferences")
             ]
         )
-    ]
+    ])
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

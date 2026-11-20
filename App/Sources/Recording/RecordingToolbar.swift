@@ -40,8 +40,6 @@ struct RecordingMicSelection: Equatable {
 struct RecordingToolbarView: View {
     let width: Int
     let height: Int
-    @Binding var cameraEnabled: Bool
-    @Binding var selectedCameraID: String?
     @Binding var micEnabled: Bool
     @Binding var systemAudioEnabled: Bool
     let settings: SharedKit.AppSettings
@@ -49,10 +47,8 @@ struct RecordingToolbarView: View {
     let onRecordGIF: () -> Void
     let onChangeArea: () -> Void
     let onCancel: () -> Void
-    let onCameraSettingsChanged: () -> Void
 
     @State private var selectedMicID: String?
-    @State private var cameraMenuRevision = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -97,9 +93,6 @@ struct RecordingToolbarView: View {
                         isOn: $systemAudioEnabled,
                         tooltip: "System Audio"
                     )
-
-                    // Camera menu
-                    cameraMenuButton
                 }
             }
             .padding(.horizontal, 16)
@@ -259,139 +252,6 @@ struct RecordingToolbarView: View {
         settings.recordingMicDeviceID = micEnabled ? selectedMicID : nil
     }
 
-    // MARK: - Camera Menu
-
-    private var cameraMenuButton: some View {
-        Menu {
-            cameraDeviceMenuItems
-
-            Divider()
-
-            cameraShapeMenuItems
-
-            Divider()
-
-            cameraSizeMenuItems
-
-            Divider()
-
-            Button {
-                settings.cameraMirror.toggle()
-                cameraMenuRevision += 1
-                onCameraSettingsChanged()
-            } label: {
-                if settings.cameraMirror {
-                    Label("Mirror", systemImage: "checkmark")
-                } else {
-                    Text("Mirror")
-                }
-            }
-
-            Divider()
-
-            Button {
-                settings.cameraPiPFadeOnHover.toggle()
-                cameraMenuRevision += 1
-                onCameraSettingsChanged()
-            } label: {
-                if settings.cameraPiPFadeOnHover {
-                    Label("Fade on Hover", systemImage: "checkmark")
-                } else {
-                    Text("Fade on Hover")
-                }
-            }
-
-            Button {
-                settings.cameraPiPClickThrough.toggle()
-                cameraMenuRevision += 1
-                onCameraSettingsChanged()
-            } label: {
-                if settings.cameraPiPClickThrough {
-                    Label("Click Through PiP", systemImage: "checkmark")
-                } else {
-                    Text("Click Through PiP")
-                }
-            }
-        } label: {
-            Image(systemName: cameraEnabled ? "camera.fill" : "camera")
-                .font(.system(size: 14))
-                .foregroundStyle(cameraEnabled ? .white : .white.opacity(0.4))
-        }
-        .id(cameraMenuRevision)
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .frame(width: 36, height: 30)
-        .background(cameraEnabled ? .white.opacity(0.15) : .clear)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
-        .help("Camera")
-    }
-
-    @ViewBuilder
-    private var cameraDeviceMenuItems: some View {
-        Button {
-            cameraEnabled = false
-            selectedCameraID = nil
-        } label: {
-            if !cameraEnabled || selectedCameraID == nil {
-                Label("None", systemImage: "checkmark")
-            } else {
-                Text("None")
-            }
-        }
-
-        ForEach(cameraDevices(), id: \.uniqueID) { device in
-            Button {
-                cameraEnabled = true
-                selectedCameraID = device.uniqueID
-            } label: {
-                if cameraEnabled && selectedCameraID == device.uniqueID {
-                    Label(device.localizedName, systemImage: "checkmark")
-                } else {
-                    Text(device.localizedName)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var cameraShapeMenuItems: some View {
-        Text("SHAPE")
-
-        ForEach(CameraShape.allCases, id: \.rawValue) { shape in
-            Button {
-                settings.cameraShape = shape
-                cameraMenuRevision += 1
-                onCameraSettingsChanged()
-            } label: {
-                if settings.cameraShape == shape {
-                    Label(shape.displayName, systemImage: "checkmark")
-                } else {
-                    Label(shape.displayName, systemImage: shape.iconName)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var cameraSizeMenuItems: some View {
-        Text("SIZE")
-
-        ForEach(SharedKit.CameraSize.allCases, id: \.rawValue) { size in
-            Button {
-                settings.cameraSize = size
-                settings.cameraCustomSizePt = 0
-                cameraMenuRevision += 1
-                onCameraSettingsChanged()
-            } label: {
-                if settings.cameraCustomSizePt <= 0 && settings.cameraSize == size {
-                    Label(size.displayName, systemImage: "checkmark")
-                } else {
-                    Text(size.displayName)
-                }
-            }
-        }
-    }
-
     // MARK: - Helpers
 
     private func toolbarIcon(systemName: String, active: Bool) -> some View {
@@ -432,43 +292,5 @@ struct RecordingToolbarView: View {
             mediaType: .audio,
             position: .unspecified
         ).devices
-    }
-
-    private func cameraDevices() -> [AVCaptureDevice] {
-        AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInWideAngleCamera, .external],
-            mediaType: .video,
-            position: .unspecified
-        ).devices
-    }
-}
-
-private extension CameraShape {
-    var displayName: LocalizedStringKey {
-        switch self {
-        case .circle: "Circle"
-        case .square: "Square"
-        case .landscape: "Landscape (16:9)"
-        case .portrait: "Portrait (9:16)"
-        }
-    }
-
-    var iconName: String {
-        switch self {
-        case .circle: "circle"
-        case .square: "square"
-        case .landscape: "rectangle"
-        case .portrait: "rectangle.portrait"
-        }
-    }
-}
-
-private extension SharedKit.CameraSize {
-    var displayName: LocalizedStringKey {
-        switch self {
-        case .small: "Small"
-        case .medium: "Medium"
-        case .large: "Large"
-        }
     }
 }

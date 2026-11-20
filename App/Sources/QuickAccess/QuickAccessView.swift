@@ -14,18 +14,13 @@ struct QuickAccessView: View {
     let sourceWindowTitle: String?
     let screenshotOutput: ScreenshotOutputOptions
     let screenshotFilenameTemplate: String
-    let targetLanguageDisplay: String?  // e.g. "Simplified Chinese"
     let shareCoordinator: ShareCoordinator?
     let autoUpload: Bool
-    /// Called with the public URL string when a cloud upload succeeds.
-    /// Use this to persist the URL to the history entry.
-    let onUploadSucceeded: ((String) -> Void)?
     let onCopy: () -> Void
     let onSave: () -> Void
     let onSaveAs: () -> Void
     let onAnnotate: () -> Void
     let onOCR: () -> Void
-    let onTranslate: () -> Void
     let onPin: () -> Void
     let onPreview: () -> Void
     let onDragStarted: () -> Void
@@ -55,7 +50,7 @@ struct QuickAccessView: View {
     }
 
     private enum HoverAction: Hashable {
-        case copy, save, drag, annotate, ocr, translate, pin, upload, linkCopied, overflow
+        case copy, save, drag, annotate, ocr, pin, upload, linkCopied, overflow
     }
 
     private var isRevealed: Bool { isHovering || isFocused }
@@ -223,7 +218,7 @@ struct QuickAccessView: View {
         switch action {
         case .upload, .annotate, .pin:
             return true
-        case .drag, .copy, .save, .ocr, .translate:
+        case .drag, .copy, .save, .ocr:
             return false
         }
     }
@@ -247,7 +242,7 @@ struct QuickAccessView: View {
             toolButton(.annotate, icon: "pencil.tip.crop.circle", action: onAnnotate)
         case .pin:
             toolButton(.pin, icon: "pin", action: onPin)
-        case .ocr, .translate:
+        case .ocr:
             EmptyView()
         }
     }
@@ -280,15 +275,6 @@ struct QuickAccessView: View {
                 Label("Extract Text", systemImage: "text.viewfinder")
             }
             .keyboardShortcut("o", modifiers: [.command, .shift])
-        case .translate:
-            Button(action: onTranslate) {
-                if let targetLanguageDisplay, !targetLanguageDisplay.isEmpty {
-                    Label("Translate to \(targetLanguageDisplay)", systemImage: "character.bubble")
-                } else {
-                    Label("Translate", systemImage: "character.bubble")
-                }
-            }
-            .keyboardShortcut("t", modifiers: [.command, .shift])
         case .drag, .copy, .save, .upload, .annotate, .pin:
             EmptyView()
         }
@@ -486,8 +472,7 @@ struct QuickAccessView: View {
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
         do {
-            let cloudURL = try await coord.upload(file: tempURL, contentType: output.format.mimeType)
-            onUploadSucceeded?(cloudURL.absoluteString)
+            _ = try await coord.upload(file: tempURL, contentType: output.format.mimeType)
             visualState = .succeeded
             try? await Task.sleep(for: .seconds(3))
             if case .succeeded = visualState {
@@ -565,7 +550,6 @@ struct QuickAccessView: View {
         case .drag:      return nil
         case .annotate:  return ("e", [.command])
         case .ocr:       return ("o", [.command, .shift])
-        case .translate: return ("t", [.command, .shift])
         case .pin:       return ("p", [.command])
         case .upload, .linkCopied, .overflow: return nil
         }
@@ -596,7 +580,6 @@ struct QuickAccessView: View {
         case .drag: return String(localized: "Drag Screenshot")
         case .annotate: return String(localized: "Annotate")
         case .ocr: return String(localized: "Extract Text")
-        case .translate: return String(localized: "Translate")
         case .pin: return String(localized: "Pin")
         case .upload: return String(localized: "Upload to Cloud")
         case .linkCopied: return String(localized: "Link Copied!")
@@ -611,11 +594,10 @@ struct QuickAccessView: View {
         case .drag: return String(localized: "Drag this screenshot into another app using your screenshot export settings")
         case .annotate: return String(localized: "Open annotation editor")
         case .ocr: return String(localized: "Extract text from screenshot")
-        case .translate: return String(localized: "Translate text in screenshot")
         case .pin: return String(localized: "Pin to screen")
         case .upload: return String(localized: "Upload screenshot to cloud and copy link")
         case .linkCopied: return String(localized: "Link has been copied to clipboard")
-        case .overflow: return String(localized: "Show extract text and translation actions")
+        case .overflow: return String(localized: "Show extract text action")
         }
     }
 }

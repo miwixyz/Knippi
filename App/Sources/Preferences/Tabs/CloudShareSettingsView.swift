@@ -302,20 +302,14 @@ struct CloudShareSettingsView: View {
         let appDelegate = AppDelegate.shared
         appDelegate?.refreshShareCoordinator()
 
-        // 4. Force the History UI to re-render so the upload button on each row
-        //    re-evaluates `coordinator.shareCoordinator != nil` (now false).
-        appDelegate?.historyCoordinator?.loadEntries()
-
-        // 5. Sanity check (debug builds only). After all the above, the live
+        // 4. Sanity check (debug builds only). After all the above, the live
         //    ShareCoordinator MUST be nil; if not, refresh didn't propagate.
         #if DEBUG
         assert(appDelegate?.shareCoordinator == nil,
                "ShareCoordinator should be nil after reset")
-        assert(appDelegate?.historyCoordinator?.shareCoordinator == nil,
-               "HistoryCoordinator.shareCoordinator should be nil after reset")
         #endif
 
-        // 6. If Keychain delete failed for either entry, alert the user.
+        // 5. If Keychain delete failed for either entry, alert the user.
         if !keychainErrors.isEmpty {
             let list = keychainErrors.joined(separator: ", ")
             testResult = TestResultAlert(

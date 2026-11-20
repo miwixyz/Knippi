@@ -24,34 +24,22 @@ struct PermissionSettingsView: View {
                         subtitle: "Required for screenshots and recording",
                         isGranted: viewModel.screenRecordingGranted
                     )
-                    permissionRow(
-                        kind: .accessibility,
-                        title: "Accessibility",
-                        subtitle: "Required for selected text translation",
-                        isGranted: viewModel.accessibilityGranted,
-                        showDivider: true
-                    )
-                    permissionRow(
-                        kind: .inputMonitoring,
-                        title: "Input Monitoring",
-                        subtitle: "Required to show key presses while recording",
-                        isGranted: viewModel.inputMonitoringGranted,
-                        showDivider: true
-                    )
-                    permissionRow(
-                        kind: .camera,
-                        title: "Camera",
-                        subtitle: "Required for camera overlay",
-                        isGranted: viewModel.cameraGranted,
-                        showDivider: true
-                    )
-                    permissionRow(
-                        kind: .microphone,
-                        title: "Microphone",
-                        subtitle: "Required for microphone recording",
-                        isGranted: viewModel.microphoneGranted,
-                        showDivider: true
-                    )
+                    if FeatureFlags.screenRecording {
+                        permissionRow(
+                            kind: .inputMonitoring,
+                            title: "Input Monitoring",
+                            subtitle: "Required to show key presses while recording",
+                            isGranted: viewModel.inputMonitoringGranted,
+                            showDivider: true
+                        )
+                        permissionRow(
+                            kind: .microphone,
+                            title: "Microphone",
+                            subtitle: "Required for microphone recording",
+                            isGranted: viewModel.microphoneGranted,
+                            showDivider: true
+                        )
+                    }
                 }
             }
         }
@@ -98,7 +86,7 @@ struct PermissionSettingsView: View {
     private func actionTitle(for kind: PermissionKind, isGranted: Bool) -> LocalizedStringKey {
         if isGranted { return "Open" }
         switch kind {
-        case .camera, .microphone:
+        case .microphone:
             return "Request"
         case .screenRecording, .accessibility, .inputMonitoring:
             return "Open"
@@ -108,7 +96,7 @@ struct PermissionSettingsView: View {
     private func actionIcon(for kind: PermissionKind, isGranted: Bool) -> String {
         if isGranted { return "gearshape" }
         switch kind {
-        case .camera, .microphone:
+        case .microphone:
             return "hand.tap"
         case .screenRecording, .accessibility, .inputMonitoring:
             return "gearshape"
