@@ -38,7 +38,7 @@ public final class ShareCoordinator {
     /// Uploads `file` and copies its URL to the clipboard — on success, or as soon
     /// as the upload starts when `copiesLinkWhenUploadStarts` says so.
     /// Returns the URL on success; throws on failure. Updates `state` for observers.
-    /// Clipboard is **never** written on failure.
+    /// On failure an early-copied link is removed again (previous clipboard text restored).
     @discardableResult
     public func upload(file: URL, contentType: String) async throws -> URL {
         try await withCheckedThrowingContinuation { continuation in
@@ -65,8 +65,10 @@ public final class ShareCoordinator {
             let ext = request.file.pathExtension
             let key = ext.isEmpty ? id : "\(id).\(ext)"
             let copiedEarly = copiesLinkWhenUploadStarts()
+            let earlyURL = destination.publicURL(for: key)
+            let previousClipboard = copiedEarly ? currentClipboardString() : nil
             if copiedEarly {
-                copyToClipboard(destination.publicURL(for: key))
+                copyToClipboard(earlyURL)
             }
 
             do {
@@ -78,11 +80,9 @@ public final class ShareCoordinator {
                 state = .succeeded(url)
                 if !copiedEarly { copyToClipboard(url) }
                 request.continuation.resume(returning: url)
-            } catch let error as ShareError {
-                state = .failed(error)
-                request.continuation.resume(throwing: error)
             } catch {
-                let mapped = ShareError.unknown(error.localizedDescription)
+                if copiedEarly { revokeEarlyCopy(earlyURL, restoring: previousClipboard) }
+                let mapped = (error as? ShareError) ?? ShareError.unknown(error.localizedDescription)
                 state = .failed(mapped)
                 request.continuation.resume(throwing: mapped)
             }
@@ -91,6 +91,23 @@ public final class ShareCoordinator {
 
     public func reset() {
         state = .idle
+    }
+
+    private func currentClipboardString() -> String? {
+        #if canImport(AppKit)
+        NSPasteboard.general.string(forType: .string)
+        #else
+        nil
+        #endif
+    }
+
+    /// Nimmt den früh kopierten Link nur zurück, wenn der Nutzer inzwischen nichts anderes kopiert hat.
+    private func revokeEarlyCopy(_ url: URL, restoring previous: String?) {
+        #if canImport(AppKit)
+        guard NSPasteboard.general.string(forType: .string) == url.absoluteString else { return }
+        NSPasteboard.general.clearContents()
+        if let previous { NSPasteboard.general.setString(previous, forType: .string) }
+        #endif
     }
 
     private func copyToClipboard(_ url: URL) {

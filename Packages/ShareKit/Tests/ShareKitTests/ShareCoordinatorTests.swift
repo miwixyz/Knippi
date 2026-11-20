@@ -291,4 +291,22 @@ struct ShareCoordinatorTests {
         let destination = try ShareDestinationFactory.make(config: config, accessKey: "AK", secretKey: "SK")
         #expect(destination.publicURL(for: "Ab3x9.png").absoluteString == "https://cdn.example.com/shots/Ab3x9.png")
     }
+
+    @Test("Early-copied link is removed from the clipboard when the upload fails")
+    func earlyCopiedLinkIsRevokedOnFailure() async throws {
+        let destination = BlockingDestination(failFirst: true)
+        let coord = ShareCoordinator(destination: destination) { true }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString("before", forType: .string)
+
+        let upload = Task { @MainActor in
+            try await coord.upload(file: URL(fileURLWithPath: "/tmp/shot.png"), contentType: "image/png")
+        }
+        await destination.waitUntilFirstStarts()
+        #expect(NSPasteboard.general.string(forType: .string)?.hasPrefix("https://stub/") == true)
+
+        await destination.releaseFirst()
+        await #expect(throws: ShareError.self) { _ = try await upload.value }
+        #expect(NSPasteboard.general.string(forType: .string) == "before")
+    }
 }
