@@ -162,6 +162,19 @@ struct RedactionObjectTests {
         #expect(sampleRGBA(rendered, x: 8, y: 8) == RGBA(r: 0, g: 0, b: 0, a: 255))
         #expect(sampleRGBA(rendered, x: 1, y: 1) == RGBA(r: 255, g: 255, b: 255, a: 255))
     }
+
+    @Test("Fail-closed fill lands on the top-left region, not its mirror")
+    func pixelateFailsClosedAsymmetric() throws {
+        let source = try makeTestImage(width: 16, height: 16, color: CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+        let redaction = PixelateObject(rect: CGRect(x: 2, y: 1, width: 6, height: 4), blockSize: 12, mode: .pixelate)
+        PixelateObject.redactorOverride = { _, _, _ in nil }
+        defer { PixelateObject.redactorOverride = nil }
+        let rendered = try #require(AnnotationRenderer.render(sourceImage: source, objects: [redaction]))
+        #expect(sampleRGBA(rendered, x: 2, y: 1) == RGBA(r: 0, g: 0, b: 0, a: 255))
+        #expect(sampleRGBA(rendered, x: 7, y: 4) == RGBA(r: 0, g: 0, b: 0, a: 255))
+        #expect(sampleRGBA(rendered, x: 7, y: 5) == RGBA(r: 255, g: 255, b: 255, a: 255))
+        #expect(sampleRGBA(rendered, x: 4, y: 12) == RGBA(r: 255, g: 255, b: 255, a: 255))
+    }
 }
 
 private struct RGBA: Equatable {

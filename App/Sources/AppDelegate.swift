@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = AppSettings()
     let permissionManager = PermissionManager()
     private var pixelateFailureToast: ToastWindow?
+    private var lastPixelateToast: Date?
     private(set) var captureCoordinator: CaptureCoordinator?
     private(set) var recordingCoordinator: RecordingCoordinator?
     let desktopIconsCover = DesktopIconsCover()
@@ -33,13 +34,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let updateManager = UpdateManager()
 
     func showPixelateFailureToast() {
+        // draw(_:) kann den Fehler mit bis zu 60 Hz melden; Hinweis höchstens alle 3 s.
+        if let last = lastPixelateToast, Date().timeIntervalSince(last) < 3 { return }
+        lastPixelateToast = Date()
         pixelateFailureToast?.orderOut(nil)
         pixelateFailureToast = ToastWindow(
             message: "Verpixeln fehlgeschlagen – Bereich wurde geschwärzt.",
             icon: "exclamationmark.triangle.fill",
             iconColor: .systemOrange
         )
-        pixelateFailureToast?.show()
+        pixelateFailureToast?.show(autoDismissAfter: 3)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {

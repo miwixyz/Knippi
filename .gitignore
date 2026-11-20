@@ -38,3 +38,4 @@ CLAUDE.md
 # Local-only scripts (not shipped with the open-source repo)
 scripts/
 .omx/
+build-dev/

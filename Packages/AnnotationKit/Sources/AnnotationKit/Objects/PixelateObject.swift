@@ -51,15 +51,17 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         ctx.restoreGState()
     }
 
-    /// Apply the selected redaction filter on the source image region.
-    /// `rect` is in image coordinates (top-left origin, matching source image pixel dimensions).
-    /// The CGContext is assumed to be in a flipped coordinate system (isFlipped NSView).
     /// Nur für Tests: ersetzt den Filter, um Fehlerpfade zu prüfen.
+    /// Nur beim App-Start bzw. serialisiert im Test setzen.
     nonisolated(unsafe) static var redactorOverride: ((CGImage, CGFloat, RedactionMode) -> CGImage?)?
 
     /// Wird aufgerufen, wenn der Filter scheitert; die App zeigt dann einen Hinweis.
+    /// Nur beim App-Start bzw. serialisiert im Test setzen.
     nonisolated(unsafe) public static var reportFailure: (@Sendable () -> Void)?
 
+    /// Apply the selected redaction filter on the source image region.
+    /// `rect` is in image coordinates (top-left origin, matching source image pixel dimensions).
+    /// The CGContext is assumed to be in a flipped coordinate system (isFlipped NSView).
     public func renderWithSource(in ctx: CGContext, sourceImage: CGImage) {
         guard rect.width > 0, rect.height > 0 else { return }
 
