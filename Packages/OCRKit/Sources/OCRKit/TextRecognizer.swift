@@ -116,14 +116,8 @@ public enum TextRecognizer {
                 for observation in observations {
                     guard let candidate = observation.topCandidates(1).first else { continue }
 
-                    // Convert Vision's bottom-left normalized coords to top-left image coords
-                    let vnBox = observation.boundingBox
-                    let pixelRect = CGRect(
-                        x: vnBox.origin.x * imageWidth,
-                        y: (1 - vnBox.origin.y - vnBox.height) * imageHeight,
-                        width: vnBox.width * imageWidth,
-                        height: vnBox.height * imageHeight
-                    )
+                    let pixelRect = imageRect(fromNormalized: observation.boundingBox,
+                                              imageWidth: imageWidth, imageHeight: imageHeight)
 
                     let text = candidate.string
                     var isURL = false
@@ -161,6 +155,67 @@ public enum TextRecognizer {
 
             nonisolated(unsafe) let handler = VNImageRequestHandler(cgImage: image, options: [:])
             // perform blocks; keep it off the Swift concurrency thread pool.
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    try handler.perform([request])
+                } catch {
+                    oneShot.resume(throwing: error)
+                }
+            }
+        }
+    }
+
+    /// Converts Vision's bottom-left normalized coords to top-left image pixel coords.
+    static func imageRect(fromNormalized vnBox: CGRect, imageWidth: CGFloat, imageHeight: CGFloat) -> CGRect {
+        CGRect(
+            x: vnBox.origin.x * imageWidth,
+            y: (1 - vnBox.origin.y - vnBox.height) * imageHeight,
+            width: vnBox.width * imageWidth,
+            height: vnBox.height * imageHeight
+        )
+    }
+
+    /// Finds sensitive data (see `SensitiveDataDetector`) and returns a box per
+    /// match, tight around the matched characters where Vision can locate them.
+    /// When it can't, the whole line's box is used: over-redact, never under-redact.
+    /// Boxes are in image coordinates (top-left origin, pixel dimensions).
+    public static func sensitiveRegions(
+        image: CGImage,
+        detector: SensitiveDataDetector = .init()
+    ) async throws -> [SensitiveRegion] {
+        let imageWidth = CGFloat(image.width)
+        let imageHeight = CGFloat(image.height)
+
+        return try await withCheckedThrowingContinuation { continuation in
+            let oneShot = OneShotContinuation(continuation)
+            nonisolated(unsafe) let request = VNRecognizeTextRequest { request, error in
+                if let error {
+                    oneShot.resume(throwing: error)
+                    return
+                }
+                let observations = request.results as? [VNRecognizedTextObservation] ?? []
+                var regions: [SensitiveRegion] = []
+                for observation in observations {
+                    guard let candidate = observation.topCandidates(1).first else { continue }
+                    let text = candidate.string
+                    for match in detector.matches(in: text) {
+                        let normalized = (try? candidate.boundingBox(for: match.range))?.boundingBox
+                            ?? observation.boundingBox
+                        regions.append(SensitiveRegion(
+                            kind: match.kind,
+                            text: String(text[match.range]),
+                            boundingBox: imageRect(fromNormalized: normalized,
+                                                   imageWidth: imageWidth, imageHeight: imageHeight)
+                        ))
+                    }
+                }
+                oneShot.resume(returning: regions)
+            }
+            request.recognitionLevel = .accurate
+            request.automaticallyDetectsLanguage = true
+            request.usesLanguageCorrection = true
+
+            nonisolated(unsafe) let handler = VNImageRequestHandler(cgImage: image, options: [:])
             DispatchQueue.global(qos: .userInitiated).async {
                 do {
                     try handler.perform([request])

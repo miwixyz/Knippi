@@ -8,6 +8,30 @@ final class OCRProcessFallbackTests: XCTestCase {
         domain: "TextRecognition.CRImageReaderError", code: 1
     )
 
+    func testSensitiveRegionsEngineFailureRetriesInHelper() async throws {
+        let expected = SensitiveRegion(kind: .email, text: "a@b.de", boundingBox: CGRect(x: 1, y: 2, width: 3, height: 4))
+        let regions = try await OCRProcessFallback.sensitiveRegions(
+            image: makeImage(),
+            run: { _ in throw Self.engineError },
+            retry: { image in
+                XCTAssertEqual(image.width, 8)
+                return [expected]
+            }
+        )
+        XCTAssertEqual(regions, [expected])
+    }
+
+    func testSensitiveRegionsOtherErrorsDoNotLaunchHelper() async {
+        do {
+            _ = try await OCRProcessFallback.sensitiveRegions(
+                image: makeImage(),
+                run: { _ in throw CancellationError() },
+                retry: { _ in XCTFail("Non-engine errors must not launch a helper"); return [] }
+            )
+            XCTFail("Expected an error")
+        } catch {}
+    }
+
     func testSuccessfulRecognitionDoesNotLaunchHelper() async throws {
         let regions = try await OCRProcessFallback.recognize(
             image: makeImage(), languages: nil, level: .accurate, detectURLs: false,

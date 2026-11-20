@@ -14,6 +14,7 @@ import UniformTypeIdentifiers
 /// rather than Knippi's normal OCR path.
 enum OCRProcessFallback {
     private static let helperArgument = "--knippi-ocr-helper"
+    private static let sensitiveHelperArgument = "--knippi-ocr-sensitive-helper"
     private static let router = OCRFallbackRouter()
 
     static var shouldSkipPrewarm: Bool {
@@ -58,12 +59,46 @@ enum OCRProcessFallback {
         )
     }
 
+    /// Sensitive-data boxes with the same fresh-process fallback as `recognize`.
+    static func sensitiveRegions(image: CGImage) async throws -> [SensitiveRegion] {
+        try await sensitiveRegions(
+            image: image,
+            run: { try await TextRecognizer.sensitiveRegions(image: $0) },
+            retry: sensitiveRegionsInFreshProcess,
+            router: router
+        )
+    }
+
+    static func sensitiveRegions(
+        image: CGImage,
+        run: @Sendable (CGImage) async throws -> [SensitiveRegion],
+        retry: @escaping @Sendable (CGImage) throws -> [SensitiveRegion] = sensitiveRegionsInFreshProcess,
+        router: OCRFallbackRouter = OCRFallbackRouter()
+    ) async throws -> [SensitiveRegion] {
+        try await router.route(
+            automaticLanguages: true,
+            primary: { try await run(image) },
+            fallback: {
+                try await Task.detached(priority: .userInitiated) { try retry(image) }.value
+            }
+        )
+    }
+
     /// Runs before normal Knippi startup when this executable was launched by
     /// `recognizeInFreshProcess`. It intentionally performs only one direct
     /// Vision request, then exits without creating windows or registering
     /// shortcuts.
     static func runHelperIfRequested() -> Bool {
         let arguments = CommandLine.arguments
+        if arguments.count == 4, arguments[1] == sensitiveHelperArgument,
+           let inputURL = URL(string: arguments[2]),
+           let outputURL = URL(string: arguments[3]) {
+            runHelper {
+                let regions = try await TextRecognizer.sensitiveRegions(image: loadImage(at: inputURL))
+                let data = try JSONEncoder().encode(regions.map(EncodedSensitiveRegion.init))
+                try data.write(to: outputURL, options: .atomic)
+            }
+        }
         guard arguments.count == 6, arguments[1] == helperArgument,
               let inputURL = URL(string: arguments[2]),
               let outputURL = URL(string: arguments[3]),
@@ -72,20 +107,27 @@ enum OCRProcessFallback {
         }
 
         let detectURLs = arguments[5] == "1"
+        runHelper {
+            let regions = try await TextRecognizer.recognize(
+                image: loadImage(at: inputURL),
+                languages: nil,
+                level: level,
+                detectURLs: detectURLs
+            )
+            let data = try JSONEncoder().encode(regions.map(EncodedRegion.init))
+            try data.write(to: outputURL, options: .atomic)
+        }
+    }
+
+    /// Performs one helper job, then exits the process (0 on success).
+    private static func runHelper(_ job: @escaping @Sendable () async throws -> Void) -> Never {
         let semaphore = DispatchSemaphore(value: 0)
         let exitCode = ExitCodeBox()
 
         Task.detached(priority: .userInitiated) {
             defer { semaphore.signal() }
             do {
-                let regions = try await recognizeImageFile(
-                    at: inputURL,
-                    languages: nil,
-                    level: level,
-                    detectURLs: detectURLs
-                )
-                let data = try JSONEncoder().encode(regions.map(EncodedRegion.init))
-                try data.write(to: outputURL, options: .atomic)
+                try await job()
                 exitCode.value = 0
             } catch {
                 fputs("Knippi OCR helper failed: \(error.localizedDescription)\n", stderr)
@@ -105,6 +147,25 @@ enum OCRProcessFallback {
         // current app callers do not supply an explicit language list; fail
         // closed rather than silently producing a different recognition mode.
         guard languages == nil else { throw OCRProcessFallbackError.explicitLanguagesUnsupported }
+        let data = try runFreshProcess(image: image) { input, output in
+            [helperArgument, input, output, level == .fast ? "fast" : "accurate", detectURLs ? "1" : "0"]
+        }
+        return try JSONDecoder().decode([EncodedRegion].self, from: data).map(TextRegion.init)
+    }
+
+    private static func sensitiveRegionsInFreshProcess(image: CGImage) throws -> [SensitiveRegion] {
+        let data = try runFreshProcess(image: image) { input, output in
+            [sensitiveHelperArgument, input, output]
+        }
+        return try JSONDecoder().decode([EncodedSensitiveRegion].self, from: data).map(\.region)
+    }
+
+    /// Writes `image` to a temp PNG, runs this executable with the helper
+    /// arguments built from the input/output URLs, and returns the output file.
+    private static func runFreshProcess(
+        image: CGImage,
+        arguments: (_ input: String, _ output: String) -> [String]
+    ) throws -> Data {
         guard let executableURL = Bundle.main.executableURL else {
             throw OCRProcessFallbackError.executableNotFound
         }
@@ -120,40 +181,22 @@ enum OCRProcessFallback {
 
         let process = Process()
         process.executableURL = executableURL
-        process.arguments = [
-            helperArgument,
-            inputURL.absoluteString,
-            outputURL.absoluteString,
-            level == .fast ? "fast" : "accurate",
-            detectURLs ? "1" : "0"
-        ]
+        process.arguments = arguments(inputURL.absoluteString, outputURL.absoluteString)
         try process.run()
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
             throw OCRProcessFallbackError.helperFailed(process.terminationStatus)
         }
-        let data = try Data(contentsOf: outputURL)
-        let regions = try JSONDecoder().decode([EncodedRegion].self, from: data)
-        return regions.map(TextRegion.init)
+        return try Data(contentsOf: outputURL)
     }
 
-    private static func recognizeImageFile(
-        at url: URL,
-        languages: [String]?,
-        level: RecognitionLevel,
-        detectURLs: Bool
-    ) async throws -> [TextRegion] {
+    private static func loadImage(at url: URL) throws -> CGImage {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
               let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
             throw OCRProcessFallbackError.invalidInputImage
         }
-        return try await TextRecognizer.recognize(
-            image: image,
-            languages: languages,
-            level: level,
-            detectURLs: detectURLs
-        )
+        return image
     }
 
     private static func writePNG(_ image: CGImage, to url: URL) throws {
@@ -209,6 +252,28 @@ private struct EncodedRegion: Codable {
     }
 }
 
+private struct EncodedSensitiveRegion: Codable {
+    let kind: SensitiveMatch.Kind
+    let text: String
+    let x: CGFloat
+    let y: CGFloat
+    let width: CGFloat
+    let height: CGFloat
+
+    init(_ region: SensitiveRegion) {
+        kind = region.kind
+        text = region.text
+        x = region.boundingBox.origin.x
+        y = region.boundingBox.origin.y
+        width = region.boundingBox.width
+        height = region.boundingBox.height
+    }
+
+    var region: SensitiveRegion {
+        SensitiveRegion(kind: kind, text: text, boundingBox: CGRect(x: x, y: y, width: width, height: height))
+    }
+}
+
 private extension TextRegion {
     init(_ encoded: EncodedRegion) {
         self = encoded.makeTextRegion()
@@ -261,6 +326,15 @@ actor OCRFallbackRouter {
         primary: @Sendable () async throws -> [TextRegion],
         fallback: @Sendable () async throws -> [TextRegion]
     ) async throws -> [TextRegion] {
+        try await route(automaticLanguages: automaticLanguages, primary: primary, fallback: fallback)
+    }
+
+    /// Same routing for any OCR result type (e.g. sensitive-data regions).
+    func route<Result: Sendable>(
+        automaticLanguages: Bool,
+        primary: @Sendable () async throws -> Result,
+        fallback: @Sendable () async throws -> Result
+    ) async throws -> Result {
         try Task.checkCancellation()
         if prefersFreshProcess && automaticLanguages {
             let regions = try await fallback()
