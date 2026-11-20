@@ -2,6 +2,7 @@ import AppKit
 import AVFoundation
 import CoreGraphics
 import Observation
+import os
 @preconcurrency import ScreenCaptureKit
 
 public enum PermissionKind: String, CaseIterable, Sendable {
@@ -45,11 +46,20 @@ public final class PermissionManager {
     // MARK: - Screen Recording
 
     public func checkScreenRecordingPermission() async {
+        // Apples Statusabfrage ohne Nebenwirkung. Gemessen 2026-11-20 (macOS 27.2):
+        // SCShareableContent lieferte hier -3801 „TCC abgelehnt“, obwohl die
+        // Aufnahme mit derselben Freigabe funktionierte.
+        if CGPreflightScreenCaptureAccess() {
+            screenRecordingGranted = true
+            return
+        }
         do {
             _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
             screenRecordingGranted = true
         } catch {
             screenRecordingGranted = false
+            Logger(subsystem: "dev.mwlr.knippi", category: "permissions")
+                .error("Screen recording check failed: \(String(describing: error), privacy: .public)")
         }
     }
 
