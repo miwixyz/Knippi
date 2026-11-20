@@ -6,24 +6,22 @@ import Foundation
 
 @Suite("IDGenerator")
 struct IDGeneratorTests {
-    @Test("generates 7-char IDs")
+    @Test("generates 22-char IDs (≥ 128 bit)")
     func length() {
-        #expect(IDGenerator.shortID().count == 7)
+        #expect(IDGenerator.shortID().count == 22)
     }
 
-    @Test("uses base32 charset only")
+    @Test("uses base62 charset only")
     func charset() {
-        let allowed = Set("0123456789abcdefghijklmnopqrstuv")
+        let allowed = Set("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
         let id = IDGenerator.shortID()
         #expect(id.allSatisfy { allowed.contains($0) })
     }
 
-    @Test("produces unique IDs over 1k iterations")
+    @Test("produces unique IDs over 10k iterations")
     func uniqueness() {
         var seen = Set<String>()
-        for _ in 0..<1_000 {
-            seen.insert(IDGenerator.shortID())
-        }
-        #expect(seen.count == 1_000)
+        for _ in 0..<10_000 { seen.insert(IDGenerator.shortID()) }
+        #expect(seen.count == 10_000)
     }
 }
