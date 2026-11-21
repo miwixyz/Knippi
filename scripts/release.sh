@@ -258,9 +258,22 @@ for method in unzip ditto; do
 done
 echo "  ✓ ${ZIP} ($(du -h "${ZIP}" | cut -f1)), mit unzip und ditto geprüft"
 
+# Stream-Deck-Plugin: eigene Release-Datei (README → Stream Deck), notarisiert, Version = App.
+DECK_PKG="${DIST}/streamdeck/Knippi.streamDeckPlugin"
+DEVELOPER_ID="${DEVELOPER_ID}" NOTARY_PROFILE="${NOTARY_PROFILE}" sh StreamDeck/build.sh \
+    || fail "Stream-Deck-Plugin nicht gebaut"
+DECK_ABS="${PWD}/${DECK_PKG}"
+V="$(mktemp -d)"
+(cd "$V" && unzip -q "${DECK_ABS}") || fail "Stream-Deck-Paket lässt sich nicht entpacken"
+codesign --verify --strict "$V/dev.mwlr.knippi.deck.sdPlugin/knippideck" 2>/dev/null || fail "Plugin-Signatur im Paket ungültig"
+grep -q "\"Version\": \"${VERSION}.0\"" "$V/dev.mwlr.knippi.deck.sdPlugin/manifest.json" || fail "Plugin-Manifest nennt nicht ${VERSION}.0"
+[ "$(ls "$V/dev.mwlr.knippi.deck.sdPlugin/profiles" | wc -l | tr -d ' ')" = 3 ] || fail "Plugin-Paket ohne die drei Profile"
+mv "$V" "$(mktemp -d /tmp/knippi-verify.XXXXXX)/"
+echo "  ✓ ${DECK_PKG} ($(du -h "${DECK_PKG}" | cut -f1)), Signatur, Version, Profile geprüft"
+
 if [ "${PUBLISH}" = "0" ]; then
     echo ""
-    echo "🛑 PUBLISH=0 — kein GitHub-Release, kein Appcast. Artefakt: ${ZIP}"
+    echo "🛑 PUBLISH=0 — kein GitHub-Release, kein Appcast. Artefakte: ${ZIP}, ${DECK_PKG}"
     exit 0
 fi
 
@@ -318,17 +331,17 @@ awk -v v="[${VERSION}]" '
 git tag -a "${TAG}" -m "${APP} ${VERSION}"
 RESUME_HINT="Tag ${TAG} lokal angelegt. ZU TUN vor dem Neuanlauf: git tag -d ${TAG}; appcast.xml zurücksetzen"
 git push origin "${TAG}" || fail "Tag ${TAG} nicht gepusht"
-RESUME_HINT="Tag ${TAG} gepusht, Release fehlt. ZU TUN: gh release create ${TAG} ${ZIP} --title \"${APP} ${VERSION}\" --notes-file ${DIST}/notes.md, danach appcast.xml committen + pushen"
-gh release create "${TAG}" "${ZIP}" --title "${APP} ${VERSION}" --notes-file "${DIST}/notes.md" \
+RESUME_HINT="Tag ${TAG} gepusht, Release fehlt. ZU TUN: gh release create ${TAG} ${ZIP} ${DECK_PKG} --title \"${APP} ${VERSION}\" --notes-file ${DIST}/notes.md, danach appcast.xml committen + pushen"
+gh release create "${TAG}" "${ZIP}" "${DECK_PKG}" --title "${APP} ${VERSION}" --notes-file "${DIST}/notes.md" \
     || fail "GitHub-Release ${TAG} nicht angelegt"
 RESUME_HINT="Release ${TAG} online, Appcast noch nicht. ZU TUN: git add appcast.xml && git commit -m \"Appcast für ${TAG}\" && git push origin main"
 
 # ---------------------------------------------------------------------------
 step "[9/10] Am Remote prüfen, Appcast veröffentlichen"
 # ---------------------------------------------------------------------------
-ASSET="$(gh release view "${TAG}" --json assets --jq '.assets[].name' 2>/dev/null || true)"
-[ "${ASSET}" = "${APP}-${VERSION}.zip" ] || fail "Release ${TAG} hat auf GitHub nicht das erwartete Asset (gefunden: '${ASSET}')"
-echo "  ✓ ${TAG} veröffentlicht, Asset: ${ASSET}"
+ASSET="$(gh release view "${TAG}" --json assets --jq '.assets[].name' 2>/dev/null | LC_ALL=C sort | tr '\n' ' ' || true)"
+[ "${ASSET}" = "${APP}-${VERSION}.zip Knippi.streamDeckPlugin " ] || fail "Release ${TAG} hat auf GitHub nicht die erwarteten Dateien (gefunden: '${ASSET}')"
+echo "  ✓ ${TAG} veröffentlicht, Dateien: ${ASSET}"
 
 # Der Appcast liegt im Repo: jede Änderung ist ein öffentlicher, datierter Commit.
 git add appcast.xml

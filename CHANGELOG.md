@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.4.0] — 2026-11-21
+
+### Neu
+
+- **Stream Deck:** Plugin `Knippi.streamDeckPlugin` mit zehn Tasten (Bereich, Fenster, Vollbild,
+  Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe, Selbstauslöser, Video
+  Bereich, Video Vollbild), einem Regler für Stream Deck + und fertigen Profilen für Stream
+  Deck +, Neo und Stream Deck (15 Tasten). Tastenbilder im Glas-Stil der App-Familie.
+
 ## [0.3.0] — 2026-11-21
 
 ### Neu

@@ -97,6 +97,16 @@ Im Schnellzugriff öffnet „Teilen“ das Teilen-Menü von macOS: AirDrop, Nach
 
 **Cloud-Freigabe** (optional): Knippi lädt in **deinen eigenen** Cloud-Speicher hoch, zum Beispiel einen Cloudflare-R2-Bucket, nie auf fremde Server. Einrichten unter Einstellungen → Cloud-Freigabe.
 
+## Stream Deck
+
+Mit dem Plugin `Knippi.streamDeckPlugin` aus dem Release auf GitHub löst du Knippi über ein Elgato Stream Deck aus. Datei doppelklicken, Stream Deck installiert sie.
+
+- **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild. In der Stream-Deck-App aus der Kategorie „Knippi“ auf eine Taste ziehen.
+- **Regler (Stream Deck +):** Drehen wählt die Aufnahmeart, Drücken oder Tippen nimmt auf. In den Einstellungen des Reglers wählst du Screenshots oder Video.
+- **Fertige Profile** für Stream Deck +, Neo und Stream Deck (15 Tasten) kommen mit. Umschalten in der Stream-Deck-App beim jeweiligen Gerät.
+
+Beim ersten Tastendruck fragt Knippi, ob andere Apps Aufnahmen starten dürfen. Später änderst du das unter Einstellungen → Allgemein → Automatisierung. Hast du abgelehnt, zeigt die Taste ein Warnzeichen.
+
 ## Updates
 
 Knippi sucht im Hintergrund nach neuen Versionen. Von Hand: Menüleiste → „Nach Updates suchen …“ oder Einstellungen → Allgemein → „Nach Updates suchen“. Findet Knippi im Hintergrund eine neue Version, steht oben im Menü „Update auf … verfügbar“. Updates sind signiert; Knippi installiert nur Versionen, deren Signatur stimmt.

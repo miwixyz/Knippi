@@ -1,0 +1,242 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "Name": "Knippi",
+  "Version": "0.3.0.0",
+  "Author": "MWLR",
+  "Description": "Screenshots, Scroll-Aufnahme, Texterkennung, Farbe und Video von Knippi auf Tasten und Drehreglern.",
+  "URL": "https://github.com/miwixyz/Knippi",
+  "UUID": "dev.mwlr.knippi.deck",
+  "Icon": "imgs/plugin",
+  "CodePath": "knippideck",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "6.5"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "15"
+    }
+  ],
+  "Category": "Knippi",
+  "CategoryIcon": "imgs/category",
+  "Profiles": [
+    {
+      "Name": "profiles/knippi-plus",
+      "DeviceType": 7,
+      "Readonly": false,
+      "DontAutoSwitchWhenInstalled": true,
+      "AutoInstall": true
+    },
+    {
+      "Name": "profiles/knippi-neo",
+      "DeviceType": 9,
+      "Readonly": false,
+      "DontAutoSwitchWhenInstalled": true,
+      "AutoInstall": true
+    },
+    {
+      "Name": "profiles/knippi-mk2",
+      "DeviceType": 0,
+      "Readonly": false,
+      "DontAutoSwitchWhenInstalled": true,
+      "AutoInstall": true
+    }
+  ],
+  "Actions": [
+    {
+      "Name": "Bereich",
+      "UUID": "dev.mwlr.knippi.deck.area",
+      "Icon": "imgs/list-area",
+      "Tooltip": "Bereich auswählen und aufnehmen",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-area",
+          "Title": "Bereich",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Fenster",
+      "UUID": "dev.mwlr.knippi.deck.window",
+      "Icon": "imgs/list-window",
+      "Tooltip": "Ein Fenster aufnehmen",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-window",
+          "Title": "Fenster",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Vollbild",
+      "UUID": "dev.mwlr.knippi.deck.fullscreen",
+      "Icon": "imgs/list-fullscreen",
+      "Tooltip": "Ganzen Bildschirm aufnehmen",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-fullscreen",
+          "Title": "Vollbild",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Scroll-Aufnahme",
+      "UUID": "dev.mwlr.knippi.deck.scrolling",
+      "Icon": "imgs/list-scrolling",
+      "Tooltip": "Scroll-Aufnahme einer langen Seite",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-scrolling",
+          "Title": "Scrollen",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Letzten Bereich wiederholen",
+      "UUID": "dev.mwlr.knippi.deck.last-area",
+      "Icon": "imgs/list-last-area",
+      "Tooltip": "Letzten Bereich noch einmal aufnehmen",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-last-area",
+          "Title": "Wiederholen",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Text erkennen",
+      "UUID": "dev.mwlr.knippi.deck.ocr",
+      "Icon": "imgs/list-ocr",
+      "Tooltip": "Text im Bereich erkennen und kopieren",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-ocr",
+          "Title": "Text",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Farbe aufnehmen",
+      "UUID": "dev.mwlr.knippi.deck.color",
+      "Icon": "imgs/list-color",
+      "Tooltip": "Farbe vom Bildschirm aufnehmen",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-color",
+          "Title": "Farbe",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Selbstauslöser",
+      "UUID": "dev.mwlr.knippi.deck.self-timer",
+      "Icon": "imgs/list-self-timer",
+      "Tooltip": "Aufnahme mit Selbstauslöser",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-self-timer",
+          "Title": "Timer",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Video Bereich",
+      "UUID": "dev.mwlr.knippi.deck.record-area",
+      "Icon": "imgs/list-record-area",
+      "Tooltip": "Bereich als Video aufnehmen",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-record-area",
+          "Title": "Video",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Video Vollbild",
+      "UUID": "dev.mwlr.knippi.deck.record-fullscreen",
+      "Icon": "imgs/list-record-fullscreen",
+      "Tooltip": "Ganzen Bildschirm als Video aufnehmen",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-record-fullscreen",
+          "Title": "Video voll",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
+      "Name": "Regler",
+      "UUID": "dev.mwlr.knippi.deck.dial",
+      "Icon": "imgs/dial",
+      "Tooltip": "Drehen wählt die Aufnahmeart, Drücken oder Tippen startet sie",
+      "Controllers": [
+        "Encoder"
+      ],
+      "PropertyInspectorPath": "pi/dial.html",
+      "Encoder": {
+        "Icon": "imgs/dial",
+        "layout": "$A1",
+        "TriggerDescription": {
+          "Rotate": "Aufnahmeart wählen",
+          "Push": "Aufnehmen",
+          "Touch": "Aufnehmen"
+        }
+      },
+      "States": [
+        {
+          "Image": "imgs/dial-area"
+        }
+      ]
+    }
+  ]
+}

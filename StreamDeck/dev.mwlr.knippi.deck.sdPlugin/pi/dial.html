@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<!-- Settings of the Knippi dial inside Stream Deck. Local only: no network beyond Stream Deck's own WebSocket, no foreign
+     scripts. Stores only the choice of list (shot or video) via setSettings. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src ws://127.0.0.1:*">
+<style>
+  body { margin: 0; padding: 8px 12px; background: #2d2d2d; color: #d8d8d8; font: 12px -apple-system, sans-serif; }
+  .row { display: flex; align-items: center; margin: 6px 0; }
+  label { width: 90px; flex: none; color: #9a9a9a; }
+  select { flex: 1; min-width: 0; background: #3d3d3d; color: #e6e6e6; border: 1px solid #555; border-radius: 4px; padding: 3px 4px; font: inherit; }
+  p { color: #8c8c8c; margin: 10px 0 0; line-height: 1.4; }
+</style>
+</head>
+<body>
+  <div class="row"><label for="list" data-de="Auswahl" data-en="Choice">Auswahl</label>
+    <select id="list">
+      <option value="shot" data-de="Screenshots" data-en="Screenshots">Screenshots</option>
+      <option value="video" data-de="Video" data-en="Video">Video</option>
+    </select>
+  </div>
+  <p data-de="Drehen wählt die Aufnahmeart, Drücken oder Tippen startet sie." data-en="Rotate to choose, press or tap to capture.">Drehen wählt die Aufnahmeart, Drücken oder Tippen startet sie.</p>
+<script>
+  let ws, uuid, settings = {};
+  const list = document.getElementById('list');
+  function connectElgatoStreamDeckSocket(port, inUUID, registerEvent, info, actionInfo) {
+    uuid = inUUID;
+    let lang = 'de';
+    try { lang = JSON.parse(info).application.language || 'de'; } catch (e) {}
+    if (!lang.startsWith('de')) document.querySelectorAll('[data-en]').forEach(el => { el.textContent = el.dataset.en; });
+    try { settings = JSON.parse(actionInfo).payload.settings || {}; } catch (e) {}
+    list.value = settings.list === 'video' ? 'video' : 'shot';
+    ws = new WebSocket('ws://127.0.0.1:' + port);
+    ws.onopen = () => ws.send(JSON.stringify({ event: registerEvent, uuid }));
+  }
+  list.addEventListener('change', () => {
+    settings = { list: list.value, index: 0 };
+    if (ws) ws.send(JSON.stringify({ event: 'setSettings', context: uuid, payload: settings }));
+  });
+</script>
+</body>
+</html>
