@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.4.0</title>
+            <pubDate>Sat, 21 Nov 2026 17:14:24 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>528</sparkle:version>
+            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream Deck:</b> Plugin <code>Knippi.streamDeckPlugin</code> mit zehn Tasten (Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe, Selbstauslöser, Video Bereich, Video Vollbild), einem Regler für Stream Deck + und fertigen Profilen für Stream Deck +, Neo und Stream Deck (15 Tasten). Tastenbilder im Glas-Stil der App-Familie.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.0/Knippi-0.4.0.zip" length="5637342" type="application/octet-stream" sparkle:edSignature="pQbtc/0Y5+tH3MqiIJ757kCJiARh2oZW4DX84/uD5HbJDr/SUkbUpKp6qwDX2yP12ntu/ohVq1k+zYlxnar/AA=="/>
+        </item>
+        <item>
             <title>0.3.0</title>
             <pubDate>Sat, 21 Nov 2026 16:23:20 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Scroll-Aufnahme:</b> Nimmt eine lange Seite als ein durchgehendes Bild auf, zum Beispiel eine Webseite, eine Mail oder ein PDF. Im Menü „Scroll-Aufnahme“ oder mit option + shift + 6 einen Bereich wählen, dann „Aufnahme starten“ und selbst scrollen, oder „Automatisch“, dann scrollt Knippi bis zum Seitenende von allein. „Fertig“ beendet, Esc bricht ab.</li><li><b>Feste Kopf- und Fußleisten</b> einer Seite erscheinen im Bild nur einmal.</li><li><b>Zu schnell gescrollt:</b> Reißt der Anschluss ab, wird der Rahmen orange und Knippi zeigt „Zu schnell – etwas zurückscrollen“. Scrollst du zurück, setzt die Aufnahme dort wieder an. Knippi setzt nie an einer unsicheren Stelle an, auch nicht bei Seiten, deren Zeilen sich stark ähneln (Tabellen, Listen, Protokolle).</li><li><b>Höchstlänge:</b> Bei 30 000 Pixeln endet die Aufnahme mit dem Hinweis „Maximale Länge erreicht – der Rest der Seite fehlt“.</li></ul><h3>Hinweise</h3><ul><li>„Automatisch“ braucht die Freigabe <b>Gerätesteuerung und Datenzugriff</b> (Systemeinstellungen → Datenschutz &amp; Sicherheit). Fehlt sie, fragt macOS beim ersten Mal.</li><li>Gemessen an 400 Zeilen langen Seiten: Safari, Mail und Vorschau ohne doppelte oder fehlende Zeilen, 13 bis 24 Sekunden.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.2.0/Knippi-0.2.0.zip" length="5564422" type="application/octet-stream" sparkle:edSignature="xKy6pLrWurKG9dLyQ8BYFAT8DY5WlqeSw8vbWTdDnGX4aC2dWf9lpddrpaoqlG+GMPwI/03prx94OoR8jeMxCA=="/>
         </item>
-        <item>
-            <title>0.1.3</title>
-            <pubDate>Sat, 21 Nov 2026 10:47:25 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>521</sparkle:version>
-            <sparkle:shortVersionString>0.1.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Hintergrund mit runden Ecken:</b> Das ganze Bild samt Hintergrund hat jetzt abgerundete Ecken, passend zu den Ecken der Aufnahme. Außerhalb ist es durchsichtig (PNG). Die Vorschau im Editor zeigt die Ecken genauso.</li><li><b>Editor-Vorschau passt sich an:</b> Änderst du Hintergrund, Format oder Abstand oder klappst den Bereich „Hintergrund“ auf, zeigt der Editor wieder das ganze Bild. Vorher blieb der Zoom stehen und das Bild lief unten aus dem Fenster. Hast du selbst gezoomt, bleibt dein Zoom.</li><li><b>Editor-Vorschau mit Hintergrund:</b> Durchsichtige Stellen zeigen den Hintergrund statt eines Karomusters, so wie im fertigen Bild.</li></ul><h3>Behoben</h3><ul><li><b>Editor:</b> „Hintergrund“ und „Vertrauliches finden“ stehen jetzt fest rechts neben Sichern und Teilen. In einem schmalen Editor-Fenster waren sie vorher aus der Werkzeugleiste herausgeschoben, ohne dass man es sah.</li><li><b>Editor:</b> Die Auswahl Verpixeln / Weichzeichnen / Schwarzer Balken steht jetzt in einer eigenen Zeile unter der Werkzeugleiste, sobald das Verpixeln-Werkzeug aktiv ist.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.3/Knippi-0.1.3.zip" length="5532803" type="application/octet-stream" sparkle:edSignature="N09/r77WhyprJem4XBFtU1/5iSq6Z1/PBuNQLL9ZnuSmaZ1sGcZwObA53afVxmY0kdKlXxqnD3xJ5rvhi8dTCA=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: aBpMyfftCzFrNEYtxxeIbNeg1qdqFeLh3bAHf13hoTcbopjvhBLGtZx2MZe128VF66YyokigLmPjJVAJ/zOaBw==
-length: 6911
+edSignature: jcLptLWUHnZ0Hu1voMGSm5PylpTwzfNFA4mr5GHSCJIcsZ+A9PKxIUezuu8WYYBGgDnjQKVqOghHdA/R1LyDCQ==
+length: 6186
 -->
