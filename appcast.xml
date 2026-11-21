@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.4.3</title>
+            <pubDate>Sat, 21 Nov 2026 20:44:05 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>534</sparkle:version>
+            <sparkle:shortVersionString>0.4.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Video-Export stürzte ab</b>, wenn sich während der Aufnahme lange nichts bewegte (Bildrate unter 1 Bild pro Sekunde). Jetzt exportiert Knippi mit fester Bildrate.</li><li><b>Video nicht mehr länger als die Aufnahme:</b> Bei wenig Bewegung hängte der Export mit Hintergrund oder Effekt hinten Sekunden Standbild an (gemessen 8,6 statt 12,5 Sekunden).</li><li><b>Mikrofon im Export:</b> Mit Hintergrund, Effekt, Mauszeiger oder Schnitt landeten Systemton und Mikrofon in zwei getrennten Spuren, viele Player spielten nur eine davon. Jetzt ist es eine Spur.</li><li><b>Weichzeichnen im Video bleibt beim Zoom über dem Inhalt</b>, statt ihn beim Heranzoomen freizugeben.</li><li><b>Video-Editor:</b> Glättung und Stil des Mauszeigers wirken jetzt sofort. Schließen mit dem roten Knopf stoppt die Wiedergabe. Die angezeigte Dauer stimmt auch bei überlappenden Schnitten. Die Zwischendatei beim Export mit Schnitten liegt im temporären Ordner statt im Zielordner.</li><li><b>Bild-Editor:</b> Farbe, Größe und Modus lassen sich rückgängig machen (Schieberegler als ein Schritt). Drehen und Spiegeln lassen sich nicht mehr rückgängig machen, dafür entsteht nie mehr ein falscher Ausschnitt. „Ausgabe skalieren“ bleibt beim Ändern des Zuschnitts und beim Drehen im Seitenverhältnis und ist auf 16384 Pixel begrenzt. Ein noch offener Text geht beim Schließen nicht mehr ohne Rückfrage verloren. Verpixeln ruckelt beim Zeichnen nicht mehr. Nach dem Zuschneiden sucht „Vertrauliches finden“ nicht noch einmal (keine doppelten Verpixelungen).</li><li><b>All-in-One:</b> Farbe ändern macht eine Verpixelung nicht mehr schwächer, Stiländerungen sind rückgängig zu machen.</li><li><b>Aufnahme:</b> Selbstauslöser, „Wiederholen“ und Sofort-Texterkennung nehmen auf 1×- und 3×-Bildschirmen in der richtigen Auflösung auf. Feste Größen und freie Auswahl bleiben im Bildschirm. Esc bricht den Selbstauslöser jetzt zuverlässig ab.</li><li><b>Video und Kamera:</b> Ein zweites Aufnahme-Kürzel lässt keine verwaiste Leiste mehr zurück. Eine abgesteckte Kamera wird gemeldet, statt eine leere Kamerablase mitzufilmen. Die Kamera bremst die Oberfläche nicht mehr. Schließen der Vorschau nach fehlgeschlagenem Sichern fragt nach.</li><li><b>Cloud-Freigabe:</b> Waren die Zugangsdaten beim Start nicht lesbar (Schlüsselbund gesperrt), versucht Knippi es beim nächsten Teilen erneut und sagt sonst, dass es am Schlüsselbund liegt. Eine einzelne nicht löschbare alte Datei blockiert Ziehen und Teilen nicht mehr. Die Testdatei der Einrichtung wird auch bei Netzfehlern wieder entfernt.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.3/Knippi-0.4.3.zip" length="5659642" type="application/octet-stream" sparkle:edSignature="2bAG9J0zEXIa1qg4GR6UN1/4FMtKvoR2JOOBy0BxTsTASa8UZwSzXaPsKSjqow3H/c/3QUUYDa9/gLCsV4rEAg=="/>
+        </item>
+        <item>
             <title>0.4.2</title>
             <pubDate>Sat, 21 Nov 2026 19:04:36 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Abbrechen setzt die Aktion zurück:</b> Wer „Bereich aufnehmen &amp; teilen“ (oder „&amp; anheften“, „&amp; kopieren“, „&amp; bearbeiten“) mit Esc abbrach, bekam die Aktion bei der nächsten Vollbild-, Fenster- oder Scroll-Aufnahme trotzdem, also zum Beispiel einen ungewollten Cloud-Upload.</li><li><b>Pause im Bildschirmvideo:</b> Bei stillem Bild schnitt Knippi zu viel heraus und verlor den Ton nach dem Fortsetzen. Jetzt fehlt genau die Zeit zwischen Pause und Fortsetzen.</li></ul><h3>Geändert</h3><ul><li><b>Aufnahmen, die eine andere App auslöst</b> (<code>knippi://grab/fullscreen</code> und <code>/last-area</code>, auch vom Stream Deck), landen nicht mehr automatisch in der Zwischenablage oder in der Cloud. Sie werden immer gesichert, ein Hinweis zeigt sie an, und zwei solche Befehle kurz hintereinander nimmt Knippi nicht an. So kann keine andere App über Knippi den Bildschirm mitlesen.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.1/Knippi-0.4.1.zip" length="5640227" type="application/octet-stream" sparkle:edSignature="SnoWhZKh69GkoXe6vwvIfUUM56Y1rDIWf2b9cbzEZ+disvD4TvpKlvsWBad8HwH/NoYjYR29u1zzlSaDymlCBQ=="/>
         </item>
-        <item>
-            <title>0.4.0</title>
-            <pubDate>Sat, 21 Nov 2026 17:14:24 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>528</sparkle:version>
-            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream Deck:</b> Plugin <code>Knippi.streamDeckPlugin</code> mit zehn Tasten (Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe, Selbstauslöser, Video Bereich, Video Vollbild), einem Regler für Stream Deck + und fertigen Profilen für Stream Deck +, Neo und Stream Deck (15 Tasten). Tastenbilder im Glas-Stil der App-Familie.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.0/Knippi-0.4.0.zip" length="5637342" type="application/octet-stream" sparkle:edSignature="pQbtc/0Y5+tH3MqiIJ757kCJiARh2oZW4DX84/uD5HbJDr/SUkbUpKp6qwDX2yP12ntu/ohVq1k+zYlxnar/AA=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: rpiFen1/QjYjqXrhzEcrZ27Egg1WVwIBR2a7S+aUPACuBBLfv90wU/od1SducJ7YwYU1heh4t1yvq55AGjieDA==
-length: 6399
+edSignature: zJCi7PZrRJ+EitKxHFP0WYIjCvltgICTePKHGY4EqWeb8GXmLDp0K92uwPbTid412kRAuJ7liG4zeJW5RydUBQ==
+length: 8641
 -->
