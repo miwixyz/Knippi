@@ -56,6 +56,13 @@ public final class ScreenRecorder {
     /// Fires at most once per recording when free disk space drops below `DiskSpace.minimumToKeepRecording`.
     @ObservationIgnored
     public var onDiskSpaceLow: (@MainActor () -> Void)?
+    /// The file could no longer be written (disk error, encoder failure)
+    /// while recording. Reported once; the owner should stop the recording.
+    public var onWriterFailed: (@MainActor (Error) -> Void)?
+    /// After `stopRecording` threw `writerFailed`: the partly written file,
+    /// still worth saving (the writer flushes a fragment every 5 s).
+    public private(set) var partialRecordingURL: URL?
+    private var writerFailureReported = false
 
     /// Fires at most once per recording for each kind of audio problem.
     @ObservationIgnored
@@ -139,7 +146,7 @@ public final class ScreenRecorder {
 
     public func pause() {
         guard state == .recording else { return }
-        state = .paused; writer.deactivate(); stopElapsedTimer()
+        state = .paused; writer.pause(); stopElapsedTimer()
     }
 
     public func resume() {
@@ -162,15 +169,21 @@ public final class ScreenRecorder {
             }
         }
 
+        partialRecordingURL = nil
         guard writer.hasWrittenFrames else {
-            knippiLog("No frames written"); cleanup(); state = .idle
+            knippiLog("No frames written")
+            // Nothing worth keeping: an empty file would only pile up in tmp.
+            if let url = outputFileURL { try? FileManager.default.removeItem(at: url) }
+            cleanup(); state = .idle
             throw RecordingError.noFramesCaptured
         }
 
         await writer.finalize()
 
         if let e = writer.error {
-            knippiLog("Writer error: \(e)"); cleanup(); state = .idle
+            knippiLog("Writer error: \(e)")
+            partialRecordingURL = outputFileURL
+            cleanup(); state = .idle
             throw RecordingError.writerFailed(e)
         }
 
@@ -357,8 +370,16 @@ public final class ScreenRecorder {
                 self.elapsedTime = base + Date().timeIntervalSince(s)
                 self.checkDiskSpaceIfDue(elapsed: self.elapsedTime)
                 self.reportAudioIssues(at: Date())
+                if let error = self.writer.error { self.reportWriterFailure(error) }
             }
         }
+    }
+
+    func reportWriterFailure(_ error: Error) {
+        guard state.isActive, !writerFailureReported else { return }
+        writerFailureReported = true
+        knippiLog("Writer failed while recording: \(error)")
+        onWriterFailed?(error)
     }
 
     func reportAudioIssues(at now: Date) {
@@ -387,7 +408,7 @@ public final class ScreenRecorder {
     private func cleanup() {
         stream = nil; streamOutput = nil; recordingConfig = nil; recordingQueue = nil; recordingSourceSize = nil
         streamInterrupted = false
-        lastDiskSpaceCheck = 0; diskSpaceLowReported = false
+        lastDiskSpaceCheck = 0; diskSpaceLowReported = false; writerFailureReported = false
         writer.reset(); stopElapsedTimer()
         InterruptedRecording.clear()
     }
@@ -421,6 +442,15 @@ enum RecordingVideoGeometry {
 
     private static func ensureEven(_ v: Int) -> Int {
         v % 2 == 0 ? v : v + 1
+    }
+}
+
+enum RecordingWriterTiming {
+    /// Time to cut out after a pause: from the last frame before it to the
+    /// first frame after it, less one frame so timestamps keep increasing.
+    static func pauseGap(lastBefore: CMTime, firstAfter: CMTime, frame: CMTime) -> CMTime {
+        let gap = CMTimeSubtract(CMTimeSubtract(firstAfter, lastBefore), frame)
+        return CMTimeCompare(gap, .zero) > 0 ? gap : .zero
     }
 }
 
@@ -517,6 +547,31 @@ private final class RecordingWriter: @unchecked Sendable {
     func activate() { lock.lock(); active = true; lock.unlock() }
     func deactivate() { lock.lock(); active = false; lock.unlock() }
 
+    // Pause: the stream keeps its own clock, so without shifting, a pause
+    // ends up in the file as a frozen frame and silence of the same length.
+    private var pauseOffset = CMTime.zero
+    private var lastVideoPTS: CMTime?
+    private var resumePending = false
+
+    func pause() {
+        lock.lock(); active = false; resumePending = sessionStarted; lock.unlock()
+    }
+
+    private func retimed(_ buf: CMSampleBuffer, by offset: CMTime) -> CMSampleBuffer? {
+        guard CMTimeCompare(offset, .zero) != 0 else { return buf }
+        var timing = CMSampleTimingInfo(
+            duration: CMSampleBufferGetDuration(buf),
+            presentationTimeStamp: CMTimeSubtract(CMSampleBufferGetPresentationTimeStamp(buf), offset),
+            decodeTimeStamp: .invalid
+        )
+        var copy: CMSampleBuffer?
+        guard CMSampleBufferCreateCopyWithNewTiming(
+            allocator: nil, sampleBuffer: buf, sampleTimingEntryCount: 1,
+            sampleTimingArray: &timing, sampleBufferOut: &copy
+        ) == noErr else { return nil }
+        return copy
+    }
+
     func appendVideo(_ buf: CMSampleBuffer) {
         lock.lock(); defer { lock.unlock() }
         guard active, let w = assetWriter, w.status == .writing else { return }
@@ -532,8 +587,20 @@ private final class RecordingWriter: @unchecked Sendable {
             }
         }
 
-        guard let vi = videoInput, vi.isReadyForMoreMediaData else { return }
-        if !vi.append(buf) {
+        let rawPTS = CMSampleBufferGetPresentationTimeStamp(buf)
+        if resumePending, let last = lastVideoPTS {
+            let frame = CMSampleBufferGetDuration(buf)
+            pauseOffset = CMTimeAdd(pauseOffset, RecordingWriterTiming.pauseGap(
+                lastBefore: last, firstAfter: rawPTS,
+                frame: frame.isValid && frame.seconds > 0 ? frame : CMTime(value: 1, timescale: 60)
+            ))
+        }
+        resumePending = false
+
+        guard let vi = videoInput, vi.isReadyForMoreMediaData,
+              let shifted = retimed(buf, by: pauseOffset) else { return }
+        lastVideoPTS = rawPTS
+        if !vi.append(shifted) {
             knippiLog("Video append FAILED: \(String(describing: w.error))")
         } else {
             _written = true
@@ -545,7 +612,7 @@ private final class RecordingWriter: @unchecked Sendable {
 
     func appendSystemAudio(_ buf: CMSampleBuffer) {
         lock.lock(); defer { lock.unlock() }
-        guard active, sessionStarted else { return }
+        guard active, sessionStarted, !resumePending else { return }
         guard let w = assetWriter, w.status == .writing else { return }
         guard let ai = sysAudioInput, ai.isReadyForMoreMediaData else { return }
         guard let converted = createCleanAudioBuffer(buf, label: "sys") else { return }
@@ -556,7 +623,7 @@ private final class RecordingWriter: @unchecked Sendable {
 
     func appendMicAudio(_ buf: CMSampleBuffer) {
         lock.lock(); defer { lock.unlock() }
-        guard active, sessionStarted else { return }
+        guard active, sessionStarted, !resumePending else { return }
         guard let w = assetWriter, w.status == .writing else { return }
         guard let ai = micAudioInput, ai.isReadyForMoreMediaData else { return }
         guard let converted = createCleanAudioBuffer(buf, label: "mic") else { return }
@@ -618,7 +685,7 @@ private final class RecordingWriter: @unchecked Sendable {
         let dur = CMSampleBufferGetDuration(buf)
         var timing = CMSampleTimingInfo(
             duration: dur.isValid ? dur : CMTime(value: 1, timescale: CMTimeScale(srcASBD.pointee.mSampleRate)),
-            presentationTimeStamp: pts,
+            presentationTimeStamp: CMTimeSubtract(pts, pauseOffset),
             decodeTimeStamp: .invalid
         )
 
@@ -653,6 +720,7 @@ private final class RecordingWriter: @unchecked Sendable {
         lock.lock(); defer { lock.unlock() }
         assetWriter = nil; videoInput = nil; sysAudioInput = nil; micAudioInput = nil
         sessionStarted = false; active = false; _written = false
+        pauseOffset = .zero; lastVideoPTS = nil; resumePending = false
         sysAudioLogCount = 0; micAudioLogCount = 0; audioFormatLogged = false
     }
 }

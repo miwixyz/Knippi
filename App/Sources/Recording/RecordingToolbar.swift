@@ -40,6 +40,8 @@ struct RecordingMicSelection: Equatable {
 struct RecordingToolbarView: View {
     let width: Int
     let height: Int
+    @Binding var cameraEnabled: Bool
+    @Binding var selectedCameraID: String?
     @Binding var micEnabled: Bool
     @Binding var systemAudioEnabled: Bool
     let settings: SharedKit.AppSettings
@@ -47,8 +49,11 @@ struct RecordingToolbarView: View {
     let onRecordGIF: () -> Void
     let onChangeArea: () -> Void
     let onCancel: () -> Void
+    let onCameraSettingsChanged: () -> Void
 
     @State private var selectedMicID: String?
+    @State private var cameraMenuRevision = 0
+    @State private var showCameraPanel = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -93,6 +98,9 @@ struct RecordingToolbarView: View {
                         isOn: $systemAudioEnabled,
                         tooltip: "System Audio"
                     )
+
+                    // Camera menu
+                    cameraMenuButton
                 }
             }
             .padding(.horizontal, 16)
@@ -252,6 +260,91 @@ struct RecordingToolbarView: View {
         settings.recordingMicDeviceID = micEnabled ? selectedMicID : nil
     }
 
+    // MARK: - Camera Settings
+
+    /// A panel that stays open while settings change (a menu closed after
+    /// every click, Michael 2026-11-21). Clicking outside closes it.
+    private var cameraMenuButton: some View {
+        Button {
+            showCameraPanel.toggle()
+        } label: {
+            Image(systemName: cameraEnabled ? "camera.fill" : "camera")
+                .font(.system(size: 14))
+                .foregroundStyle(cameraEnabled ? .white : .white.opacity(0.4))
+                .frame(width: 36, height: 30)
+                .background(cameraEnabled ? .white.opacity(0.15) : .clear)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Camera")
+        .popover(isPresented: $showCameraPanel, arrowEdge: .bottom) {
+            cameraPanel
+        }
+    }
+
+    private var cameraPanel: some View {
+        let _ = cameraMenuRevision
+        return VStack(alignment: .leading, spacing: 12) {
+            Picker("Camera", selection: Binding<String?>(
+                get: { cameraEnabled ? selectedCameraID : nil },
+                set: { id in
+                    cameraEnabled = id != nil
+                    selectedCameraID = id
+                }
+            )) {
+                Text("None").tag(String?.none)
+                ForEach(cameraDevices(), id: \.uniqueID) { device in
+                    Text(device.localizedName).tag(Optional(device.uniqueID))
+                }
+            }
+
+            Picker("Shape", selection: Binding<CameraShape>(
+                get: { settings.cameraShape },
+                set: { settings.cameraShape = $0; cameraSettingsChanged() }
+            )) {
+                ForEach(CameraShape.allCases, id: \.rawValue) { shape in
+                    Image(systemName: shape.iconName).help(shape.displayName).tag(shape)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            Picker("Size", selection: Binding<SharedKit.CameraSize>(
+                get: { settings.cameraSize },
+                set: { settings.cameraSize = $0; settings.cameraCustomSizePt = 0; cameraSettingsChanged() }
+            )) {
+                ForEach(SharedKit.CameraSize.allCases, id: \.rawValue) { size in
+                    Text(size.displayName).tag(size)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            Divider()
+
+            Toggle("Mirror", isOn: Binding(
+                get: { settings.cameraMirror },
+                set: { settings.cameraMirror = $0; cameraSettingsChanged() }
+            ))
+            Toggle("Fade on Hover", isOn: Binding(
+                get: { settings.cameraPiPFadeOnHover },
+                set: { settings.cameraPiPFadeOnHover = $0; cameraSettingsChanged() }
+            ))
+            Toggle("Click Through PiP", isOn: Binding(
+                get: { settings.cameraPiPClickThrough },
+                set: { settings.cameraPiPClickThrough = $0; cameraSettingsChanged() }
+            ))
+        }
+        .toggleStyle(.switch)
+        .controlSize(.small)
+        .padding(14)
+        .frame(width: 280)
+    }
+
+    private func cameraSettingsChanged() {
+        cameraMenuRevision += 1
+        onCameraSettingsChanged()
+    }
+
     // MARK: - Helpers
 
     private func toolbarIcon(systemName: String, active: Bool) -> some View {
@@ -292,5 +385,43 @@ struct RecordingToolbarView: View {
             mediaType: .audio,
             position: .unspecified
         ).devices
+    }
+
+    private func cameraDevices() -> [AVCaptureDevice] {
+        AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.builtInWideAngleCamera, .external],
+            mediaType: .video,
+            position: .unspecified
+        ).devices
+    }
+}
+
+private extension CameraShape {
+    var displayName: LocalizedStringKey {
+        switch self {
+        case .circle: "Circle"
+        case .square: "Square"
+        case .landscape: "Landscape (16:9)"
+        case .portrait: "Portrait (9:16)"
+        }
+    }
+
+    var iconName: String {
+        switch self {
+        case .circle: "circle"
+        case .square: "square"
+        case .landscape: "rectangle"
+        case .portrait: "rectangle.portrait"
+        }
+    }
+}
+
+private extension SharedKit.CameraSize {
+    var displayName: LocalizedStringKey {
+        switch self {
+        case .small: "Small"
+        case .medium: "Medium"
+        case .large: "Large"
+        }
     }
 }

@@ -14,6 +14,7 @@ Beim ersten Bildschirmfoto fragt macOS nach der Freigabe **Bildschirm- und Syste
 | option + shift + 2 | Vollbild aufnehmen |
 | option + shift + 3 | Fenster aufnehmen |
 | option + shift + 4 | Text erfassen (Texterkennung) |
+| option + shift + 5 | Bereich als Video oder GIF aufzeichnen |
 | option + shift + 6 | Scroll-Aufnahme (lange Seite) |
 | option + shift + 7 | Bereich in die Zwischenablage |
 | option + shift + 8 | Bereich aufnehmen & annotieren |
@@ -33,6 +34,20 @@ Unter Einstellungen → Bildschirmfotos → „Nach der Aufnahme“ wählst du:
 - **Still:** Knippi kopiert und sichert, ohne etwas anzuzeigen.
 
 Ab Werk wird jede Aufnahme gleich in die Zwischenablage kopiert.
+
+## Video und GIF
+
+1. Im Menü **Bereich aufzeichnen** (option + shift + 5) oder **Ganzen Bildschirm aufzeichnen** wählen und den Bereich aufziehen.
+2. In der Leiste einstellen: **Mikrofon** (wahlweise), **Systemaudio**, **Kamera** für dein Sprecherbild.
+3. Mit dem roten Knopf aufzeichnen, mit **GIF aufzeichnen** als GIF. Pausieren und Stoppen in der kleinen Steuerleiste; die Pause fehlt im fertigen Video.
+
+Nach dem Stoppen sichert Knippi das Video sofort in deinen Sicherungsordner und meldet „Aufnahme gesichert“. Klappt das Sichern nicht, bleibt die Vorschau mit „Sichern“ und „Kopieren“ offen.
+
+**Sprecherbild:** Klick auf das Kamera-Symbol öffnet die Einstellungen (Kamera, Form, Größe, Spiegeln). Sie bleiben offen, bis du daneben klickst. Vor dem Start ziehst du das Kamerabild an seinen Platz. Während der Aufnahme weicht es der Maus aus und kehrt danach zurück. Mit gedrückter **command**-Taste bleibt es stehen und lässt sich verschieben. Ein Klick darauf schaltet auf Vollbild-Kamera.
+
+**Freigaben:** Mikrofon und Kamera fragt macOS beim ersten Einschalten. Später findest du sie unter Systemeinstellungen → Datenschutz & Sicherheit → Mikrofon bzw. Kamera.
+
+**Lange GIFs** werden ruckeliger und kleiner, damit der Speicher reicht. Für lange Aufnahmen ist ein Video besser.
 
 ## Scroll-Aufnahme
 

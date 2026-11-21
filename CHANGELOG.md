@@ -2,7 +2,27 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
-## [Unveröffentlicht]
+## [0.3.0] — 2026-11-21
+
+### Neu
+
+- **Bildschirmvideo und GIF:** Im Menü „Bereich aufzeichnen“ (option + shift + 5) oder „Ganzen
+  Bildschirm aufzeichnen“. In der Leiste wählst du Video oder GIF, Systemaudio und wahlweise
+  das Mikrofon. Pausieren ist möglich, die Pause fehlt im fertigen Video.
+- **Sprecherbild:** Über das Kamera-Symbol in der Leiste blendest du dein Kamerabild ein, in
+  Kreis-, Quadrat-, Quer- oder Hochformat und drei Größen. Vor dem Start ziehst du es an seinen
+  Platz. Während der Aufnahme weicht es der Maus sanft aus und kehrt danach zurück; mit
+  gedrückter command-Taste lässt es sich auch während der Aufnahme greifen. Die Einstellungen
+  bleiben offen, bis du daneben klickst.
+- **Automatisch gesichert:** Nach dem Stoppen landet das Video sofort im Sicherungsordner.
+
+### Hinweise
+
+- Mikrofon und Kamera fragt macOS erst, wenn du sie zum ersten Mal einschaltest.
+- Lange GIFs werden zuerst ruckeliger (bis 10 Bilder pro Sekunde), dann kleiner, damit der
+  Speicher nicht überläuft (gemessen: 150 Bilder in voller Größe brauchten 3,6 GB).
+- Bricht eine Aufnahme ab (Freigabe entzogen, Datei nicht schreibbar), sagt Knippi es und
+  sichert, was bis dahin aufgenommen war.
 
 ### Behoben
 

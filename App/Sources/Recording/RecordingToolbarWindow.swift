@@ -7,6 +7,8 @@ import SharedKit
 @Observable
 @MainActor
 private final class RecordingToolbarState {
+    var cameraEnabled = false
+    var selectedCameraID: String?
     var micEnabled = false
     var systemAudioEnabled = true
 }
@@ -16,16 +18,18 @@ private final class RecordingToolbarState {
 final class RecordingToolbarWindow: NSPanel {
     private let settings: AppSettings
     private let onCancelAction: () -> Void
-    private let onRecordAction: (RecordingFormatChoice, Bool, Bool) -> Void
+    private let onRecordAction: (RecordingFormatChoice, Bool, String?, Bool, Bool) -> Void
     private let toolbarState = RecordingToolbarState()
 
     init(
         selectionRect: CGRect,
         screen: NSScreen,
         settings: AppSettings,
-        onRecord: @escaping (RecordingFormatChoice, Bool, Bool) -> Void,
+        onRecord: @escaping (RecordingFormatChoice, Bool, String?, Bool, Bool) -> Void,
+        onCameraToggled: @escaping (Bool, String?) async -> Bool,
         onChangeArea: @escaping () -> Void,
-        onCancel: @escaping () -> Void
+        onCancel: @escaping () -> Void,
+        onCameraSettingsChanged: @escaping () -> Void
     ) {
         self.settings = settings
         self.onCancelAction = onCancel
@@ -61,8 +65,10 @@ final class RecordingToolbarWindow: NSPanel {
             settings: settings,
             state: toolbarState,
             onRecord: onRecord,
+            onCameraToggled: onCameraToggled,
             onChangeArea: onChangeArea,
-            onCancel: onCancel
+            onCancel: onCancel,
+            onCameraSettingsChanged: onCameraSettingsChanged
         )
         self.contentView = NSHostingView(rootView: view)
     }
@@ -98,6 +104,8 @@ final class RecordingToolbarWindow: NSPanel {
             }
             onRecordAction(
                 modifiers == .option ? .gif : .video,
+                toolbarState.cameraEnabled,
+                toolbarState.selectedCameraID,
                 toolbarState.micEnabled,
                 toolbarState.systemAudioEnabled
             )
@@ -115,20 +123,28 @@ private struct RecordingToolbarWrapper: View {
     let height: Int
     let settings: AppSettings
     @Bindable var state: RecordingToolbarState
-    let onRecord: (RecordingFormatChoice, Bool, Bool) -> Void
+    let onRecord: (RecordingFormatChoice, Bool, String?, Bool, Bool) -> Void
+    let onCameraToggled: (Bool, String?) async -> Bool
     let onChangeArea: () -> Void
     let onCancel: () -> Void
+    let onCameraSettingsChanged: () -> Void
+
+    @State private var cameraToggleTask: Task<Void, Never>?
 
     var body: some View {
         RecordingToolbarView(
             width: width,
             height: height,
+            cameraEnabled: $state.cameraEnabled,
+            selectedCameraID: $state.selectedCameraID,
             micEnabled: $state.micEnabled,
             systemAudioEnabled: $state.systemAudioEnabled,
             settings: settings,
             onRecordVideo: {
                 onRecord(
                     .video,
+                    state.cameraEnabled,
+                    state.selectedCameraID,
                     state.micEnabled,
                     state.systemAudioEnabled
                 )
@@ -136,12 +152,38 @@ private struct RecordingToolbarWrapper: View {
             onRecordGIF: {
                 onRecord(
                     .gif,
+                    state.cameraEnabled,
+                    state.selectedCameraID,
                     state.micEnabled,
                     state.systemAudioEnabled
                 )
             },
             onChangeArea: onChangeArea,
-            onCancel: onCancel
+            onCancel: onCancel,
+            onCameraSettingsChanged: onCameraSettingsChanged
         )
+        .onChange(of: state.cameraEnabled) { _, newValue in
+            updateCamera(enabled: newValue, deviceID: state.selectedCameraID)
+        }
+        .onChange(of: state.selectedCameraID) { _, newValue in
+            if state.cameraEnabled {
+                updateCamera(enabled: true, deviceID: newValue)
+            }
+        }
+        .onDisappear {
+            cameraToggleTask?.cancel()
+        }
+    }
+
+    private func updateCamera(enabled: Bool, deviceID: String?) {
+        cameraToggleTask?.cancel()
+        cameraToggleTask = Task { @MainActor in
+            let didApply = await onCameraToggled(enabled, deviceID)
+            guard !Task.isCancelled else { return }
+            if enabled && !didApply {
+                state.cameraEnabled = false
+                state.selectedCameraID = nil
+            }
+        }
     }
 }

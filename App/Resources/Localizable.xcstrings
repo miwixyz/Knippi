@@ -1361,6 +1361,106 @@
         }
       }
     },
+    "Camera" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera"
+          }
+        }
+      }
+    },
+    "Camera access is turned off. Enable Knippi in System Settings > Privacy & Security > Camera, then try again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Kamerazugriff ist ausgeschaltet. Erlaube Knippi in den Systemeinstellungen unter „Datenschutz & Sicherheit“ → „Kamera“ und versuche es dann erneut."
+          }
+        }
+      }
+    },
+    "Camera Access Needed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamerazugriff nötig"
+          }
+        }
+      }
+    },
+    "Circle" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kreis"
+          }
+        }
+      }
+    },
+    "Click Through PiP" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durch das Kamerabild klicken"
+          }
+        }
+      }
+    },
+    "Couldn't finish recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme konnte nicht abgeschlossen werden"
+          }
+        }
+      }
+    },
+    "Couldn't start recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme konnte nicht gestartet werden"
+          }
+        }
+      }
+    },
+    "Fade on Hover" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Überfahren ausblenden"
+          }
+        }
+      }
+    },
+    "Knippi could not keep writing the video. What was recorded up to that point has been saved to %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knippi konnte das Video nicht weiterschreiben. Was bis dahin aufgenommen war, liegt in %@."
+          }
+        }
+      }
+    },
+    "Knippi may not use the microphone. Allow it under System Settings → Privacy & Security → Microphone, then switch the microphone on again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knippi darf das Mikrofon nicht verwenden. Erlaube es in den Systemeinstellungen unter „Datenschutz & Sicherheit“ → „Mikrofon“ und schalte das Mikrofon dann erneut ein."
+          }
+        }
+      }
+    },
     "Knippi needs Screen Recording permission. Open System Settings → Privacy & Security → Screen & System Audio Recording and allow Knippi." : {
       "localizations" : {
         "de" : {
@@ -1462,12 +1562,142 @@
         }
       }
     },
+    "Landscape (16:9)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quer (16:9)"
+          }
+        }
+      }
+    },
+    "Large" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groß"
+          }
+        }
+      }
+    },
+    "macOS stopped the recording. What was recorded so far has been saved." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS hat die Aufnahme beendet. Das bisher Aufgenommene ist gesichert."
+          }
+        }
+      }
+    },
+    "macOS withdrew the Screen Recording permission. What was recorded so far has been saved." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS hat die Freigabe für Bildschirmaufnahme entzogen. Das bisher Aufgenommene ist gesichert."
+          }
+        }
+      }
+    },
+    "Medium" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mittel"
+          }
+        }
+      }
+    },
+    "Mirror" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiegeln"
+          }
+        }
+      }
+    },
+    "Nothing was recorded" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nichts aufgenommen"
+          }
+        }
+      }
+    },
+    "Open Camera Settings" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera-Einstellungen öffnen"
+          }
+        }
+      }
+    },
     "Open Settings" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Einstellungen öffnen"
+          }
+        }
+      }
+    },
+    "Portrait (9:16)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoch (9:16)"
+          }
+        }
+      }
+    },
+    "Recording ended" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme beendet"
+          }
+        }
+      }
+    },
+    "Recording saved to %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme gesichert in %@"
+          }
+        }
+      }
+    },
+    "Recording was cut short" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme vorzeitig beendet"
+          }
+        }
+      }
+    },
+    "Recording without microphone" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme ohne Mikrofon"
           }
         }
       }
@@ -1479,6 +1709,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Erforderlich, um Aufnahme und Scroll-Aufnahme mit Esc abzubrechen"
+          }
+        }
+      }
+    },
+    "Required to show your camera picture while recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erforderlich, um während der Aufnahme dein Kamerabild zu zeigen"
           }
         }
       }
@@ -1645,6 +1885,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "`R2 → Manage API Tokens` → `Create API Token`。選擇 **Object Read & Write**，並將範圍限定於此儲存貯體。"
+          }
+        }
+      }
+    },
+    "SHAPE" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FORM"
+          }
+        }
+      }
+    },
+    "Shape" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Form"
+          }
+        }
+      }
+    },
+    "SIZE" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GRÖSSE"
+          }
+        }
+      }
+    },
+    "Size" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Größe"
+          }
+        }
+      }
+    },
+    "Small" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klein"
+          }
+        }
+      }
+    },
+    "The recording ended before the first frame arrived." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufnahme endete, bevor das erste Bild ankam."
           }
         }
       }

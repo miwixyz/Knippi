@@ -18,7 +18,7 @@ settings:
     ENABLE_HARDENED_RUNTIME: YES
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
-    MARKETING_VERSION: "0.2.0"
+    MARKETING_VERSION: "0.3.0"
     CURRENT_PROJECT_VERSION: "1"
 
 packages:
@@ -28,6 +28,8 @@ packages:
     path: Packages/CaptureKit
   RecordingKit:
     path: Packages/RecordingKit
+  CameraKit:
+    path: Packages/CameraKit
   AnnotationKit:
     path: Packages/AnnotationKit
   OCRKit:
@@ -79,6 +81,7 @@ targets:
       - package: SharedKit
       - package: CaptureKit
       - package: RecordingKit
+      - package: CameraKit
       - package: AnnotationKit
       - package: OCRKit
       - package: ExportKit
@@ -92,6 +95,8 @@ targets:
     entitlements:
       path: App/Entitlements/Knippi.entitlements
       properties:
+        com.apple.security.device.audio-input: true
+        com.apple.security.device.camera: true
         com.apple.security.network.client: true
 
   KnippiTests:

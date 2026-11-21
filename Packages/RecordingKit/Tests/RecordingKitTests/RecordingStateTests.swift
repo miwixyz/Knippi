@@ -1,5 +1,6 @@
 // Packages/RecordingKit/Tests/RecordingKitTests/RecordingStateTests.swift
 import Testing
+import CoreMedia
 import Foundation
 @testable import RecordingKit
 
@@ -46,5 +47,21 @@ struct RecordingStateTests {
         #expect(config.captureSystemAudio == false)
         #expect(config.captureMicrophone == false)
         #expect(config.showCursor == true)
+    }
+}
+
+@Suite("Recording pause")
+struct RecordingPauseTests {
+    private func t(_ seconds: Double) -> CMTime { CMTime(seconds: seconds, preferredTimescale: 600) }
+
+    @Test("A pause is cut out, leaving one frame between the parts")
+    func pauseIsCutOut() {
+        let gap = RecordingWriterTiming.pauseGap(lastBefore: t(10), firstAfter: t(70), frame: t(1.0 / 30))
+        #expect(abs(gap.seconds - (60 - 1.0 / 30)) < 0.001)
+    }
+
+    @Test("No gap when frames are already back to back")
+    func noNegativeGap() {
+        #expect(RecordingWriterTiming.pauseGap(lastBefore: t(10), firstAfter: t(10.01), frame: t(1.0 / 30)) == .zero)
     }
 }

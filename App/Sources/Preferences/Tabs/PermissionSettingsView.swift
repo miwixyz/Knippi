@@ -42,6 +42,13 @@ struct PermissionSettingsView: View {
                             showDivider: true
                         )
                         permissionRow(
+                            kind: .camera,
+                            title: "Camera",
+                            subtitle: "Required to show your camera picture while recording",
+                            isGranted: viewModel.cameraGranted,
+                            showDivider: true
+                        )
+                        permissionRow(
                             kind: .microphone,
                             title: "Microphone",
                             subtitle: "Required for microphone recording",
@@ -95,7 +102,7 @@ struct PermissionSettingsView: View {
     private func actionTitle(for kind: PermissionKind, isGranted: Bool) -> LocalizedStringKey {
         if isGranted { return "Open" }
         switch kind {
-        case .microphone:
+        case .camera, .microphone:
             return "Request"
         case .screenRecording, .accessibility, .inputMonitoring:
             return "Open"
@@ -105,7 +112,7 @@ struct PermissionSettingsView: View {
     private func actionIcon(for kind: PermissionKind, isGranted: Bool) -> String {
         if isGranted { return "gearshape" }
         switch kind {
-        case .microphone:
+        case .camera, .microphone:
             return "hand.tap"
         case .screenRecording, .accessibility, .inputMonitoring:
             return "gearshape"

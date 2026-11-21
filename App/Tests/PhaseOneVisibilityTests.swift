@@ -2,14 +2,15 @@ import XCTest
 import SharedKit
 @testable import Knippi
 
-/// Screen recording stays hidden; scrolling capture is on since 0.2.0 (Knippi spec §2).
+/// Phase 2 complete: scrolling capture since 0.2.0, screen recording since
+/// 0.3.0 (Knippi spec §2). Nothing is hidden any more.
 final class PhaseOneVisibilityTests: XCTestCase {
-    func testOnlyScreenRecordingIsHidden() {
-        XCTAssertFalse(FeatureFlags.screenRecording)
+    func testNoFeatureIsHidden() {
+        XCTAssertTrue(FeatureFlags.screenRecording)
         XCTAssertTrue(FeatureFlags.scrollingCapture)
     }
 
-    func testAutomationSheetDropsHiddenCommandsAndEmptySections() {
+    func testAutomationSheetShowsRecordingCommands() {
         let sections = AutomationCommandSection.visible([
             AutomationCommandSection(id: "screenshots", title: "Screenshots", items: [
                 AutomationCommandItem(id: "area", name: "Capture Area", urlString: "knippi://grab/area"),
@@ -21,12 +22,12 @@ final class PhaseOneVisibilityTests: XCTestCase {
             ]),
         ])
 
-        XCTAssertEqual(sections.map(\.id), ["screenshots"])
-        XCTAssertEqual(sections.first?.items.map(\.id), ["area", "scrolling"])
+        XCTAssertEqual(sections.map(\.id), ["screenshots", "recording"])
+        XCTAssertEqual(sections.last?.items.map(\.id), ["record", "record-fullscreen"])
     }
 
-    func testPreferencesSidebarHidesRecordingTab() {
-        XCTAssertFalse(PreferencesTab.visibleCases.contains(.recording))
-        XCTAssertEqual(PreferencesTab.visibleCases.count, PreferencesTab.allCases.count - 1)
+    func testPreferencesSidebarShowsRecordingTab() {
+        XCTAssertTrue(PreferencesTab.visibleCases.contains(.recording))
+        XCTAssertEqual(PreferencesTab.visibleCases.count, PreferencesTab.allCases.count)
     }
 }

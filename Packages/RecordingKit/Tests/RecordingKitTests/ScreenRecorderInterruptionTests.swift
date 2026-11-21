@@ -44,6 +44,30 @@ struct ScreenRecorderInterruptionTests {
         #expect(interruptions == 1)
     }
 
+    @Test("A writer failure while recording is reported once")
+    func writerFailureReportedOnce() {
+        let recorder = ScreenRecorder()
+        var failures = 0
+        recorder.onWriterFailed = { _ in failures += 1 }
+        recorder.state = .recording
+
+        recorder.reportWriterFailure(StreamStopped())
+        recorder.reportWriterFailure(StreamStopped())
+
+        #expect(failures == 1)
+    }
+
+    @Test("A writer failure while idle is ignored")
+    func writerFailureWhileIdleIgnored() {
+        let recorder = ScreenRecorder()
+        var failures = 0
+        recorder.onWriterFailed = { _ in failures += 1 }
+
+        recorder.reportWriterFailure(StreamStopped())
+
+        #expect(failures == 0)
+    }
+
     @Test("Stopping after an interruption always returns to idle")
     func stopAfterInterruptionResetsToIdle() async {
         let recorder = ScreenRecorder()

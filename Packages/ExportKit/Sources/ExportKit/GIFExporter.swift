@@ -63,26 +63,21 @@ enum GIFExporter {
             maxWidth = 720
         }
 
-        // Hard cap on total emitted frames. Beyond this, drop fps
-        // proportionally so very long recordings still encode. The cap
-        // is empirical: ImageIO's GIF encoder gets unstable above a few
-        // thousand frames at typical Retina resolutions.
-        let maxTotalFrames = 600
-        let estimatedRawFrameCount = max(1, Int(ceil(totalSeconds * baseFps)))
-        let targetFps: Double
-        if estimatedRawFrameCount > maxTotalFrames {
-            targetFps = Double(maxTotalFrames) / totalSeconds
-        } else {
-            targetFps = baseFps
-        }
-        let estimatedFrameCount = max(1, Int(ceil(totalSeconds * targetFps)))
-        status?(ExportStatus(stage: .encoding, fractionCompleted: 0.08))
-
         // Load the video track.
         let videoTracks = try await asset.loadTracks(withMediaType: .video)
         guard let videoTrack = videoTracks.first else {
             throw ExportError.frameExtractionFailed
         }
+        let naturalSize = (try? await videoTrack.load(.naturalSize)) ?? CGSize(width: maxWidth, height: maxWidth)
+        let plan = Self.plan(
+            seconds: totalSeconds,
+            sourceSize: CGSize(width: abs(naturalSize.width), height: abs(naturalSize.height)),
+            baseFps: baseFps, maxWidth: maxWidth
+        )
+        let targetFps = plan.fps
+        let frameWidth = plan.maxWidth
+        let estimatedFrameCount = max(1, Int(ceil(totalSeconds * targetFps)))
+        status?(ExportStatus(stage: .encoding, fractionCompleted: 0.08))
 
         // AVAssetReader for sequential decoding into BGRA pixel buffers.
         let reader: AVAssetReader
@@ -150,7 +145,7 @@ enum GIFExporter {
             guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { continue }
             guard let cgImage = makeStandaloneCGImage(
                 from: pixelBuffer,
-                maxWidth: maxWidth,
+                maxWidth: frameWidth,
                 colorSpace: sRGB
             ) else { continue }
 
@@ -205,6 +200,39 @@ enum GIFExporter {
     /// buffer. The transient CGContext used to perform the draw is
     /// released right after this function returns; that's harmless
     /// because it never owned the bytes.
+    /// Most frames per GIF; ImageIO's encoder gets unstable above a few
+    /// thousand frames at Retina sizes.
+    static let maxTotalFrames = 600
+    /// ImageIO keeps every frame until it finalizes and then needs about
+    /// 10 bytes per pixel of all frames together (measured 2026-11-21:
+    /// 150 frames of 1920×1200 peaked at 3.6 GB). This keeps the peak near
+    /// 1.5 GB.
+    static let pixelBudget = 140_000_000.0
+    /// Frame rate is lowered down to this before the size is reduced.
+    static let minFps = 10.0
+
+    /// Frame rate and maximum width so a GIF of `seconds` stays within
+    /// `maxTotalFrames` and `pixelBudget`.
+    static func plan(seconds: Double, sourceSize: CGSize, baseFps: Double, maxWidth: CGFloat)
+        -> (fps: Double, maxWidth: CGFloat) {
+        guard seconds > 0, sourceSize.width > 0, sourceSize.height > 0 else { return (baseFps, maxWidth) }
+        let width = min(maxWidth, sourceSize.width)
+        let height = sourceSize.height * width / sourceSize.width
+        var fps = min(baseFps, Double(maxTotalFrames) / seconds)
+        let pixelsAt = { (fps: Double, width: CGFloat, height: CGFloat) in
+            ceil(seconds * fps) * Double(width) * Double(height)
+        }
+        if pixelsAt(fps, width, height) <= pixelBudget { return (fps, width) }
+        // First fewer frames per second, down to minFps …
+        let framesInBudget = (pixelBudget / (Double(width) * Double(height))).rounded(.down)
+        fps = max(min(fps, minFps), framesInBudget / seconds)
+        fps = min(fps, baseFps, Double(maxTotalFrames) / seconds)
+        if pixelsAt(fps, width, height) <= pixelBudget { return (fps, width) }
+        // … then a smaller picture.
+        let shrink = sqrt(pixelBudget / pixelsAt(fps, width, height))
+        return (fps, max(160, (width * shrink).rounded(.down)))
+    }
+
     private static func makeStandaloneCGImage(
         from pixelBuffer: CVPixelBuffer,
         maxWidth: CGFloat,

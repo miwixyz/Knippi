@@ -12,6 +12,7 @@ final class PreferencesViewModel {
     private(set) var screenRecordingGranted: Bool = false
     private(set) var accessibilityGranted: Bool = false
     private(set) var inputMonitoringGranted: Bool = false
+    private(set) var cameraGranted: Bool = false
     private(set) var microphoneGranted: Bool = false
 
     private static let filenamePreviewDate: Date = {
@@ -661,6 +662,8 @@ final class PreferencesViewModel {
         case .inputMonitoring:
             _ = permissionManager.requestInputMonitoringPermission()
             permissionManager.openSettings(for: kind)
+        case .camera:
+            await permissionManager.requestCameraPermission()
         case .microphone:
             await permissionManager.requestMicrophonePermission()
         }
@@ -675,6 +678,7 @@ final class PreferencesViewModel {
         screenRecordingGranted = permissionManager.screenRecordingGranted
         accessibilityGranted = permissionManager.accessibilityGranted
         inputMonitoringGranted = permissionManager.inputMonitoringGranted
+        cameraGranted = permissionManager.cameraGranted
         microphoneGranted = permissionManager.microphoneGranted
     }
 

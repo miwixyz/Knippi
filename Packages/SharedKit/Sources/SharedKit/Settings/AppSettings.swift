@@ -192,7 +192,7 @@ public enum StoredCaptureSelection: Codable, Sendable, Equatable {
 /// Pass a custom `UserDefaults` suite (e.g. `UserDefaults(suiteName: "test")`) in tests
 /// to avoid polluting real user preferences.
 public final class AppSettings: @unchecked Sendable {
-    private let defaults: UserDefaults
+    let defaults: UserDefaults
 
     // MARK: General
     public var startAtLogin: Bool {

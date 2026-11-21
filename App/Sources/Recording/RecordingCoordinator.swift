@@ -9,6 +9,7 @@ import AppKit
 @preconcurrency import AVFoundation
 import Observation
 import RecordingKit
+import CameraKit
 import CaptureKit
 import SharedKit
 import ExportKit
@@ -27,7 +28,7 @@ enum KeyPressOverlayPermissionDecision: Equatable {
 
 /// Orchestrates recording flow:
 /// 1. Show overlay for area selection (drag, or Space to switch to window selection)
-/// 2. Show recording toolbar (format, mic, audio)
+/// 2. Show recording toolbar (format, camera, mic, audio)
 /// 3. User clicks Record → start recording with selected area
 /// 4. Show controls (pause/stop/timer) + red border
 /// 5. Stop → finalize MP4
@@ -36,6 +37,7 @@ enum KeyPressOverlayPermissionDecision: Equatable {
 final class RecordingCoordinator {
     private let settings: AppSettings
     let recorder = ScreenRecorder()
+    let cameraManager = CameraManager()
     var desktopIconsCover: DesktopIconsCover?
 
     private var overlayWindows: [CaptureOverlayWindow] = []
@@ -46,6 +48,7 @@ final class RecordingCoordinator {
     private var controlsWindow: RecordingControlsWindow?
     private var audioWarningPanel: RecordingWarningPanel?
     private var borderWindow: RecordingBorderWindow?
+    private var cameraPiPWindow: CameraPiPWindow?
     private var recordingPreviewWindow: RecordingPreviewWindow?
     private var editorWindow: RecordingEditorWindow?
     private var editorCoordinator: EditorCoordinator?
@@ -76,11 +79,13 @@ final class RecordingCoordinator {
 
     // Current recording inputs (used by restart)
     private var currentRecordingFormat: RecordingFormatChoice?
+    private var currentCameraEnabled = false
     private var currentMicEnabled = false
     private var currentSystemAudioEnabled = false
 
     init(settings: AppSettings) {
         self.settings = settings
+        cameraManager.refreshDevices()
         recorder.onStreamInterrupted = { [weak self] error in
             self?.handleRecordingInterrupted(error: error)
         }
@@ -90,12 +95,22 @@ final class RecordingCoordinator {
         recorder.onAudioIssue = { [weak self] issue in
             self?.showAudioWarning(for: issue)
         }
+        recorder.onWriterFailed = { [weak self] error in
+            self?.handleRecordingWriterFailed(error: error)
+        }
     }
 
     // MARK: - Public API
 
     /// Start the recording flow: show overlay for area selection.
+    /// A recording is running or being set up. Starting another one would
+    /// film the selection UI and overwrite the running one's border and area.
+    var isRecordingActive: Bool {
+        recorder.state != .idle || controlsWindow != nil || countdownWindow != nil
+    }
+
     func startRecordingFlow() {
+        guard !isRecordingActive else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
             guard let self else { return }
             if self.showRememberedRecordingArea() {
@@ -111,14 +126,16 @@ final class RecordingCoordinator {
 
     /// Start a full-screen recording flow for the display under the pointer.
     /// The recording toolbar still appears before capture begins so the user
-    /// can confirm microphone, system audio, format, and countdown.
+    /// can confirm camera, microphone, system audio, format, and countdown.
     func startFullScreenRecordingFlow() {
+        guard !isRecordingActive else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
             self?.selectFullScreenForRecording()
         }
     }
 
     func startRecordingFlow(withSelectedArea rect: CGRect, screen: NSScreen) {
+        guard !isRecordingActive else { return }
         dismissOverlay()
         dismissToolbarUI()
         handleAreaSelected(rect: rect, screen: screen)
@@ -418,15 +435,46 @@ final class RecordingCoordinator {
             selectionRect: globalSelectionRect,
             screen: screen,
             settings: settings,
-            onRecord: { [weak self] format, micEnabled, systemAudioEnabled in
+            onRecord: { [weak self] format, cameraEnabled, cameraDeviceID, micEnabled, systemAudioEnabled in
                 guard let self else { return }
                 let willShowCountdown = self.settings.showCountdown && self.selectedScreen != nil
-                self.dismissToolbarUI(removeEscapeMonitors: !willShowCountdown)
+                self.dismissToolbarUI(keepCamera: cameraEnabled, removeEscapeMonitors: !willShowCountdown)
+                if let cameraDeviceID {
+                    self.cameraManager.selectedDeviceID = cameraDeviceID
+                }
                 self.startRecording(
                     format: format,
+                    cameraEnabled: cameraEnabled,
                     micEnabled: micEnabled,
                     systemAudioEnabled: systemAudioEnabled
                 )
+            },
+            onCameraToggled: { [weak self] enabled, deviceID in
+                guard let self else { return false }
+                if enabled {
+                    if let deviceID {
+                        self.cameraManager.selectedDeviceID = deviceID
+                    }
+                    self.cameraManager.stop()
+                    do {
+                        try await self.cameraManager.requestAccessAndStart()
+                        self.showCameraPiP()
+                        return true
+                    } catch {
+                        self.cameraPiPWindow?.close()
+                        self.cameraPiPWindow = nil
+                        self.cameraManager.stop()
+                        if error is CameraError {
+                            self.showCameraPermissionDeniedAlert()
+                        }
+                        return false
+                    }
+                } else {
+                    self.cameraPiPWindow?.close()
+                    self.cameraPiPWindow = nil
+                    self.cameraManager.stop()
+                    return true
+                }
             },
             onChangeArea: { [weak self] in
                 guard let self else { return }
@@ -435,6 +483,9 @@ final class RecordingCoordinator {
             },
             onCancel: { [weak self] in
                 self?.cancelPendingRecordingFlow()
+            },
+            onCameraSettingsChanged: { [weak self] in
+                self?.cameraPiPWindow?.applySettings()
             }
         )
         toolbarWindow?.show()
@@ -514,6 +565,11 @@ final class RecordingCoordinator {
     }
 
     private func cancelPendingRecordingFlow() {
+        if cameraPiPWindow?.presentationModeActive == true {
+            cameraPiPWindow?.exitPresentationMode()
+            return
+        }
+
         countdownWindow?.cancel()
         countdownWindow = nil
         desktopIconsCover?.setHiddenForRecording(false)
@@ -521,11 +577,16 @@ final class RecordingCoordinator {
         selectedTarget = nil
     }
 
-    private func dismissToolbarUI(removeEscapeMonitors shouldRemoveEscapeMonitors: Bool = true) {
+    private func dismissToolbarUI(keepCamera: Bool = false, removeEscapeMonitors shouldRemoveEscapeMonitors: Bool = true) {
         toolbarWindow?.close()
         toolbarWindow = nil
         selectionBorderWindow?.close()
         selectionBorderWindow = nil
+        if !keepCamera {
+            cameraPiPWindow?.close()
+            cameraPiPWindow = nil
+            cameraManager.stop()
+        }
         if shouldRemoveEscapeMonitors {
             removeEscapeMonitors()
         }
@@ -565,9 +626,36 @@ final class RecordingCoordinator {
 
     private func startRecording(
         format: RecordingFormatChoice,
+        cameraEnabled: Bool,
         micEnabled: Bool,
-        systemAudioEnabled: Bool
+        systemAudioEnabled: Bool,
+        restoredCameraPiPState: CameraPiPRestorationState? = nil
     ) {
+        guard !isRecordingActive else { return }
+        var micEnabled = micEnabled
+        if micEnabled {
+            // Ask for the microphone only when it is switched on for a recording.
+            switch AVCaptureDevice.authorizationStatus(for: .audio) {
+            case .authorized:
+                break
+            case .notDetermined:
+                Task { @MainActor [weak self] in
+                    _ = await AVCaptureDevice.requestAccess(for: .audio)
+                    self?.startRecording(
+                        format: format, cameraEnabled: cameraEnabled, micEnabled: true,
+                        systemAudioEnabled: systemAudioEnabled, restoredCameraPiPState: restoredCameraPiPState
+                    )
+                }
+                return
+            default:
+                micEnabled = false
+                showRecordingProblem(
+                    String(localized: "Recording without microphone"),
+                    detail: String(localized: "Knippi may not use the microphone. Allow it under System Settings → Privacy & Security → Microphone, then switch the microphone on again."),
+                    error: nil
+                )
+            }
+        }
         // Resolve Input Monitoring before creating any recording UI. Opening
         // System Settings cancels this attempt, as the alert instructs the user
         // to grant access and start recording again.
@@ -586,6 +674,7 @@ final class RecordingCoordinator {
         let keyPressOverlayReady = keyPressOverlayDecision == .showOverlay
 
         currentRecordingFormat = format
+        currentCameraEnabled = cameraEnabled
         currentMicEnabled = micEnabled
         currentSystemAudioEnabled = systemAudioEnabled
 
@@ -603,6 +692,13 @@ final class RecordingCoordinator {
             // An unplugged device falls back to the system default, matching the toolbar.
             config.microphoneDeviceID = settings.recordingMicDeviceID
                 .flatMap { AVCaptureDevice(uniqueID: $0)?.uniqueID }
+        }
+
+        // Start the camera if it is not already running from the toolbar
+        // preview (permission was requested when it was switched on there).
+        if cameraEnabled && cameraPiPWindow == nil {
+            try? cameraManager.start()
+            showCameraPiP(restorationState: restoredCameraPiPState)
         }
 
         if settings.hideDesktopIconsWhileRecording {
@@ -631,11 +727,20 @@ final class RecordingCoordinator {
                     }
                     self.startCursorTelemetry()
                     self.showRecordingControls()
+                    self.cameraPiPWindow?.setDodgingEnabled(true)
                 } catch {
-                    print("Recording failed to start: \(error)")
+                    NSLog("[Knippi] Recording failed to start: %@", String(describing: error))
                     self.desktopIconsCover?.setHiddenForRecording(false)
                     self.borderWindow?.hide()
                     self.borderWindow = nil
+                    if cameraEnabled {
+                        self.cameraPiPWindow?.close()
+                        self.cameraPiPWindow = nil
+                        self.cameraManager.stop()
+                    }
+                    self.showRecordingProblem(
+                        String(localized: "Couldn't start recording"), error: error
+                    )
                 }
             }
         }
@@ -678,25 +783,85 @@ final class RecordingCoordinator {
                         outputFormat: EditorOutputFormat(recordingFormat: format)
                     )
                 } else {
-                    // Quick-preview flow: show thumbnail preview with Save/Copy/Discard
+                    // Quick-preview flow: the recording is saved right away (like a
+                    // screenshot); the preview shows the progress and stays open
+                    // with Save/Copy only if saving fails. It used to close by
+                    // itself after 5 s without saving, losing the recording.
                     let thumbnail = await VideoThumbnail.extractThumbnail(from: tempURL)
                     let nsThumb = thumbnail.map { NSImage(cgImage: $0, size: NSSize(width: $0.width, height: $0.height)) }
                     let size = VideoThumbnail.formattedFileSize(VideoThumbnail.fileSize(at: tempURL))
                     let duration = VideoThumbnail.formattedDuration(result.duration)
                     showRecordingPreview(thumbnail: nsThumb, duration: duration, fileSize: size,
                                         tempURL: tempURL, format: format)
+                    recordingPreviewWindow?.onSave?()
                 }
                 afterStop?()
             } catch {
-                print("Failed to stop/save recording: \(error)")
+                NSLog("[Knippi] Failed to stop/save recording: %@", String(describing: error))
                 hideRecordingUI()
+                await self.handleRecordingStopFailure(error)
             }
         }
     }
 
+    /// Stopping failed. A partly written file is saved if possible; either
+    /// way the user learns what happened instead of the controls just vanishing.
+    private func handleRecordingStopFailure(_ error: Error) async {
+        if case RecordingError.writerFailed = error,
+           let partial = recorder.partialRecordingURL,
+           let savedURL = await exportRecording(partial, format: .video) {
+            showRecordingProblem(
+                String(localized: "Recording was cut short"),
+                detail: String(localized: "Knippi could not keep writing the video. What was recorded up to that point has been saved to \(savedURL.deletingLastPathComponent().path)."),
+                error: error
+            )
+            return
+        }
+        if case RecordingError.noFramesCaptured = error {
+            showRecordingProblem(
+                String(localized: "Nothing was recorded"),
+                detail: String(localized: "The recording ended before the first frame arrived."),
+                error: nil
+            )
+            return
+        }
+        showRecordingProblem(String(localized: "Couldn't finish recording"), error: error)
+    }
+
     private func handleRecordingInterrupted(error: Error) {
         NSLog("[Knippi] Recording stream stopped unexpectedly: %@", String(describing: error))
+        // Keep what was recorded (saved automatically), then say why it ended.
+        stopRecording { [weak self] in
+            if case .permissionMissing = CaptureErrorPresentation.forError(error) {
+                self?.showRecordingProblem(
+                    String(localized: "Recording ended"),
+                    detail: String(localized: "macOS withdrew the Screen Recording permission. What was recorded so far has been saved."),
+                    error: nil
+                )
+            } else {
+                self?.showRecordingProblem(
+                    String(localized: "Recording ended"),
+                    detail: String(localized: "macOS stopped the recording. What was recorded so far has been saved."),
+                    error: error
+                )
+            }
+        }
+    }
+
+    private func handleRecordingWriterFailed(error: Error) {
+        NSLog("[Knippi] Recording writer failed: %@", String(describing: error))
         stopRecording()
+    }
+
+    /// Warning alert for a recording that failed or ended early.
+    private func showRecordingProblem(_ title: String, detail: String? = nil, error: Error?) {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = title
+        alert.informativeText = [detail, error?.localizedDescription].compactMap { $0 }.joined(separator: "\n\n")
+        alert.addButton(withTitle: String(localized: "OK"))
+        NSApp.activate()
+        alert.runModal()
     }
 
     private func showAudioWarning(for issue: AudioIssue) {
@@ -771,6 +936,7 @@ final class RecordingCoordinator {
 
     private func restartRecording() {
         guard let format = currentRecordingFormat else { return }
+        let restoredCameraPiPState = currentCameraEnabled ? cameraPiPWindow?.restartRestorationState : nil
 
         Task {
             do {
@@ -781,8 +947,10 @@ final class RecordingCoordinator {
 
                 startRecording(
                     format: format,
+                    cameraEnabled: currentCameraEnabled,
                     micEnabled: currentMicEnabled,
-                    systemAudioEnabled: currentSystemAudioEnabled
+                    systemAudioEnabled: currentSystemAudioEnabled,
+                    restoredCameraPiPState: restoredCameraPiPState
                 )
             } catch {
                 print("Failed to restart recording: \(error)")
@@ -1000,9 +1168,10 @@ final class RecordingCoordinator {
                     }
                 }
 
-                if result != nil {
+                if let savedURL = result {
                     self.recordingPreviewWindow?.close()
                     self.recordingPreviewWindow = nil
+                    self.showRecordingSavedToast(savedURL)
                 } else {
                     // Reset state so the buttons return and the user can
                     // retry without restarting the recording.
@@ -1023,6 +1192,14 @@ final class RecordingCoordinator {
 
         window.show()
         recordingPreviewWindow = window
+    }
+
+    private var savedToast: ToastWindow?
+
+    private func showRecordingSavedToast(_ url: URL) {
+        savedToast?.close()
+        savedToast = ToastWindow(message: String(localized: "Recording saved to \(url.deletingLastPathComponent().lastPathComponent)"))
+        savedToast?.show()
     }
 
     private func startAutomaticClipboardCopyIfNeeded(
@@ -1335,5 +1512,48 @@ final class RecordingCoordinator {
         dismissAudioWarning()
         borderWindow?.hide()
         borderWindow = nil
+        // Force the camera window off screen before closing.
+        cameraPiPWindow?.orderOut(nil)
+        cameraPiPWindow?.close()
+        cameraPiPWindow = nil
+        cameraManager.stop()
+    }
+
+    private func showCameraPiP(restorationState: CameraPiPRestorationState? = nil) {
+        // Close an existing camera window first to prevent duplicates.
+        cameraPiPWindow?.orderOut(nil)
+        cameraPiPWindow?.close()
+        cameraPiPWindow = nil
+
+        cameraPiPWindow = CameraPiPWindow(
+            cameraManager: cameraManager,
+            settings: settings,
+            recordingFrame: appKitRecordingFrame(),
+            restorationState: restorationState
+        )
+        cameraPiPWindow?.show()
+    }
+
+    private func showCameraPermissionDeniedAlert() {
+        let shouldRestoreToolbar = toolbarWindow?.isVisible == true
+        toolbarWindow?.orderOut(nil)
+
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = String(localized: "Camera Access Needed")
+        alert.informativeText = String(localized: "Camera access is turned off. Enable Knippi in System Settings > Privacy & Security > Camera, then try again.")
+        alert.addButton(withTitle: String(localized: "Open Camera Settings"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        alert.window.level = .screenSaver + 2
+
+        let response = alert.runModal()
+        if shouldRestoreToolbar {
+            toolbarWindow?.show()
+        }
+        guard response == .alertFirstButtonReturn,
+              let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") else {
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
 }

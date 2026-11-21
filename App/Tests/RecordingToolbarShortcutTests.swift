@@ -42,11 +42,13 @@ final class RecordingToolbarShortcutTests: XCTestCase {
             selectionRect: CGRect(x: 100, y: 100, width: 640, height: 480),
             screen: screen,
             settings: settings,
-            onRecord: { format, _, _ in
+            onRecord: { format, _, _, _, _ in
                 recordedFormats.append(format)
             },
+            onCameraToggled: { _, _ in true },
             onChangeArea: {},
-            onCancel: {}
+            onCancel: {},
+            onCameraSettingsChanged: {}
         )
         window.show()
 
