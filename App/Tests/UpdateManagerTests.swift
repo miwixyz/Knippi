@@ -360,3 +360,45 @@ final class UpdateManagerTests: XCTestCase {
         XCTAssertEqual(updater.automaticallyDownloadsUpdatesWriteCount, downloadsWrites)
     }
 }
+
+/// Gentle reminders: a scheduled check that finds an update must never open
+/// Sparkle's window on its own (it would sit behind other apps); the menu bar
+/// shows the version until the user looks at it.
+@MainActor
+final class UpdateManagerGentleReminderTests: XCTestCase {
+    func testDeclaresGentleReminderSupport() {
+        XCTAssertTrue(UpdateManager(updater: FakeSoftwareUpdater()).supportsGentleScheduledUpdateReminders)
+    }
+
+    func testNoPendingVersionAtStart() {
+        XCTAssertNil(UpdateManager(updater: FakeSoftwareUpdater()).pendingUpdateVersion)
+    }
+
+    func testDeferredScheduledUpdateIsShownInTheMenu() {
+        let manager = UpdateManager(updater: FakeSoftwareUpdater())
+
+        manager.handleScheduledUpdateDeferredToMenu(version: "0.1.3")
+
+        XCTAssertEqual(manager.pendingUpdateVersion, "0.1.3")
+    }
+
+    func testShowingThePendingUpdateHandsOverToSparkle() {
+        let updater = FakeSoftwareUpdater()
+        let manager = UpdateManager(updater: updater)
+        manager.handleScheduledUpdateDeferredToMenu(version: "0.1.3")
+
+        manager.checkForUpdatesInteractively()
+
+        XCTAssertEqual(updater.checkForUpdatesCount, 1)
+        XCTAssertEqual(updater.checkForUpdateInformationCount, 0)
+    }
+
+    func testUserAttentionClearsTheReminder() {
+        let manager = UpdateManager(updater: FakeSoftwareUpdater())
+        manager.handleScheduledUpdateDeferredToMenu(version: "0.1.3")
+
+        manager.handleUpdateAttentionReceived()
+
+        XCTAssertNil(manager.pendingUpdateVersion)
+    }
+}

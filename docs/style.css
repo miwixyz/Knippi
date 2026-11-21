@@ -180,7 +180,11 @@ h1 .accent { color: var(--accent); }
 .mail p { color: var(--text); }
 .mail p + p { margin-top: 8px; }
 .mail .label { color: var(--text-2); }
-.redact { display: inline-block; background: var(--redact); color: transparent; border-radius: 2px; padding: 0 4px; user-select: none; }
+.redact {
+  display: inline-block; color: transparent; padding: 0 4px; user-select: none;
+  /* Nachbildung der groben Verpixelung (0.1.2): zeilenhohe Klötzchen, unterschiedlich hell */
+  background: linear-gradient(90deg, #8a8f98 0 14%, #a6abb3 14% 27%, #7b808a 27% 41%, #9da2aa 41% 56%, #858a93 56% 70%, #acb1b8 70% 84%, #90959e 84%);
+}
 .found {
   position: absolute; top: 12px; right: 12px;
   display: inline-flex; align-items: center; gap: 8px;

@@ -6630,6 +6630,16 @@
         }
       }
     },
+    "Background and format (16:9, 1:1, 4:5)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund und Format (16:9, 1:1, 4:5)"
+          }
+        }
+      }
+    },
     "Background" : {
       "localizations" : {
         "de" : {
@@ -9666,6 +9676,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更換服務供應商"
+          }
+        }
+      }
+    },
+    "Check for Updates…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach Updates suchen …"
           }
         }
       }
@@ -52012,12 +52032,12 @@
         }
       }
     },
-    "Black Out All" : {
+    "Pixelate All" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alle schwärzen"
+            "value" : "Alle verpixeln"
           }
         }
       }
@@ -52042,22 +52062,22 @@
         }
       }
     },
-    "Click to keep or skip this black bar" : {
+    "Click to keep or skip this area" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Klicken, um diesen Balken zu behalten oder auszulassen"
+            "value" : "Klicken, um diesen Bereich zu behalten oder auszulassen"
           }
         }
       }
     },
-    "Possibly sensitive (checksum not confirmed). Click to keep or skip this black bar" : {
+    "Possibly sensitive (checksum not confirmed). Click to keep or skip this area" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Möglicherweise vertraulich (Prüfsumme nicht bestätigt). Klicken, um diesen Balken zu behalten oder auszulassen"
+            "value" : "Möglicherweise vertraulich (Prüfsumme nicht bestätigt). Klicken, um diesen Bereich zu behalten oder auszulassen"
           }
         }
       }
@@ -52102,12 +52122,12 @@
         }
       }
     },
-    "Open the editor and suggest black bars for email addresses, phone numbers, IBANs, card numbers and secrets" : {
+    "Open the editor and suggest areas to pixelate: email addresses, phone numbers, IBANs, card numbers and secrets" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Öffnet den Editor und schlägt schwarze Balken für E-Mail-Adressen, Telefonnummern, IBANs, Kartennummern und Geheimnisse vor"
+            "value" : "Öffnet den Editor und schlägt Bereiche zum Verpixeln vor: E-Mail-Adressen, Telefonnummern, IBANs, Kartennummern und Geheimnisse"
           }
         }
       }
@@ -52122,12 +52142,12 @@
         }
       }
     },
-    "Selected suggestions were blacked out" : {
+    "Selected suggestions were pixelated" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ausgewählte Vorschläge wurden geschwärzt"
+            "value" : "Ausgewählte Vorschläge wurden verpixelt"
           }
         }
       }
@@ -52532,6 +52552,16 @@
         }
       },
       "comment" : "Accessibility hint of the Quick Access overflow button."
+    },
+    "Update to %@ Available…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update auf %@ verfügbar …"
+          }
+        }
+      }
     },
     "Knippi Help" : {
       "localizations" : {

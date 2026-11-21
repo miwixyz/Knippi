@@ -115,16 +115,32 @@ final class SensitiveSuggestionsModel {
         return .ready(appliedSuggestions: applyPendingRedactions(to: document))
     }
 
-    /// Adds solid black bars for the selected suggestions in one undo step and
-    /// clears all suggestions. Returns true when bars were added.
+    /// Pixelates the selected suggestions in one undo step and clears all
+    /// suggestions. Returns true when areas were added.
     @discardableResult
     func applyPendingRedactions(to document: AnnotationDocument) -> Bool {
         guard isShowing else { return false }
-        let bars: [any AnnotationObject] = selectedRects.map { PixelateObject(rect: $0, mode: .solid) }
+        let bars: [any AnnotationObject] = selectedRects.map {
+            PixelateObject(
+                rect: $0, blockSize: Self.secureBlockSize(for: $0), mode: .pixelate,
+                noiseSeed: UInt64.random(in: .min ... .max)
+            )
+        }
         cancel()
         guard !bars.isEmpty else { return false }
         document.addObjects(bars)
         return true
+    }
+
+    /// Block size for pixelating a found text line so it can't be read back.
+    ///
+    /// Ordinary pixelation (small blocks) can be reversed for text in a known font.
+    /// `PixelateObject` renders blocks of twice `blockSize`, so half the line height
+    /// leaves a single row of blocks, each about as wide as the line is high (1–2
+    /// characters): no glyph shape survives, only the rough length of the text.
+    /// Never below the editor's default, so tiny rects don't get finer pixels.
+    static func secureBlockSize(for rect: CGRect) -> CGFloat {
+        max(12, (rect.height / 2).rounded(.up))
     }
 }
 
@@ -175,8 +191,8 @@ struct SensitiveSuggestionsOverlay: View {
         .buttonStyle(.plain)
         .offset(x: frame.minX, y: frame.minY)
         .help(item.isVerified
-              ? String(localized: "Click to keep or skip this black bar")
-              : String(localized: "Possibly sensitive (checksum not confirmed). Click to keep or skip this black bar"))
+              ? String(localized: "Click to keep or skip this area")
+              : String(localized: "Possibly sensitive (checksum not confirmed). Click to keep or skip this area"))
         .accessibilityLabel(Text("Sensitive data suggestion"))
         .accessibilityValue(Text(item.isSelected ? String(localized: "Selected") : String(localized: "Not selected")))
         .accessibilityAddTraits(item.isSelected ? .isSelected : [])
@@ -199,7 +215,7 @@ struct SensitiveSuggestionsBar: View {
                 .foregroundStyle(FamilyTheme.textPrimary)
                 .monospacedDigit()
             Button(action: onBlackOut) {
-                Text("Black Out All")
+                Text("Pixelate All")
                     .font(FamilyTheme.font(13, weight: .semibold))
                     .foregroundStyle(FamilyTheme.onAccent)
                     .padding(.horizontal, 12)
@@ -249,7 +265,7 @@ enum SensitiveSuggestionsToast {
 
     static func showSuggestionsApplied(screen: NSScreen?) {
         show(
-            String(localized: "Selected suggestions were blacked out"),
+            String(localized: "Selected suggestions were pixelated"),
             icon: "eye.slash.fill",
             color: .systemGreen,
             screen: screen

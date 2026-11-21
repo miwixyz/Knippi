@@ -61,18 +61,24 @@ public enum FileNaming {
 
     private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
+        // Fixed format: Gregorian calendar and Latin digits whatever the user's region.
+        f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyy-MM-dd"
         return f
     }()
 
     private static let timeFormatter: DateFormatter = {
         let f = DateFormatter()
+        // Fixed format: Gregorian calendar and Latin digits whatever the user's region.
+        f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "HH.mm.ss"
         return f
     }()
 
     private static let monthFormatter: DateFormatter = {
         let f = DateFormatter()
+        // Fixed format: Gregorian calendar and Latin digits whatever the user's region.
+        f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyy-MM"
         return f
     }()

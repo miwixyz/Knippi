@@ -184,13 +184,14 @@ echo "${SIGN_INFO}" | grep -q "TeamIdentifier=${TEAM}" || fail "Falsches Team in
 echo "${SIGN_INFO}" | grep -q "Identifier=dev.mwlr.knippi$" || fail "Falsche Kennung (erwartet dev.mwlr.knippi)"
 codesign --verify --deep --strict "${APP_PATH}" || fail "Signatur ungültig (--deep --strict)"
 
-# Berechtigungen: genau die zwei aus App/Entitlements/Knippi.entitlements. Jede
+# Berechtigungen: genau die eine aus App/Entitlements/Knippi.entitlements
+# (Netz für Updates; Mikrofon entfällt, solange FeatureFlags.screenRecording aus ist). Jede
 # weitere (z. B. disable-library-validation) erlaubte Code-Einschleusung samt
 # Bildschirmaufnahme-Freigabe. Exit-Code von codesign getrennt prüfen: ein
 # scheiterndes codesign lieferte sonst leer (Seam-Audit 18.11.).
 ENTS_XML="$(codesign -d --entitlements - --xml "${APP_PATH}" 2>/dev/null)" || fail "Berechtigungen nicht lesbar (codesign)"
 ENTS="$(printf '%s' "${ENTS_XML}" | grep -o '<key>[^<]*</key>' | sed 's/<[^>]*>//g' | sort | tr '\n' ' ')"
-EXPECTED="com.apple.security.device.audio-input com.apple.security.network.client "
+EXPECTED="com.apple.security.network.client "
 [ "${ENTS}" = "${EXPECTED}" ] || fail "Berechtigungen weichen ab: '${ENTS}' (erwartet: '${EXPECTED}')"
 
 # Die gebaute App muss die Version tragen, die veröffentlicht wird, und den

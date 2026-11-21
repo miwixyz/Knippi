@@ -8,12 +8,22 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
     public var rect: CGRect
     public var blockSize: CGFloat = 12
     public var mode: RedactionMode
+    /// Set for redactions of confidential text ("Vertrauliches finden"): every block gets a
+    /// fixed random brightness offset from this seed. Plain block averages still let someone
+    /// who knows the font rule out candidates (measured 21.11.: one changed IBAN digit moved a
+    /// block by 12 levels); an offset larger than that makes comparing against candidates
+    /// useless. Fixed per object so the picture doesn't flicker between renders.
+    public var noiseSeed: UInt64?
 
-    public init(rect: CGRect, blockSize: CGFloat = 12, mode: RedactionMode = .pixelate) {
+    /// Brightness offset range per block, in 8-bit levels (± this value).
+    static let noiseAmplitude = 40
+
+    public init(rect: CGRect, blockSize: CGFloat = 12, mode: RedactionMode = .pixelate, noiseSeed: UInt64? = nil) {
         self.rect = rect
         self.style = StrokeStyle()
         self.blockSize = blockSize
         self.mode = mode
+        self.noiseSeed = noiseSeed
     }
 
     public var bounds: CGRect { rect }
@@ -81,7 +91,9 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         guard !cropRect.isEmpty else { return }
 
         let redactor: (CGImage, CGFloat, RedactionMode) -> CGImage? =
-            Self.redactorOverride ?? { Self.makeRedactedImage(from: $0, blockSize: $1, mode: $2) }
+            Self.redactorOverride ?? { [noiseSeed] in
+                Self.makeRedactedImage(from: $0, blockSize: $1, mode: $2, noiseSeed: noiseSeed)
+            }
         guard let cropped = sourceImage.cropping(to: cropRect),
               let redacted = redactor(cropped, blockSize, mode)
         else {
@@ -100,14 +112,15 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
     private static func makeRedactedImage(
         from image: CGImage,
         blockSize: CGFloat,
-        mode: RedactionMode
+        mode: RedactionMode,
+        noiseSeed: UInt64? = nil
     ) -> CGImage? {
         switch mode {
         case .pixelate:
-            makePixelatedImage(from: image, blockSize: blockSize)
+            makePixelatedImage(from: image, blockSize: blockSize, noiseSeed: noiseSeed)
         case .blur:
             // Pixelating first leaves only block averages, so the blur can't be undone to reveal text.
-            makePixelatedImage(from: image, blockSize: blockSize)
+            makePixelatedImage(from: image, blockSize: blockSize, noiseSeed: noiseSeed)
                 .flatMap { makeBlurredImage(from: $0, radius: max(4, blockSize * 0.9)) }
         case .solid:
             nil
@@ -123,7 +136,7 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         ctx.restoreGState()
     }
 
-    private static func makePixelatedImage(from image: CGImage, blockSize: CGFloat) -> CGImage? {
+    static func makePixelatedImage(from image: CGImage, blockSize: CGFloat, noiseSeed: UInt64? = nil) -> CGImage? {
         let block = max(4, Int(blockSize.rounded()))
         let tinyWidth = max(1, image.width / block)
         let tinyHeight = max(1, image.height / block)
@@ -156,6 +169,15 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         ) else { return nil }
         chunkyContext.interpolationQuality = .low
         chunkyContext.draw(downsampled, in: CGRect(x: 0, y: 0, width: chunkyWidth, height: chunkyHeight))
+        if let noiseSeed {
+            // Fail closed: without access to the block pixels the noise can't be applied.
+            guard let data = chunkyContext.data else { return nil }
+            addBlockNoise(
+                to: data.assumingMemoryBound(to: UInt8.self),
+                width: chunkyWidth, height: chunkyHeight,
+                bytesPerRow: chunkyContext.bytesPerRow, seed: noiseSeed
+            )
+        }
         guard let chunky = chunkyContext.makeImage() else { return nil }
 
         guard let outputContext = CGContext(
@@ -170,6 +192,25 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         outputContext.interpolationQuality = .none
         outputContext.draw(chunky, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
         return outputContext.makeImage()
+    }
+
+    /// Shifts each block's brightness by a seeded offset in ±`noiseAmplitude` (same offset
+    /// for R, G, B so the hue stays, clamped to the premultiplied alpha).
+    private static func addBlockNoise(
+        to pixels: UnsafeMutablePointer<UInt8>, width: Int, height: Int, bytesPerRow: Int, seed: UInt64
+    ) {
+        var generator = SplitMix64(seed: seed)
+        let span = UInt64(2 * noiseAmplitude + 1)
+        for y in 0..<height {
+            for x in 0..<width {
+                let offset = Int(generator.next() % span) - noiseAmplitude
+                let pixel = pixels + y * bytesPerRow + x * 4
+                let alpha = Int(pixel[3])
+                for channel in 0..<3 {
+                    pixel[channel] = UInt8(min(alpha, max(0, Int(pixel[channel]) + offset)))
+                }
+            }
+        }
     }
 
     private static func makeBlurredImage(from image: CGImage, radius: CGFloat) -> CGImage? {
@@ -187,8 +228,22 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
     }
 
     public func copy() -> any AnnotationObject {
-        let copy = PixelateObject(rect: rect, blockSize: blockSize, mode: mode)
+        let copy = PixelateObject(rect: rect, blockSize: blockSize, mode: mode, noiseSeed: noiseSeed)
         copy.style = style
         return copy
+    }
+}
+
+/// Small seedable generator (SplitMix64): the same seed gives the same block offsets on
+/// every render. Not for cryptography; the seed itself comes from the system generator.
+struct SplitMix64 {
+    private var state: UInt64
+    init(seed: UInt64) { state = seed }
+    mutating func next() -> UInt64 {
+        state &+= 0x9E37_79B9_7F4A_7C15
+        var z = state
+        z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
+        z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
+        return z ^ (z >> 31)
     }
 }

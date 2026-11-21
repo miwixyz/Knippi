@@ -2,6 +2,35 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.1.2] — 2026-11-21
+
+### Neu
+
+- **Nach Updates suchen** jetzt auch direkt im Menü der Menüleiste.
+- **Update-Hinweis im Menü:** Findet Knippi im Hintergrund eine neue Version, steht oben im
+  Menü „Update auf … verfügbar“. Vorher öffnete sich dafür ein Fenster, das hinter anderen
+  Programmen verschwinden konnte.
+
+### Geändert
+
+- **Vertrauliches finden verpixelt jetzt** statt schwarz zu balken. Die Klötzchen sind so groß
+  wie die Textzeile hoch ist und bekommen zusätzlich eine zufällige Helligkeit. Dadurch lässt
+  sich der Text praktisch nicht zurückrechnen. Ruhiger als der schwarze Balken.
+- **Editor:** Der Knopf für Hintergrund und Format (16:9, 1:1, 4:5) heißt jetzt „Hintergrund“
+  statt nur ein Symbol zu zeigen.
+- **Letzte Farben** zeigen neben dem Farbcode die Farbe.
+
+### Behoben
+
+- **Editorleiste:** Die Auswahl Verpixeln / Weichzeichnen / Schwarzer Balken überdeckte das
+  Farbfeld. Der Fenstertitel des Editors ist jetzt deutsch.
+- **Sichern aus dem Editor:** Schlägt das Speichern fehl, bleibt der Editor offen, die
+  Bearbeitung geht nicht mehr verloren.
+- **Dateinamen** haben jetzt in jeder Region dasselbe Datumsformat (vorher z. B. mit
+  buddhistischer Jahreszahl, wenn der Mac so eingestellt war).
+- **Farbwert HSL** zeigt bei Rottönen nicht mehr „360“, sondern richtig „0“.
+- Knippi verlangt keine Mikrofon-Berechtigung mehr (Bildschirmvideo ist noch nicht enthalten).
+
 ## [0.1.1] — 2026-11-20
 
 ### Behoben

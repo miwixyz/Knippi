@@ -657,7 +657,7 @@ struct QuickAccessView: View {
         case .save: return String(localized: "Save screenshot")
         case .drag: return String(localized: "Drag this screenshot into another app using your screenshot export settings")
         case .annotate: return String(localized: "Open annotation editor")
-        case .findSensitive: return String(localized: "Open the editor and suggest black bars for email addresses, phone numbers, IBANs, card numbers and secrets")
+        case .findSensitive: return String(localized: "Open the editor and suggest areas to pixelate: email addresses, phone numbers, IBANs, card numbers and secrets")
         case .ocr: return String(localized: "Extract text from screenshot")
         case .pin: return String(localized: "Pin to screen")
         case .systemShare: return String(localized: "Share screenshot using the macOS share menu")

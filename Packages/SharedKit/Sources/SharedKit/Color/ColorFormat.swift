@@ -25,7 +25,7 @@ public enum ColorFormat: String, CaseIterable, Codable, Sendable {
         case .rgb: return "rgb(\(c.r), \(c.g), \(c.b))"
         case .hsl:
             let (h, s, l) = Self.hsl(c)
-            return "hsl(\(Int(h.rounded())), \(Int((s * 100).rounded()))%, \(Int((l * 100).rounded()))%)"
+            return "hsl(\(Int(h.rounded()) % 360), \(Int((s * 100).rounded()))%, \(Int((l * 100).rounded()))%)"
         case .swiftUI:
             return String(format: "Color(red: %.3f, green: %.3f, blue: %.3f)",
                           Double(c.r) / 255, Double(c.g) / 255, Double(c.b) / 255)

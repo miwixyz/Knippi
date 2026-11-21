@@ -2097,7 +2097,10 @@ final class CaptureCoordinator {
                     )
                     // Repeated saves keep replacing the same file instead of piling up copies.
                     // Re-read the identity: an atomic replace creates a new file.
-                    if replaceableFile != nil, let savedURL {
+                    // Save failed (the failure toast is already shown): keep the editor open
+                    // so the annotations aren't lost.
+                    guard let savedURL else { return false }
+                    if replaceableFile != nil {
                         replaceableFile = SavedScreenshotFile(url: savedURL)
                     }
                     self.annotationWindow = nil

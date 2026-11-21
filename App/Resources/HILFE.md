@@ -45,11 +45,11 @@ Pfeil, Linie, Rechteck, Ellipse, Text, Freihand, Textmarker, Zähler, Spotlight 
 
 ## Vertrauliches finden
 
-Der Knopf **„Vertrauliches finden“** im Schnellzugriff und im Editor sucht E-Mail-Adressen, Telefonnummern, IBAN, Kartennummern und Zugangsschlüssel und legt schwarze Balken darüber. „Alle schwärzen“ übernimmt alle Vorschläge. Ein gestrichelter Balken ist ein unsicherer Treffer: Klicken behält ihn oder lässt ihn aus.
+Der Knopf **„Vertrauliches finden“** im Schnellzugriff und im Editor sucht E-Mail-Adressen, Telefonnummern, IBAN, Kartennummern und Zugangsschlüssel und verpixelt sie grob: Die Klötzchen sind so groß wie die Zeile hoch ist und bekommen eine zufällige Helligkeit, der Text lässt sich praktisch nicht zurückrechnen. „Alle verpixeln“ übernimmt alle Vorschläge. Ein gestrichelter Rahmen ist ein unsicherer Treffer: Klicken behält ihn oder lässt ihn aus.
 
-Offene Vorschläge werden vor jedem Kopieren, Sichern und Teilen geschwärzt. Die Suche läuft vollständig auf deinem Mac.
+Offene Vorschläge werden vor jedem Kopieren, Sichern und Teilen verpixelt. Die Suche läuft vollständig auf deinem Mac.
 
-Von Hand schwärzt das Werkzeug **Verpixeln**. Sein Schwärzungsmodus ist ab Werk **Schwarzer Balken**; daneben gibt es Verpixeln und Weichzeichnen. Der schwarze Balken deckt vollständig ab, verpixelter Text lässt sich manchmal zurückrechnen.
+Von Hand schwärzt das Werkzeug **Verpixeln**. Sein Schwärzungsmodus ist ab Werk **Schwarzer Balken**; daneben gibt es Verpixeln und Weichzeichnen. Der schwarze Balken deckt vollständig ab. Von Hand verpixelter Text lässt sich bei kleinen Klötzchen manchmal zurückrechnen; für Vertrauliches deshalb „Vertrauliches finden“ oder den schwarzen Balken nehmen.
 
 ## Farbe aufnehmen
 
@@ -67,7 +67,7 @@ Im Schnellzugriff öffnet „Teilen“ das Teilen-Menü von macOS: AirDrop, Nach
 
 ## Updates
 
-Knippi sucht im Hintergrund nach neuen Versionen. Von Hand: Einstellungen → Allgemein → „Nach Updates suchen“. Updates sind signiert; Knippi installiert nur Versionen, deren Signatur stimmt.
+Knippi sucht im Hintergrund nach neuen Versionen. Von Hand: Menüleiste → „Nach Updates suchen …“ oder Einstellungen → Allgemein → „Nach Updates suchen“. Findet Knippi im Hintergrund eine neue Version, steht oben im Menü „Update auf … verfügbar“. Updates sind signiert; Knippi installiert nur Versionen, deren Signatur stimmt.
 
 ## Datenschutz
 

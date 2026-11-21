@@ -170,7 +170,9 @@ struct AnnotationToolbar: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 184)
+                // Natural width: German labels ("Schwarzer Balken") overflowed a fixed
+                // 184 pt and covered the colour field (Michael, 21.11.). The row scrolls.
+                .fixedSize()
                 .help(redactionMode == .solid
                       ? String(localized: "Redaction Mode")
                       : String(localized: "Not for confidential data – use the black bar."))
@@ -328,16 +330,20 @@ struct AnnotationToolbar: View {
 
     private var beautifyGroup: some View {
         Button(action: { showBeautifyPanel.toggle() }) {
-            Image(systemName: showBeautifyPanel ? "sparkles.rectangle.stack.fill" : "sparkles")
-                .font(.system(size: 14, weight: .medium))
+            // Icon plus word: the bare sparkles icon wasn't found (Michael, 21.11.:
+            // "Hintergrund ändern finde ich gar nicht, Formate auch nicht").
+            Label(String(localized: "Background"), systemImage: showBeautifyPanel ? "sparkles.rectangle.stack.fill" : "sparkles")
+                .labelStyle(.titleAndIcon)
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(toolbarIconForeground(isActive: showBeautifyPanel))
-                .frame(width: 30, height: 26)
+                .padding(.horizontal, 8)
+                .frame(height: 26)
                 .background(toolbarButtonBackground(isActive: showBeautifyPanel))
                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 .overlay(toolbarButtonStroke)
         }
         .buttonStyle(.plain)
-        .help("Beautify")
+        .help(String(localized: "Background and format (16:9, 1:1, 4:5)"))
     }
 
     private var undoGroup: some View {

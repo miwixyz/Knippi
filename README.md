@@ -11,7 +11,7 @@ Knippi ist eine schnelle, schlanke Screenshot-App für die Menüleiste des Mac. 
 - **Aufnehmen:** Bereich, Fenster oder ganzer Bildschirm, mit eigenen Tastenkürzeln. Auf Wunsch übernimmt Knippi command + shift + 3, 4 und 5.
 - **Schnellzugriff:** Nach der Aufnahme erscheint ein Vorschaubild in der Ecke. Von dort kopieren, sichern, teilen, annotieren oder anheften. Wahlweise öffnet sich sofort der Editor, oder Knippi sichert still.
 - **Editor:** Pfeil, Linie, Rechteck, Ellipse, Text, Freihand, Textmarker, Zähler, Spotlight und Verpixeln.
-- **Vertrauliches finden:** Knippi schlägt E-Mail-Adressen, Telefonnummern, IBAN, Kartennummern und Zugangsschlüssel zum Schwärzen vor und legt deckende schwarze Balken darüber.
+- **Vertrauliches finden:** Knippi schlägt E-Mail-Adressen, Telefonnummern, IBAN, Kartennummern und Zugangsschlüssel vor und verpixelt sie so grob (zeilenhohe Klötzchen mit zufälliger Helligkeit), dass sich der Text praktisch nicht zurückrechnen lässt.
 - **Farbe aufnehmen:** Color Picker mit Lupe, mehreren Farbformaten und „Letzte Farben“.
 - **Hintergründe:** Verläufe, eigene Bilder und Formate wie 16:9, 1:1 und 4:5. Fenster bleiben auf Wunsch transparent mit Schatten.
 - **Texterkennung:** Text aus jedem Bildschirmbereich kopieren, auch aus Bildern und Videos.

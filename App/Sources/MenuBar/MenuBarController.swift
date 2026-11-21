@@ -17,15 +17,17 @@ final class MenuBarController: NSObject {
     private let ocrCoordinator: OCRCoordinator
     private let desktopIconsCover: DesktopIconsCover
     private let onShowPreferences: () -> Void
+    private let updateManager: UpdateManager?
     private let helpWindow = HelpWindow()
 
-    init(settings: AppSettings, captureCoordinator: CaptureCoordinator, recordingCoordinator: RecordingCoordinator, ocrCoordinator: OCRCoordinator, desktopIconsCover: DesktopIconsCover, onShowPreferences: @escaping () -> Void) {
+    init(settings: AppSettings, captureCoordinator: CaptureCoordinator, recordingCoordinator: RecordingCoordinator, ocrCoordinator: OCRCoordinator, desktopIconsCover: DesktopIconsCover, updateManager: UpdateManager? = nil, onShowPreferences: @escaping () -> Void) {
         self.settings = settings
         self.captureCoordinator = captureCoordinator
         self.recordingCoordinator = recordingCoordinator
         self.ocrCoordinator = ocrCoordinator
         self.desktopIconsCover = desktopIconsCover
         self.onShowPreferences = onShowPreferences
+        self.updateManager = updateManager
         super.init()
         applyVisibility()
         NotificationCenter.default.addObserver(
@@ -69,6 +71,14 @@ final class MenuBarController: NSObject {
     private func buildMenu() -> NSMenu {
         let menu = NSMenu()
         menu.delegate = self
+        // Gentle update reminder: only visible while a scheduled check found an update.
+        let pendingUpdate = menuItem("", action: #selector(showPendingUpdate))
+        pendingUpdate.isHidden = true
+        menu.addItem(pendingUpdate)
+        let pendingUpdateSeparator = NSMenuItem.separator()
+        pendingUpdateSeparator.tag = Self.pendingUpdateSeparatorTag
+        pendingUpdateSeparator.isHidden = true
+        menu.addItem(pendingUpdateSeparator)
 
         let captureAllInOne = menuItem(String(localized: "All-in-One"), action: #selector(captureAllInOne))
         captureAllInOne.setShortcut(for: .captureAllInOne)
@@ -152,6 +162,9 @@ final class MenuBarController: NSObject {
         menu.addItem(menuItem(String(localized: "Preferences..."), action: #selector(openPreferences), key: ",", modifiers: [.command]))
         menu.addItem(menuItem(String(localized: "Knippi Help"), action: #selector(openHelp), key: "?", modifiers: [.command]))
         menu.addItem(menuItem(String(localized: "About Knippi"), action: #selector(openAbout)))
+        if updateManager != nil {
+            menu.addItem(menuItem(String(localized: "Check for Updates…"), action: #selector(checkForUpdates)))
+        }
         menu.addItem(.separator())
         menu.addItem(menuItem(String(localized: "Quit Knippi"), action: #selector(quitApp), key: "q", modifiers: [.command]))
 
@@ -194,6 +207,7 @@ final class MenuBarController: NSObject {
     }
 
     private static let recentColorsTag = 4_711
+    private static let pendingUpdateSeparatorTag = 4_712
 
     /// Rebuilds the "Recent Colors" submenu: swatch + value in the current format.
     private func refreshRecentColors(_ item: NSMenuItem) {
@@ -210,7 +224,17 @@ final class MenuBarController: NSObject {
         for (index, color) in colors.enumerated() {
             let entry = menuItem(format.string(for: color), action: #selector(copyRecentColor(_:)))
             entry.tag = index
-            entry.image = Self.swatch(for: color)
+            // Swatch inside the title, not as `image`: the image column didn't show up in
+            // the status menu (Michael, 21.11.: "neben dem Farbcode muss die Farbe stehen").
+            let attachment = NSTextAttachment()
+            attachment.image = Self.swatch(for: color)
+            attachment.bounds = CGRect(x: 0, y: -2, width: 14, height: 14)
+            let title = NSMutableAttributedString(attachment: attachment)
+            title.append(NSAttributedString(
+                string: "  " + format.string(for: color),
+                attributes: [.font: NSFont.safeMenuFont(ofSize: 0)]
+            ))
+            entry.attributedTitle = title
             submenu.addItem(entry)
         }
     }
@@ -292,6 +316,14 @@ final class MenuBarController: NSObject {
         onShowPreferences()
     }
 
+    @objc private func showPendingUpdate() {
+        updateManager?.checkForUpdatesInteractively()
+    }
+
+    @objc private func checkForUpdates() {
+        updateManager?.checkForUpdatesInteractively()
+    }
+
     @objc private func openHelp() {
         helpWindow.show()
     }
@@ -331,8 +363,14 @@ final class MenuBarController: NSObject {
 extension MenuBarController: NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         // Refresh shortcut display from KeyboardShortcuts in case user changed them
+        let pendingVersion = updateManager?.pendingUpdateVersion
         for item in menu.items {
             switch item.action {
+            case #selector(showPendingUpdate):
+                item.isHidden = pendingVersion == nil
+                if let pendingVersion {
+                    item.title = String(localized: "Update to \(pendingVersion) Available…")
+                }
             case #selector(toggleDesktopIcons): item.state = desktopIconsCover.isHiddenManually ? .on : .off
             case #selector(togglePins):
                 item.title = captureCoordinator.arePinsHidden
@@ -359,6 +397,7 @@ extension MenuBarController: NSMenuDelegate {
                 refreshSelfTimerTitle(item)
             default:
                 if item.tag == Self.recentColorsTag { refreshRecentColors(item) }
+                if item.tag == Self.pendingUpdateSeparatorTag { item.isHidden = pendingVersion == nil }
             }
         }
     }

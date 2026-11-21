@@ -19,6 +19,10 @@ final class UpdateManager: NSObject, ObservableObject {
 
     @Published private(set) var canCheckForUpdates = false
     @Published private(set) var status: Status?
+    /// Version found by a scheduled (background) check and not yet looked at.
+    /// Knippi has no Dock icon, so Sparkle's own window for such a check would
+    /// open behind other apps; the menu bar shows this instead (gentle reminder).
+    @Published private(set) var pendingUpdateVersion: String?
     @Published var automaticallyChecksForUpdates: Bool = true {
         didSet {
             guard oldValue != automaticallyChecksForUpdates else { return }
@@ -55,7 +59,7 @@ final class UpdateManager: NSObject, ObservableObject {
     lazy var updaterController = SPUStandardUpdaterController(
         startingUpdater: true,
         updaterDelegate: self,
-        userDriverDelegate: nil
+        userDriverDelegate: self
     )
 
     private let injectedUpdater: (any SoftwareUpdating)?
@@ -108,6 +112,27 @@ final class UpdateManager: NSObject, ObservableObject {
         probeFoundValidUpdate = false
         status = Status(message: String(localized: "Checking…"), kind: .checking)
         updater.checkForUpdateInformation()
+    }
+
+    /// Menu bar entries („Nach Updates suchen …“, „Update auf x verfügbar …“): Sparkle's own
+    /// interactive check. It brings an update a scheduled check already found into focus,
+    /// and otherwise reports the result itself, including „up to date“.
+    func checkForUpdatesInteractively() {
+        NSApp.activate()
+        updater.checkForUpdates()
+    }
+
+    // MARK: Gentle reminders
+    //
+    // Split out from the `SPUStandardUserDriverDelegate` callbacks, whose
+    // signatures require Sparkle types, so the reminder flow stays testable.
+
+    func handleScheduledUpdateDeferredToMenu(version: String) {
+        pendingUpdateVersion = version
+    }
+
+    func handleUpdateAttentionReceived() {
+        pendingUpdateVersion = nil
     }
 
     private func showStatus(_ message: String, kind: StatusKind, autoDismissAfter: Duration? = .seconds(4)) {
@@ -189,6 +214,34 @@ extension UpdateManager: SPUUpdaterDelegate {
     func updater(_ updater: SPUUpdater, didFinishUpdateCycleFor updateCheck: SPUUpdateCheck, error: (any Error)?) {
         guard updateCheck == .updateInformation else { return }
         handleProbeFinished(error: error)
+    }
+}
+
+extension UpdateManager: @preconcurrency SPUStandardUserDriverDelegate {
+    var supportsGentleScheduledUpdateReminders: Bool { true }
+
+    /// Never let Sparkle open a window for a scheduled check on its own: without
+    /// a user action it would land behind other apps (measured on Tippi/Kalli,
+    /// 2026-09-24). User-initiated checks never reach this method.
+    func standardUserDriverShouldHandleShowingScheduledUpdate(
+        _ update: SUAppcastItem, andInImmediateFocus immediateFocus: Bool
+    ) -> Bool {
+        false
+    }
+
+    func standardUserDriverWillHandleShowingUpdate(
+        _ handleShowingUpdate: Bool, forUpdate update: SUAppcastItem, state: SPUUserUpdateState
+    ) {
+        guard !handleShowingUpdate else { return }
+        handleScheduledUpdateDeferredToMenu(version: update.displayVersionString)
+    }
+
+    func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) {
+        handleUpdateAttentionReceived()
+    }
+
+    func standardUserDriverWillFinishUpdateSession() {
+        handleUpdateAttentionReceived()
     }
 }
 

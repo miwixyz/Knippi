@@ -71,7 +71,7 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
         )
         identifier = DockPresenceController.windowIdentifier
 
-        self.title = "Annotate"
+        self.title = String(localized: "Annotate")
         self.isReleasedWhenClosed = false
         // Use .normal level so the window stays visible when app loses focus
         self.level = .normal

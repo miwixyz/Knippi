@@ -8,6 +8,8 @@ struct ColorFormatTests {
     @Test func hex() { #expect(ColorFormat.hex.string(for: c) == "#2E6F80") }
     @Test func rgb() { #expect(ColorFormat.rgb.string(for: c) == "rgb(46, 111, 128)") }
     @Test func hsl() { #expect(ColorFormat.hsl.string(for: c) == "hsl(192, 47%, 34%)") }
+    /// Hue just below 360° must wrap to 0, never print "hsl(360, …)".
+    @Test func hslHueWrapsAt360() { #expect(ColorFormat.hsl.string(for: RGBColor(r: 255, g: 0, b: 1)) == "hsl(0, 100%, 50%)") }
     @Test func swiftUI() { #expect(ColorFormat.swiftUI.string(for: c) == "Color(red: 0.180, green: 0.435, blue: 0.502)") }
     @Test func recentKeepsTenNewestFirstNoDuplicates() {
         var list = RecentColors(limit: 10)

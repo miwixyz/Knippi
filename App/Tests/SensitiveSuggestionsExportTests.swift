@@ -17,6 +17,32 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
         return try XCTUnwrap(ctx.makeImage())
     }
 
+    /// White image with 1-px black/white vertical stripes, like glyph strokes:
+    /// readable structure that pixelation has to destroy.
+    private func stripedImage(width: Int = 120, height: Int = 60) throws -> CGImage {
+        let ctx = try XCTUnwrap(CGContext(
+            data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ))
+        ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+        ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        ctx.setFillColor(CGColor(red: 0, green: 0, blue: 0, alpha: 1))
+        for x in stride(from: 0, to: width, by: 2) {
+            ctx.fill(CGRect(x: x, y: 0, width: 1, height: height))
+        }
+        return try XCTUnwrap(ctx.makeImage())
+    }
+
+    /// The stripes are gone: neither pure black nor pure white, and every pixel
+    /// of one block reads the same top to bottom and across.
+    private func assertPixelated(_ image: CGImage, rect: CGRect, file: StaticString = #filePath, line: UInt = #line) throws {
+        let a = Array(try pixel(image, x: Int(rect.minX) + 1, y: Int(rect.minY) + 1).prefix(3))
+        let b = Array(try pixel(image, x: Int(rect.minX) + 2, y: Int(rect.maxY) - 1).prefix(3))
+        XCTAssertNotEqual(a, [0, 0, 0], "stripe still black", file: file, line: line)
+        XCTAssertNotEqual(a, [255, 255, 255], "stripe still white", file: file, line: line)
+        XCTAssertEqual(a, b, "one row of blocks, no structure left", file: file, line: line)
+    }
+
     /// RGBA of the pixel at (x, y), top-left origin.
     private func pixel(_ image: CGImage, x: Int, y: Int) throws -> [UInt8] {
         var data = [UInt8](repeating: 0, count: 4)
@@ -34,8 +60,8 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
         return settings
     }
 
-    func testExportWithPendingSuggestionsBlacksThemOutFirst() throws {
-        let image = try whiteImage()
+    func testExportWithPendingSuggestionsPixelatesThemFirst() throws {
+        let image = try stripedImage()
         let document = AnnotationDocument(imageSize: CGSize(width: image.width, height: image.height))
         let suggestions = SensitiveSuggestionsModel()
         suggestions.show([
@@ -56,14 +82,17 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
             onWarning: { XCTFail("unexpected warning: \($0)") }
         ))
 
-        XCTAssertEqual(Array(try pixel(output, x: 25, y: 16).prefix(3)), [0, 0, 0], "selected suggestion is black")
-        XCTAssertEqual(Array(try pixel(output, x: 85, y: 36).prefix(3)), [255, 255, 255], "deselected one is untouched")
-        XCTAssertEqual(Array(try pixel(output, x: 60, y: 5).prefix(3)), [255, 255, 255])
+        try assertPixelated(output, rect: CGRect(x: 10, y: 10, width: 30, height: 12))
+        XCTAssertEqual(Array(try pixel(output, x: 85, y: 36).prefix(3)), Array(try pixel(image, x: 85, y: 36).prefix(3)), "deselected one is untouched")
+        XCTAssertEqual(Array(try pixel(output, x: 86, y: 36).prefix(3)), Array(try pixel(image, x: 86, y: 36).prefix(3)))
+        let object = try XCTUnwrap(document.objects.first as? PixelateObject)
+        XCTAssertEqual(object.mode, .pixelate)
+        XCTAssertNotNil(object.noiseSeed, "confidential text gets block noise")
         XCTAssertEqual(appliedCount, 1)
         XCTAssertFalse(suggestions.isShowing, "suggestions are cleared")
         XCTAssertEqual(document.objects.count, 1)
         document.undo()
-        XCTAssertTrue(document.objects.isEmpty, "blackout is one undo step")
+        XCTAssertTrue(document.objects.isEmpty, "pixelating is one undo step")
     }
 
     func testExportWithoutSuggestionsLeavesDocumentAlone() throws {
@@ -181,7 +210,7 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
     }
 
     func testExportAfterScanResultsAppliesThem() async throws {
-        let image = try whiteImage()
+        let image = try stripedImage()
         let document = AnnotationDocument(imageSize: CGSize(width: image.width, height: image.height))
         let suggestions = SensitiveSuggestionsModel()
         let gate = startHeldScan(suggestions, image: image)
@@ -197,7 +226,7 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
             onWarning: { XCTFail("unexpected warning: \($0)") }
         ))
 
-        XCTAssertEqual(Array(try pixel(output, x: 25, y: 16).prefix(3)), [0, 0, 0], "found region is black")
+        try assertPixelated(output, rect: try XCTUnwrap(document.objects.first).bounds)
         XCTAssertFalse(suggestions.isShowing)
     }
 
@@ -233,7 +262,7 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
 
         XCTAssertTrue(mayCrop)
         XCTAssertEqual(applied, 1)
-        XCTAssertEqual(document.objects.count, 1, "the pending suggestion became a black bar, not discarded")
+        XCTAssertEqual(document.objects.count, 1, "the pending suggestion was pixelated, not discarded")
         XCTAssertFalse(suggestions.isShowing)
     }
 
@@ -244,5 +273,20 @@ final class SensitiveSuggestionsExportTests: XCTestCase {
                       "a file rendered before the suggestions appeared would skip them")
         XCTAssertFalse(AnnotationEditorView.suggestionsChangeInvalidatesDragCache(wasShowing: true, isShowing: false),
                        "applying them on export must not delete the file just written for share/drag")
+    }
+}
+
+@MainActor
+final class SecureBlockSizeTests: XCTestCase {
+    /// Rendered blocks are twice `blockSize`: a text line must end up as one row.
+    func testOneRowOfBlocksPerLine() {
+        for height in [12.0, 17, 24, 40, 63] {
+            let block = SensitiveSuggestionsModel.secureBlockSize(for: CGRect(x: 0, y: 0, width: 200, height: height))
+            XCTAssertGreaterThanOrEqual(block * 2, height)
+        }
+    }
+
+    func testNeverFinerThanTheEditorDefault() {
+        XCTAssertEqual(SensitiveSuggestionsModel.secureBlockSize(for: CGRect(x: 0, y: 0, width: 50, height: 6)), 12)
     }
 }

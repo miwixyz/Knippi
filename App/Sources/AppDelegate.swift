@@ -101,6 +101,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             recordingCoordinator: recordingCoordinator!,
             ocrCoordinator: ocrCoordinator!,
             desktopIconsCover: desktopIconsCover,
+            updateManager: updateManager,
             onShowPreferences: { [weak self] in self?.showPreferences() }
         )
         registerGlobalShortcuts()
