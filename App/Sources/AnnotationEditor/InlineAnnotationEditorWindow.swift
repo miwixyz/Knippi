@@ -573,8 +573,12 @@ private struct InlineAnnotationEditorView: View {
     private func updateSelectedStyle() {
         if let obj = document.selectedObject {
             if let pixelate = obj as? PixelateObject {
-                pixelate.blockSize = lineWidth
-                pixelate.mode = redactionMode
+                // The slider only means "block size" while the pixelate tool is active;
+                // otherwise it is the line width (audit A1).
+                pixelate.restyle(
+                    blockSize: currentTool == .pixelate ? lineWidth : pixelate.blockSize,
+                    mode: redactionMode
+                )
                 pixelate.style = currentStyle
             } else if let counter = obj as? CounterObject {
                 counter.radius = lineWidth

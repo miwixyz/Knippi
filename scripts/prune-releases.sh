@@ -29,7 +29,8 @@ while [ $# -gt 0 ]; do
         --dry-run) DRY_RUN=1 ;;
         --keep)    shift; KEEP="${1:-5}" ;;
         --keep=*)  KEEP="${1#*=}" ;;
-        *)         echo "  ⚠ unbekanntes Argument: $1" ;;
+        # Abbrechen statt weiterlaufen: ein Tippfehler wie --dryrun löschte sonst echt (Audit S4).
+        *)         echo "  ✗ unbekanntes Argument: $1" >&2; exit 2 ;;
     esac
     shift
 done

@@ -18,6 +18,12 @@ public final class AnnotationDocument {
         let objects: [any AnnotationObject]
         let cropRect: CGRect?
         let imageSize: CGSize
+
+        /// The same snapshot on a grown/shifted canvas (snapshot objects are private copies).
+        func resized(to size: CGSize, offset: CGSize) -> Snapshot {
+            if offset != .zero { objects.forEach { $0.move(by: offset) } }
+            return Snapshot(objects: objects, cropRect: nil, imageSize: size)
+        }
     }
 
     public var canUndo: Bool { !undoStack.isEmpty }
@@ -121,6 +127,11 @@ public final class AnnotationDocument {
     public func updateImageSizePreservingObjects(size: CGSize, objectOffset: CGSize = .zero) {
         imageSize = size
         cropRect = nil
+        // Undo/redo snapshots live in the same canvas: move them along, or Undo would put
+        // objects (e.g. a redaction) back at stale coordinates next to what they covered
+        // (audit A3, 21.11.).
+        undoStack = undoStack.map { $0.resized(to: size, offset: objectOffset) }
+        redoStack = redoStack.map { $0.resized(to: size, offset: objectOffset) }
         if objectOffset != .zero {
             for object in objects {
                 object.move(by: objectOffset)

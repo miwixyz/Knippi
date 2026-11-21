@@ -159,10 +159,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.captureCoordinator?.captureAllInOne()
         }
         KeyboardShortcuts.onKeyDown(for: .captureFullscreen) { [weak self] in
-            self?.captureCoordinator?.captureFullscreen()
+            // Not while a selection is on screen: the capture would contain the dimmed
+            // overlay (audit C3, 21.11.).
+            guard let coordinator = self?.captureCoordinator, !coordinator.isCaptureSelectionActive else { return }
+            coordinator.captureFullscreen()
         }
         KeyboardShortcuts.onKeyDown(for: .captureWindow) { [weak self] in
-            self?.captureCoordinator?.captureWindow()
+            // Not while a selection is on screen: the capture would contain the dimmed
+            // overlay (audit C3, 21.11.).
+            guard let coordinator = self?.captureCoordinator, !coordinator.isCaptureSelectionActive else { return }
+            coordinator.captureWindow()
         }
         KeyboardShortcuts.onKeyDown(for: .captureText) { [weak self] in
             self?.ocrCoordinator?.startInstantOCR()
@@ -208,7 +214,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.captureCoordinator?.editClipboardImage()
         }
         KeyboardShortcuts.onKeyDown(for: .captureLastArea) { [weak self] in
-            self?.captureCoordinator?.replayLastCapture()
+            // Not while a selection is on screen: the capture would contain the dimmed
+            // overlay (audit C3, 21.11.).
+            guard let coordinator = self?.captureCoordinator, !coordinator.isCaptureSelectionActive else { return }
+            coordinator.replayLastCapture()
         }
     }
 
@@ -252,9 +261,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.alertStyle = .warning
         alert.messageText = String(localized: "Another app wants to control Knippi")
         alert.informativeText = String(localized: "It sent this command:\n\(url.absoluteString)\n\nAllow other apps to start captures with Knippi? You can change this later in Settings → General.")
-        alert.addButton(withTitle: String(localized: "Allow"))
+        // "Don't Allow" first = default button: a page that says "press Return" must not get
+        // permanent control of Knippi that way (audit P1, 21.11.).
         alert.addButton(withTitle: String(localized: "Don't Allow"))
-        let allowed = alert.runModal() == .alertFirstButtonReturn
+        alert.addButton(withTitle: String(localized: "Allow"))
+        alert.buttons.first?.keyEquivalent = "\r"
+        alert.buttons.last?.keyEquivalent = ""
+        let allowed = alert.runModal() == .alertSecondButtonReturn
         settings.automationURLsEnabled = allowed
         return allowed
     }
@@ -378,6 +391,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// user resets the configuration — so the next capture's share button
     /// reflects the current state without requiring a relaunch.
     func refreshShareCoordinator() {
+        shareCoordinator?.invalidate()
         shareCoordinator = makeShareCoordinator(settings: settings)
         captureCoordinator?.shareCoordinator = shareCoordinator
     }

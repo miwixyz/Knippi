@@ -2,6 +2,35 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.4.2] — 2026-11-21
+
+### Behoben
+
+- **Verpixelung bleibt stark:** Farbe oder Modus einer ausgewählten Verpixelung aus „Vertrauliches
+  finden“ ändern macht die Blöcke nicht mehr kleiner (vorher wurde der Text teils wieder lesbar).
+- **Rückgängig nach Vergrößern:** Im All-in-One-Editor sprangen Markierungen nach Bereich vergrößern
+  und Rückgängig an alte Stellen, Schwärzungen lagen neben dem Inhalt.
+- **Drehen im Zuschnitt:** Bild und Zuschnittrahmen drehen jetzt in dieselbe Richtung.
+- **Scroll-Aufnahme automatisch:** Verliert Knippi die Seite, hört es auf zu scrollen und meldet
+  „vorzeitig beendet“, statt ein still abgeschnittenes Bild zu liefern. Bewegt sich am Seitenende
+  etwas (Video, Ladekreisel), endet die Aufnahme trotzdem von selbst.
+- **Kein Overlay im Bild:** Vollbild-, Fenster- und Wiederholen-Kürzel wirken nicht mehr, solange
+  eine Auswahl auf dem Bildschirm ist.
+- **Video:** Doppelklick auf Stopp zeigt keine falsche Fehlermeldung mehr. Stoppt Knippi selbst
+  (Platte voll, Freigabe entzogen), sagt die Meldung jetzt, ob schon gesichert ist. Die Kamera
+  startet nicht mehr, wenn die Aufnahme während der Kamera-Abfrage von macOS abgebrochen wurde.
+  Ein Absturz während des Sicherns verliert die Aufnahme nicht mehr. Der Export mit Mikrofon und
+  Systemton hängt bei voller Platte nicht mehr endlos.
+- **Vorschaubild:** Schließt sich nicht mehr, solange ein Cloud-Upload läuft oder fehlgeschlagen ist.
+- **Cloud-Freigabe zurücksetzen:** Noch offene Vorschaubilder laden danach nicht mehr mit den alten
+  Zugangsdaten hoch.
+- **Kein ungeschwärztes Original mehr:** Ist „Automatisch sichern“ an, ersetzen jetzt auch Kopieren,
+  Anheften und „Sichern unter“ aus dem Editor die gesicherte Datei durch die bearbeitete Fassung.
+  Vorher blieb dabei das unbearbeitete, zum Beispiel ungeschwärzte, Original im Ordner liegen.
+- **Andere Apps:** In der Rückfrage „Andere App will Knippi steuern“ ist „Nicht erlauben“ jetzt der
+  Standardknopf. Wer die Steuerung in den Einstellungen selbst aus- oder einschaltet, wird später
+  nicht noch einmal gefragt.
+
 ## [0.4.1] — 2026-11-21
 
 ### Behoben

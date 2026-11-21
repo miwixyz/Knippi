@@ -69,6 +69,8 @@ Feste Kopf- und Fußleisten der Seite erscheinen im Bild nur einmal.
 
 Bildschirmfotos landen ab Werk in **Bilder/Knippi**, als „Knippi JJJJ-MM-TT um HH.MM.SS“. Speicherort und Dateiname stellst du unter Einstellungen → Exportieren ein, das Bildformat unter Einstellungen → Bildschirmfotos. Knippi überschreibt nie eine fremde Datei. Kann eine Aufnahme nicht gesichert werden, sagt Knippi das sichtbar.
 
+Ist „Automatisch sichern“ an und du bearbeitest die Aufnahme im Editor, ersetzt Knippi die gesicherte Datei durch die bearbeitete Fassung, egal ob du sicherst, kopierst, anheftest oder „Sichern unter“ wählst. So bleibt kein ungeschwärztes Original im Ordner liegen.
+
 ## Editor
 
 Pfeil, Linie, Rechteck, Ellipse, Text, Freihand, Textmarker, Zähler, Spotlight und Verpixeln. command + Z widerruft den letzten Schritt. Mit „Kopieren“ (command + C) landet das fertige Bild in der Zwischenablage, mit „Sichern“ im Ausgabeordner.

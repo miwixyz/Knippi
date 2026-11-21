@@ -23,6 +23,17 @@ public final class ShareCoordinator {
     private let copiesLinkWhenUploadStarts: @MainActor () -> Bool
     private var uploadQueue: [UploadRequest] = []
     private var isProcessingQueue = false
+    private var isInvalidated = false
+
+    /// Called when the Cloud Share configuration is replaced or reset. Windows that still hold
+    /// this coordinator (open Quick Access cards) must not upload with the old credentials
+    /// (audit Q11, 21.11.).
+    public func invalidate() {
+        isInvalidated = true
+        let pending = uploadQueue
+        uploadQueue.removeAll()
+        pending.forEach { $0.continuation.resume(throwing: ShareError.notConfigured) }
+    }
 
     private struct UploadRequest {
         let file: URL
@@ -41,7 +52,8 @@ public final class ShareCoordinator {
     /// On failure an early-copied link is removed again (previous clipboard text restored).
     @discardableResult
     public func upload(file: URL, contentType: String) async throws -> URL {
-        try await withCheckedThrowingContinuation { continuation in
+        guard !isInvalidated else { throw ShareError.notConfigured }
+        return try await withCheckedThrowingContinuation { continuation in
             uploadQueue.append(
                 UploadRequest(
                     file: file,

@@ -16,6 +16,23 @@ struct InterruptedRecordingTests {
         return url
     }
 
+    /// Audit R6 (21.11.): the marker was cleared at Stop, before the file was saved; a crash
+    /// during export lost the recording. It now stays until the saved file is confirmed.
+    @Test("The marker is only cleared for the file it points to")
+    func clearOnlyForMatchingFile() throws {
+        let defaults = makeDefaults()
+        let file = try makeFile()
+        defer { try? FileManager.default.removeItem(at: file) }
+        InterruptedRecording.mark(file, defaults: defaults)
+
+        InterruptedRecording.clear(ifMarking: URL(fileURLWithPath: "/tmp/other.mov"), defaults: defaults)
+        #expect(InterruptedRecording.take(defaults: defaults) == file)
+
+        InterruptedRecording.mark(file, defaults: defaults)
+        InterruptedRecording.clear(ifMarking: file, defaults: defaults)
+        #expect(InterruptedRecording.take(defaults: defaults) == nil)
+    }
+
     @Test("Nothing to recover when no recording was marked")
     func emptyByDefault() {
         #expect(InterruptedRecording.take(defaults: makeDefaults()) == nil)

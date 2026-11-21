@@ -18,10 +18,11 @@ enum ImageTransforms {
             bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
         ) else { return nil }
 
-        // CCW rotation: translate to new-origin, rotate +90° (CGContext is
-        // counter-clockwise positive), draw at original size.
-        ctx.translateBy(x: 0, y: CGFloat(w))
-        ctx.rotate(by: -.pi / 2)
+        // CCW rotation: CGContext angles are counter-clockwise positive, so rotate +90°
+        // and shift the result back into view. (Was -90°, i.e. clockwise, while the crop
+        // rect was remapped counter-clockwise – audit A4, measured 21.11.)
+        ctx.translateBy(x: CGFloat(h), y: 0)
+        ctx.rotate(by: .pi / 2)
         ctx.draw(image, in: CGRect(x: 0, y: 0, width: w, height: h))
         return ctx.makeImage()
     }

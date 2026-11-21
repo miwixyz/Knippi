@@ -35,6 +35,7 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
         onSave: @escaping (CGImage) -> Bool,
         onCopy: @escaping (CGImage) -> Void,
         onPin: @escaping (CGImage, CGRect?) -> Void,
+        onSavedAs: @escaping (CGImage) -> Void = { _ in },
         onClose: @escaping () -> Void
     ) {
         let imgW = CGFloat(image.width)
@@ -120,6 +121,7 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
                         sourceWindowTitle: sourceWindowTitle,
                         template: screenshotFilenameTemplate
                     ) != nil else { return }
+                    onSavedAs(rendered)
                     self?.close()
                 }
             },

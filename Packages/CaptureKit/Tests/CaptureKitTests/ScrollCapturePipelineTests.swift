@@ -304,7 +304,10 @@ final class FrameFeed: @unchecked Sendable {
     }
 }
 
-@Suite("Scroll capture auto mode")
+/// Lets a test stop a controller from inside its own auto-scroller closure.
+nonisolated(unsafe) var controller_stopHook: (() -> Void)?
+
+@Suite("Scroll capture auto mode", .serialized)
 struct ScrollCaptureAutoModeTests {
     /// A page that moves `step` rows per scroll call and stops at `end`.
     final class FakePage: @unchecked Sendable {
@@ -334,6 +337,68 @@ struct ScrollCaptureAutoModeTests {
         #expect(image.height == 2000 + 800)
         // 5 steps to reach the end, then 2 steps that no longer move.
         #expect(page.calls == 5 + ScrollCaptureController.unmovedStepsAtPageEnd)
+    }
+
+    /// Audit C2 (21.11.): with the track lost, auto mode kept scrolling and handed back the
+    /// stitched part as a normal result – the page silently ended in the middle.
+    @Test("Auto mode stops and reports when the track is lost")
+    func autoModeStopsWhenTrackIsLost() async {
+        let page = FakePage(step: 2000, end: 100_000)  // a jump far past the 800-row overlap
+        let controller = ScrollCaptureController(
+            config: ScrollCaptureConfig(captureRect: .zero, displayID: 0, maxHeight: 1_000_000),
+            frameInterval: .milliseconds(1), maxConsecutiveFailures: 3,
+            frameSource: { page.frame() },
+            autoScroller: { page.scrollDown() }
+        )
+        let outcome = await withCheckedContinuation { continuation in
+            controller.start(onProgress: { _ in }, onComplete: { continuation.resume(returning: $0) })
+        }
+        guard case let .failed(error, partial) = outcome else { Issue.record("expected failed, got \(outcome)"); return }
+        #expect(error as? ScrollCaptureError == .trackingLost)
+        #expect(partial != nil)
+        #expect(page.calls <= 2)
+    }
+
+    /// Audit C8 (21.11.): something moving at the end of the page (video, spinner, caret)
+    /// kept every frame different, so auto mode scrolled forever and held the mouse.
+    @Test("Auto mode ends even if the page end keeps changing")
+    func autoModeEndsWithJitterAtPageEnd() async {
+        let page = JitteryEndPage(step: 400, end: 2000)
+        let controller = ScrollCaptureController(
+            config: ScrollCaptureConfig(captureRect: .zero, displayID: 0, maxHeight: 1_000_000),
+            frameInterval: .milliseconds(1), maxConsecutiveFailures: 3,
+            frameSource: { page.frame() },
+            autoScroller: {
+                page.scrollDown()
+                if page.calls > 60 { controller_stopHook?() }
+            }
+        )
+        controller_stopHook = { controller.stop() }
+        defer { controller_stopHook = nil }
+        let outcome = await withCheckedContinuation { continuation in
+            controller.start(onProgress: { _ in }, onComplete: { continuation.resume(returning: $0) })
+        }
+        guard case .finished = outcome else { Issue.record("expected finished, got \(outcome)"); return }
+        #expect(page.calls < 20, "auto mode must notice the end by itself, took \(page.calls) steps")
+    }
+
+    /// Like FakePage, but at the end it wobbles by one row each frame.
+    final class JitteryEndPage: @unchecked Sendable {
+        private let lock = NSLock()
+        private var scroll = 0
+        private var frames = 0
+        private(set) var scrollCalls = 0
+        let step: Int, end: Int
+        init(step: Int, end: Int) { self.step = step; self.end = end }
+        func scrollDown() { lock.withLock { scrollCalls += 1; scroll = min(end, scroll + step) } }
+        func frame() -> CGImage {
+            let y: Int = lock.withLock {
+                frames += 1
+                return scroll == end && frames % 2 == 0 ? end - 1 : scroll
+            }
+            return ScrollOffsetRepeatingLinesTests.image(scrolledTo: y)
+        }
+        var calls: Int { lock.withLock { scrollCalls } }
     }
 
     @Test("Auto mode stops early when the user clicks Done")

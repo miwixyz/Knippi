@@ -176,7 +176,8 @@ enum MP4Exporter {
         // buffers for both tracks stay balanced. AVFoundation types aren't
         // Sendable, so wrap the work in a non-Sendable closure via a
         // continuation rather than a Swift Task.
-        try await runDrain(videoPair: videoPair, audioOutput: audioOutput, audioInput: audioInput)
+        try await runDrain(videoPair: videoPair, audioOutput: audioOutput, audioInput: audioInput,
+                           hasFailed: { writer.status == .failed || reader.status == .failed })
         progress?(0.9)
         status?(ExportStatus(stage: .finalizing, fractionCompleted: 0.9))
 
@@ -200,7 +201,8 @@ enum MP4Exporter {
     private static func runDrain(
         videoPair: (output: AVAssetReaderOutput, input: AVAssetWriterInput)?,
         audioOutput: AVAssetReaderOutput,
-        audioInput: AVAssetWriterInput
+        audioInput: AVAssetWriterInput,
+        hasFailed: @escaping () -> Bool
     ) async throws {
         let queue = DispatchQueue(label: "dev.mwlr.knippi.mp4exporter.drain")
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
@@ -242,6 +244,14 @@ enum MP4Exporter {
                         }
                     }
                     if !madeProgress {
+                        // A writer that failed in the background (disk full, folder gone)
+                        // never becomes ready again: stop instead of spinning forever (audit E3).
+                        if hasFailed() {
+                            videoPair?.input.markAsFinished()
+                            audioInput.markAsFinished()
+                            cont.resume(throwing: ExportError.exportSessionFailed("Writer or reader failed while mixing audio"))
+                            return
+                        }
                         Thread.sleep(forTimeInterval: 0.001)
                     }
                 }

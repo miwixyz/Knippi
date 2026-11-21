@@ -70,6 +70,38 @@ struct ScreenshotSaverTests {
         try #require(SavedScreenshotFile(url: url))
     }
 
+    /// Audit A2 (21.11.): copy, pin and "Save As" from the editor left the unredacted
+    /// auto-saved original in the folder. They now replace it – and never add a new file.
+    @Test("replaceOriginal overwrites the tracked original in place")
+    func replaceOriginalOverwrites() throws {
+        let root = try tempDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let original = root.appendingPathComponent("shot.png")
+        try Data([1]).write(to: original)
+        let tracked = try #require(SavedScreenshotFile(url: original))
+
+        let result = ScreenshotSaver.replaceOriginal(Data([9, 9]), original: tracked, fileExtension: "png")
+
+        #expect(try result?.get() == original)
+        #expect(try Data(contentsOf: original) == Data([9, 9]))
+        #expect(try FileManager.default.contentsOfDirectory(atPath: root.path).count == 1)
+    }
+
+    @Test("replaceOriginal writes nothing when there is no original or it can't be replaced")
+    func replaceOriginalNeverCreatesFiles() throws {
+        let root = try tempDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        #expect(ScreenshotSaver.replaceOriginal(Data([1]), original: nil, fileExtension: "png") == nil)
+
+        let original = root.appendingPathComponent("shot.png")
+        try Data([1]).write(to: original)
+        let tracked = try #require(SavedScreenshotFile(url: original))
+        let otherFormat = ScreenshotSaver.replaceOriginal(Data([2]), original: tracked, fileExtension: "jpg")
+        guard case .failure = otherFormat else { Issue.record("expected failure"); return }
+        #expect(try Data(contentsOf: original) == Data([1]))
+        #expect(try FileManager.default.contentsOfDirectory(atPath: root.path).count == 1)
+    }
+
     @Test("Target: tracked original that exists and is writable is replaced")
     func targetReplacesExistingOriginal() throws {
         let root = try tempDirectory()

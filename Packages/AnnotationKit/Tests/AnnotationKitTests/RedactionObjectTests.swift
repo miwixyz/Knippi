@@ -25,6 +25,27 @@ struct RedactionObjectTests {
         #expect(redactionCopy.mode == .blur)
     }
 
+    /// Audit A1 (21.11.): changing the colour of a selected "Find Sensitive" pixelation
+    /// reset its blocks to the line width (3) and made the text readable again.
+    @Test("Restyling a secure pixelation never makes it weaker")
+    func secureRestyleNeverWeakens() {
+        let secure = PixelateObject(rect: .zero, blockSize: 14, mode: .pixelate, noiseSeed: 42)
+        secure.restyle(blockSize: 3, mode: .blur)
+        #expect(secure.blockSize == 14)
+        #expect(secure.mode == .pixelate)
+        secure.restyle(blockSize: 20, mode: .solid)
+        #expect(secure.blockSize == 20)
+        #expect(secure.mode == .solid)
+    }
+
+    @Test("Restyling a manual pixelation applies the new values")
+    func manualRestyleApplies() {
+        let manual = PixelateObject(rect: .zero, blockSize: 14, mode: .pixelate)
+        manual.restyle(blockSize: 6, mode: .blur)
+        #expect(manual.blockSize == 6)
+        #expect(manual.mode == .blur)
+    }
+
     @Test("Solid redaction renders a flat filled region")
     func solidRedactionRendersFill() throws {
         let source = try makeTestImage(width: 8, height: 8, color: CGColor(gray: 1, alpha: 1))

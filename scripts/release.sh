@@ -286,6 +286,13 @@ fi
 step "[7/10] Appcast erzeugen und signieren"
 SPARKLE_BIN="build/SourcePackages/artifacts/sparkle/Sparkle/bin"
 [ -x "${SPARKLE_BIN}/generate_appcast" ] || fail "generate_appcast fehlt unter ${SPARKLE_BIN}"
+# sign_update --verify prüft nur gegen den Schlüssel im Schlüsselbund. Passt der nicht zum
+# Schlüssel, den die ausgelieferte App kennt, wäre alles grün und niemand könnte updaten
+# (Audit S1, 21.11.).
+KEYCHAIN_EDKEY="$("${SPARKLE_BIN}/generate_keys" -p 2>/dev/null | tail -1)"
+APP_EDKEY="$(/usr/libexec/PlistBuddy -c 'Print SUPublicEDKey' "${APP_PATH}/Contents/Info.plist" 2>/dev/null)"
+[ -n "${KEYCHAIN_EDKEY}" ] && [ "${KEYCHAIN_EDKEY}" = "${APP_EDKEY}" ] \
+    || fail "Sparkle-Schlüssel im Schlüsselbund passt nicht zu SUPublicEDKey der App. ZU TUN: auf diesem Mac den Familien-Schlüssel importieren (generate_keys -f)"
 
 python3 -I scripts/release-notes.py "${VERSION}" CHANGELOG.md "${ZIP%.zip}.html" \
     || fail "Versionshinweise für ${VERSION} nicht erzeugt"

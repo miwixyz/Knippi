@@ -52973,6 +52973,56 @@
           }
         }
       }
+    },
+    "macOS withdrew the Screen Recording permission. What was recorded so far is open in Knippi but not saved yet." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS hat die Freigabe für Bildschirmaufnahmen entzogen. Das bisher Aufgenommene ist in Knippi geöffnet, aber noch nicht gesichert."
+          }
+        }
+      }
+    },
+    "macOS stopped the recording. What was recorded so far is open in Knippi but not saved yet." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS hat die Aufnahme beendet. Das bisher Aufgenommene ist in Knippi geöffnet, aber noch nicht gesichert."
+          }
+        }
+      }
+    },
+    "The recording was stopped to prevent data loss. It is open in Knippi but not saved yet. Free up disk space before saving it." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufnahme wurde angehalten, damit nichts verloren geht. Sie ist in Knippi geöffnet, aber noch nicht gesichert. Gib Speicherplatz frei, bevor du sie sicherst."
+          }
+        }
+      }
+    },
+    "Original in the folder replaced" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Original im Ordner ersetzt"
+          }
+        }
+      }
+    },
+    "The unedited original is still in the folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das unbearbeitete Original liegt noch im Ordner"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

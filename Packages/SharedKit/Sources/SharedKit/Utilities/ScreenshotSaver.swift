@@ -83,6 +83,10 @@ public struct ScreenshotSaveOutcome: Equatable, Sendable {
     }
 }
 
+public struct ScreenshotReplaceFailure: Error, Equatable, Sendable {
+    public let reason: String
+}
+
 public enum ScreenshotSaver {
     /// Decides where an editor save goes. The auto-saved `original` of the same capture is
     /// replaced only if the file at its path is still that file, is writable (not locked)
@@ -105,6 +109,33 @@ public enum ScreenshotSaver {
             return .newKeepingOriginal(proposed, reason: "\(path): not writable or locked")
         }
         return .replace(original.url)
+    }
+
+    /// Writes `data` over the auto-saved `original` only – never creates a new file.
+    /// nil: nothing to replace (none tracked, gone, or another file now at its path).
+    /// `.failure(reason)`: the original is there but can't be replaced; it stays as it is.
+    /// Used by copy, pin and "Save As" from the editor so the unedited (e.g. unredacted)
+    /// original doesn't stay in the folder (audit A2, 21.11.).
+    public static func replaceOriginal(
+        _ data: Data,
+        original: SavedScreenshotFile?,
+        fileExtension: String,
+        replaceWriter: (Data, URL) throws -> Void = { try $0.write(to: $1, options: .atomic) }
+    ) -> Result<URL, ScreenshotReplaceFailure>? {
+        let proposed = URL(fileURLWithPath: "/edit").appendingPathExtension(fileExtension)
+        switch target(for: proposed, replacing: original) {
+        case .new:
+            return nil
+        case .newKeepingOriginal(_, let reason):
+            return .failure(ScreenshotReplaceFailure(reason: reason))
+        case .replace(let url):
+            do {
+                try replaceWriter(data, url)
+                return .success(url)
+            } catch {
+                return .failure(ScreenshotReplaceFailure(reason: "\(url.path): \(error)"))
+            }
+        }
     }
 
     /// Writes `data` over the auto-saved `original` of the same capture (atomically, same

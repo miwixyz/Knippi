@@ -27,6 +27,7 @@ struct QuickAccessView: View {
     let onDragStarted: () -> Void
     let onDragEnded: (Bool) -> Void
     let onHoverChanged: (Bool) -> Void
+    var onUploadBusyChanged: (Bool) -> Void = { _ in }
     let onClose: () -> Void
 
     @State private var isHovering = false
@@ -102,6 +103,12 @@ struct QuickAccessView: View {
         .onAppear {
             prepareDragFileIfNeeded()
             startAutoUploadIfNeeded()
+        }
+        .onChange(of: visualState) { _, state in
+            switch state {
+            case .uploading, .failed: onUploadBusyChanged(true)
+            case .idle, .succeeded: onUploadBusyChanged(false)
+            }
         }
         .onDisappear { cleanupPreparedDragFile() }
         .focusable()

@@ -183,7 +183,7 @@ public final class ScreenRecorder {
         if let e = writer.error {
             knippiLog("Writer error: \(e)")
             partialRecordingURL = outputFileURL
-            cleanup(); state = .idle
+            cleanup(keepRecoveryMarker: true); state = .idle
             throw RecordingError.writerFailed(e)
         }
 
@@ -198,7 +198,7 @@ public final class ScreenRecorder {
             size: recordingSourceSize ?? .zero
         )
         knippiLog("Done: \(url.lastPathComponent) \(elapsedTime)s")
-        cleanup(); state = .idle
+        cleanup(keepRecoveryMarker: true); state = .idle
         return result
     }
 
@@ -408,12 +408,14 @@ public final class ScreenRecorder {
         elapsedTimer?.invalidate(); elapsedTimer = nil; recordingStartTime = nil
     }
 
-    private func cleanup() {
+    /// `keepRecoveryMarker`: the file is handed to the app for saving; the app clears the
+    /// marker once it is saved, so a crash before that still recovers it (audit R6).
+    private func cleanup(keepRecoveryMarker: Bool = false) {
         stream = nil; streamOutput = nil; recordingConfig = nil; recordingQueue = nil; recordingSourceSize = nil
         streamInterrupted = false
         lastDiskSpaceCheck = 0; diskSpaceLowReported = false; writerFailureReported = false
         writer.reset(); stopElapsedTimer()
-        InterruptedRecording.clear()
+        if !keepRecoveryMarker { InterruptedRecording.clear() }
     }
 }
 

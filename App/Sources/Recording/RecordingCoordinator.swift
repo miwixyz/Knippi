@@ -60,6 +60,11 @@ final class RecordingCoordinator {
     private var countdownWindow: CountdownWindow?
     private var escGlobalMonitor: Any?
     private var escLocalMonitor: Any?
+    /// A stop is in progress; a second Stop (double click, warning panel, disk + writer
+    /// timer in the same tick) must not report "Couldn't finish recording" (audit R4).
+    private var isStopping = false
+    /// Runs once the quick-preview save of the just-stopped recording finished (true = saved).
+    private var pendingSaveCompletion: ((Bool) -> Void)?
     private var escEventTap: CFMachPort?
     private var escEventTapRunLoopSource: CFRunLoopSource?
     private struct AutomaticClipboardCopyResult {
@@ -458,6 +463,12 @@ final class RecordingCoordinator {
                     self.cameraManager.stop()
                     do {
                         try await self.cameraManager.requestAccessAndStart()
+                        // The macOS camera prompt can stay open while the user cancels the
+                        // flow or switches the camera off again: don't start it then (audit R3).
+                        guard !Task.isCancelled, self.toolbarWindow != nil else {
+                            self.cameraManager.stop()
+                            return false
+                        }
                         self.showCameraPiP()
                         return true
                     } catch {
@@ -760,9 +771,14 @@ final class RecordingCoordinator {
 
     // MARK: - Step 4: During Recording
 
-    /// `afterStop` runs only once the recording was stopped and saved.
-    func stopRecording(afterStop: (@MainActor () -> Void)? = nil) {
+    /// `afterStop` runs once the recording was stopped and, in the quick-preview flow, the
+    /// save finished; its argument says whether it is saved (in the editor flow it is not
+    /// saved yet). Before, it ran right after the save had only *started* (audit R2).
+    func stopRecording(afterStop: (@MainActor (_ saved: Bool) -> Void)? = nil) {
+        guard !isStopping else { return }
+        isStopping = true
         Task {
+            defer { isStopping = false }
             do {
                 let result = try await recorder.stopRecording()
                 let cursorTelemetryURL = stopCursorTelemetry()
@@ -774,6 +790,9 @@ final class RecordingCoordinator {
                 startAutomaticClipboardCopyIfNeeded(url: tempURL, format: format)
 
                 if settings.openEditorAfterRecording {
+                    // The editor owns the file from here; recovery after a crash only
+                    // covers the quick-preview flow (audit R6).
+                    InterruptedRecording.clear(ifMarking: tempURL)
                     // Open the full recording editor (trim, zoom, export)
                     openEditor(
                         tempURL: tempURL,
@@ -793,9 +812,13 @@ final class RecordingCoordinator {
                     let duration = VideoThumbnail.formattedDuration(result.duration)
                     showRecordingPreview(thumbnail: nsThumb, duration: duration, fileSize: size,
                                         tempURL: tempURL, format: format)
+                    if let afterStop {
+                        pendingSaveCompletion = { saved in afterStop(saved) }
+                    }
                     recordingPreviewWindow?.onSave?()
+                    return
                 }
-                afterStop?()
+                afterStop?(false)
             } catch {
                 NSLog("[Knippi] Failed to stop/save recording: %@", String(describing: error))
                 hideRecordingUI()
@@ -831,17 +854,21 @@ final class RecordingCoordinator {
     private func handleRecordingInterrupted(error: Error) {
         NSLog("[Knippi] Recording stream stopped unexpectedly: %@", String(describing: error))
         // Keep what was recorded (saved automatically), then say why it ended.
-        stopRecording { [weak self] in
+        stopRecording { [weak self] saved in
             if case .permissionMissing = CaptureErrorPresentation.forError(error) {
                 self?.showRecordingProblem(
                     String(localized: "Recording ended"),
-                    detail: String(localized: "macOS withdrew the Screen Recording permission. What was recorded so far has been saved."),
+                    detail: saved
+                        ? String(localized: "macOS withdrew the Screen Recording permission. What was recorded so far has been saved.")
+                        : String(localized: "macOS withdrew the Screen Recording permission. What was recorded so far is open in Knippi but not saved yet."),
                     error: nil
                 )
             } else {
                 self?.showRecordingProblem(
                     String(localized: "Recording ended"),
-                    detail: String(localized: "macOS stopped the recording. What was recorded so far has been saved."),
+                    detail: saved
+                        ? String(localized: "macOS stopped the recording. What was recorded so far has been saved.")
+                        : String(localized: "macOS stopped the recording. What was recorded so far is open in Knippi but not saved yet."),
                     error: error
                 )
             }
@@ -901,14 +928,16 @@ final class RecordingCoordinator {
     }
 
     private func handleDiskSpaceLow() {
-        stopRecording(afterStop: { [weak self] in self?.showDiskSpaceLowAlert() })
+        stopRecording(afterStop: { [weak self] saved in self?.showDiskSpaceLowAlert(saved: saved) })
     }
 
-    private func showDiskSpaceLowAlert() {
+    private func showDiskSpaceLowAlert(saved: Bool) {
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = String(localized: "Recording stopped because your disk is almost full")
-        alert.informativeText = String(localized: "The recording was stopped and saved to prevent data loss. Free up disk space before recording again.")
+        alert.informativeText = saved
+            ? String(localized: "The recording was stopped and saved to prevent data loss. Free up disk space before recording again.")
+            : String(localized: "The recording was stopped to prevent data loss. It is open in Knippi but not saved yet. Free up disk space before saving it.")
         alert.addButton(withTitle: String(localized: "OK"))
         alert.runModal()
     }
@@ -942,6 +971,7 @@ final class RecordingCoordinator {
             do {
                 let result = try await recorder.stopRecording()
                 // Discard temp file — restart should not show preview.
+                InterruptedRecording.clear(ifMarking: result.fileURL)
                 try? FileManager.default.removeItem(at: result.fileURL)
                 hideRecordingUI()
 
@@ -973,6 +1003,7 @@ final class RecordingCoordinator {
         Task {
             do {
                 let result = try await recorder.stopRecording()
+                InterruptedRecording.clear(ifMarking: result.fileURL)
                 try? FileManager.default.removeItem(at: result.fileURL)
                 hideRecordingUI()
             } catch {
@@ -1014,6 +1045,7 @@ final class RecordingCoordinator {
                 _ = await copyTask.value
             }
             let result = try await VideoExporter.export(source: tempURL, options: options, progress: progress)
+            InterruptedRecording.clear(ifMarking: tempURL)
             if deleteSourceOnSuccess {
                 // Clean up temp file after successful export
                 try? FileManager.default.removeItem(at: tempURL)
@@ -1168,6 +1200,8 @@ final class RecordingCoordinator {
                     }
                 }
 
+                let completion = self.pendingSaveCompletion
+                self.pendingSaveCompletion = nil
                 if let savedURL = result {
                     self.recordingPreviewWindow?.close()
                     self.recordingPreviewWindow = nil
@@ -1179,6 +1213,7 @@ final class RecordingCoordinator {
                     state.saveProgress = 0
                     self.showRecordingSaveFailureAlert(format: format)
                 }
+                completion?(result != nil)
             }
         }
 

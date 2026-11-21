@@ -28,6 +28,8 @@ final class QuickAccessWindow: NSPanel {
     private var transitionWindow: QuickAccessTransitionWindow?
     private var closeAnimationID = UUID()
     private var isClosing = false
+    /// A cloud upload is running or its failure is on screen: auto-close waits (audit Q1).
+    private var isUploadBusy = false
     private var anchoredPosition: QuickAccessPosition
     private let settings: AppSettings
     private let transitionImage: NSImage
@@ -122,6 +124,7 @@ final class QuickAccessWindow: NSPanel {
             onDragStarted: { [weak self] in self?.hideDuringExternalDrag() },
             onDragEnded:   { [weak self] dropped in self?.finishExternalDrag(dropped: dropped) },
             onHoverChanged: { [weak self] hovering in self?.hoverChanged(hovering) },
+            onUploadBusyChanged: { [weak self] busy in self?.uploadBusyChanged(busy) },
             onClose:     { [weak self] in self?.onClose?() }
         )
 
@@ -151,6 +154,17 @@ final class QuickAccessWindow: NSPanel {
             onClose?()
         } else {
             showAfterExternalDrag()
+        }
+    }
+
+    /// Auto-close waits while an upload runs or its failure is shown, then starts over.
+    func uploadBusyChanged(_ busy: Bool) {
+        isUploadBusy = busy
+        guard !isClosing else { return }
+        if busy {
+            stopAutoDismissTimer()
+        } else {
+            scheduleAutoDismissTimerIfNeeded()
         }
     }
 
@@ -408,7 +422,7 @@ final class QuickAccessWindow: NSPanel {
 
     private func scheduleAutoDismissTimerIfNeeded() {
         stopAutoDismissTimer()
-        guard !isClosing, alphaValueBeforeDrag == nil, settings.quickAccessAutoClose else { return }
+        guard !isClosing, !isUploadBusy, alphaValueBeforeDrag == nil, settings.quickAccessAutoClose else { return }
 
         autoDismissTimer = Timer.scheduledTimer(
             withTimeInterval: TimeInterval(settings.quickAccessAutoCloseInterval),

@@ -9,7 +9,14 @@ public enum InterruptedRecording {
         defaults.set(url.path, forKey: key)
     }
 
-    static func clear(defaults: UserDefaults = .standard) {
+    public static func clear(defaults: UserDefaults = .standard) {
+        defaults.removeObject(forKey: key)
+    }
+
+    /// Forgets the marker once `url` is safely saved elsewhere (or deliberately discarded).
+    /// Until then a crash leaves it for recovery on the next launch (audit R6, 21.11.).
+    public static func clear(ifMarking url: URL, defaults: UserDefaults = .standard) {
+        guard defaults.string(forKey: key) == url.path else { return }
         defaults.removeObject(forKey: key)
     }
 

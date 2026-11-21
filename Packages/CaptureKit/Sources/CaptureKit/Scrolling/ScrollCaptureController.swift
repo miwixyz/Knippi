@@ -46,6 +46,13 @@ public struct ScrollCaptureProgress: @unchecked Sendable {
 }
 
 /// How a scrolling capture ended.
+public enum ScrollCaptureError: Error, Equatable, LocalizedError {
+    /// Auto mode lost its place on the page; scrolling on would only produce a gap.
+    case trackingLost
+
+    public var errorDescription: String? { "Lost track of the page while scrolling automatically." }
+}
+
 public enum ScrollCaptureOutcome: @unchecked Sendable {
     /// Done was clicked or the maximum height was reached.
     case finished(CGImage)
@@ -214,7 +221,6 @@ public final class ScrollCaptureController: @unchecked Sendable {
                 }
                 continue
             }
-            unmovedSteps = 0
 
             // Sticky bars are measured on every pair: a page can change its
             // header once it starts scrolling (measured in Safari).
@@ -258,6 +264,21 @@ public final class ScrollCaptureController: @unchecked Sendable {
                 reportProgress(onProgress)
             }
 
+            if autoScroller != nil {
+                // Auto mode: lost track = scrolling on would only leave a gap, so stop and
+                // say so instead of returning the part as if it were the whole page (audit C2).
+                guard let offset = position else {
+                    return outcome(failure: ScrollCaptureError.trackingLost)
+                }
+                // Hardly any movement counts as "page end" too, not only identical frames:
+                // a video or spinner at the end keeps frames different (audit C8).
+                if offset < 3 {
+                    unmovedSteps += 1
+                    if unmovedSteps >= Self.unmovedStepsAtPageEnd { break }
+                    continue
+                }
+            }
+
             // Position relative to the last stitched frame; small or upward
             // moves wait, a move past the overlap waits for the user to
             // scroll back.
@@ -266,6 +287,7 @@ public final class ScrollCaptureController: @unchecked Sendable {
                 self.shotA = shotB
                 shotAProfile = profileB
                 previousPosition = 0
+                unmovedSteps = 0
                 frameCount += 1
                 reportProgress(onProgress)
             }

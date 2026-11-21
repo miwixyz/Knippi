@@ -84,6 +84,27 @@ final class QuickAccessWindowPresentationTests: XCTestCase {
         XCTAssertEqual(closeCount, 1)
     }
 
+    /// Audit Q1 (21.11.): the card closed after 5 s while a cloud upload was still running
+    /// or had failed, so the failure was never seen.
+    func testAutoCloseWaitsWhileUploadIsBusy() throws {
+        let (window, defaultsSuiteName) = try makeWindow(autoClose: true, interval: 1)
+        defer {
+            window.orderOut(nil)
+            UserDefaults.standard.removePersistentDomain(forName: defaultsSuiteName)
+        }
+        var closeCount = 0
+        window.onClose = { closeCount += 1 }
+
+        window.show()
+        window.uploadBusyChanged(true)
+        settleRunLoop(for: 1.4)
+        XCTAssertEqual(closeCount, 0, "must stay open while uploading or showing a failure")
+
+        window.uploadBusyChanged(false)
+        settleRunLoop(for: 1.4)
+        XCTAssertEqual(closeCount, 1)
+    }
+
     func testEvictionDuringEntranceStaysHiddenAndDoesNotRestartAutoClose() throws {
         let (window, defaultsSuiteName) = try makeWindow(autoClose: true, interval: 1)
         defer {

@@ -17,6 +17,24 @@ struct AnnotationDocumentTests {
         #expect(doc.objects.count == 0)
     }
 
+    /// Audit A3 (21.11.): growing the All-in-One selection to the left/top moved the current
+    /// objects but not the undo snapshots; Undo put a redaction next to the secret it covered.
+    @Test("Undo after growing the canvas keeps objects where the content is")
+    @MainActor
+    func undoAfterCanvasGrowKeepsPositions() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 200, height: 100))
+        let first = RectangleObject(rect: CGRect(x: 10, y: 10, width: 20, height: 20))
+        doc.addObject(first)
+        doc.addObject(RectangleObject(rect: CGRect(x: 60, y: 10, width: 20, height: 20)))
+
+        doc.updateImageSizePreservingObjects(size: CGSize(width: 250, height: 130), objectOffset: CGSize(width: 50, height: 30))
+        doc.undo()
+
+        #expect(doc.objects.count == 1)
+        #expect(doc.objects.first?.bounds.origin == CGPoint(x: 60, y: 40))
+        #expect(doc.imageSize == CGSize(width: 250, height: 130))
+    }
+
     @Test("Undo and redo add")
     @MainActor
     func undoRedo() {

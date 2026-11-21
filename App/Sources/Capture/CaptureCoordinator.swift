@@ -2214,9 +2214,11 @@ final class CaptureCoordinator {
             },
             onCopy: { [weak self] (rendered: CGImage) in
                 self?.copyRenderedImage(rendered)
+                replaceableFile = self?.replaceAutoSavedOriginal(with: rendered, original: replaceableFile)
                 self?.annotationWindow = nil
             },
             onPin: { [weak self] (rendered: CGImage, anchor: CGRect?) in
+                replaceableFile = self?.replaceAutoSavedOriginal(with: rendered, original: replaceableFile)
                 self?.pinRenderedImage(
                     rendered,
                     anchor: anchor,
@@ -2225,6 +2227,9 @@ final class CaptureCoordinator {
                     date: result.timestamp
                 )
                 self?.annotationWindow = nil
+            },
+            onSavedAs: { [weak self] (rendered: CGImage) in
+                replaceableFile = self?.replaceAutoSavedOriginal(with: rendered, original: replaceableFile)
             },
             onClose: { [weak self] in
                 self?.annotationWindow = nil
@@ -2583,6 +2588,30 @@ final class CaptureCoordinator {
             image, format: output.format, quality: output.quality
         ) else { return nil }
         return (data, output.format)
+    }
+
+    /// Copy, pin and "Save As" from the editor also put the edit over the auto-saved original
+    /// of the capture, so an unredacted original doesn't stay in the folder (audit A2,
+    /// Michael 21.11.: "ersetzen"). Never creates a new file. Returns the file to track next.
+    private func replaceAutoSavedOriginal(with rendered: CGImage, original: SavedScreenshotFile?) -> SavedScreenshotFile? {
+        guard let original, let encoded = screenshotData(from: rendered) else { return original }
+        switch ScreenshotSaver.replaceOriginal(
+            encoded.data, original: original, fileExtension: encoded.format.fileFormat.rawValue
+        ) {
+        case nil:
+            return nil
+        case .success(let url):
+            showToast(String(localized: "Original in the folder replaced"))
+            return SavedScreenshotFile(url: url)
+        case .failure(let failure):
+            Self.captureLogger.error("Auto-saved original kept: \(failure.reason, privacy: .private)")
+            showToast(
+                String(localized: "The unedited original is still in the folder"),
+                icon: "exclamationmark.triangle.fill",
+                iconColor: .systemOrange
+            )
+            return original
+        }
     }
 
     /// Returns the file written, or nil on failure (image copied, failure toast shown).

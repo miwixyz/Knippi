@@ -76,6 +76,9 @@ final class PreferencesViewModel {
         set {
             withMutation(keyPath: \.automationURLsEnabled) {
                 settings.automationURLsEnabled = newValue
+                // A choice made here counts as the answer: no later "Allow?" prompt can
+                // overturn it (audit P4, 21.11.).
+                settings.automationURLsAsked = true
             }
         }
     }

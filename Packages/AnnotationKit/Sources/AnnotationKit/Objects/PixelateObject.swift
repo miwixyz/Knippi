@@ -26,6 +26,19 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         self.noiseSeed = noiseSeed
     }
 
+    /// Applies new toolbar values to an existing redaction. A secure one ("Find Sensitive",
+    /// `noiseSeed` set) never gets weaker: blocks don't shrink and the only mode change
+    /// allowed is to the opaque bar (audit A1, 21.11.).
+    public func restyle(blockSize newBlockSize: CGFloat, mode newMode: RedactionMode) {
+        guard noiseSeed != nil else {
+            blockSize = newBlockSize
+            mode = newMode
+            return
+        }
+        blockSize = max(blockSize, newBlockSize)
+        if newMode == .solid { mode = .solid }
+    }
+
     public var bounds: CGRect { rect }
 
     public func hitTest(point: CGPoint, threshold: CGFloat) -> Bool {

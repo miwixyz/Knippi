@@ -100,6 +100,24 @@ struct ShareCoordinatorTests {
         }
     }
 
+    /// Audit Q11 (21.11.): after "Reset" an open Quick Access card still uploaded with the
+    /// old credentials through the coordinator it was created with.
+    @Test("an invalidated coordinator refuses to upload")
+    func invalidatedCoordinatorRefuses() async throws {
+        let stub = StubDestination()
+        let coord = ShareCoordinator(destination: stub)
+        coord.invalidate()
+
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("invalidated.png")
+        try Data([0]).write(to: tmp)
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        await #expect(throws: ShareError.notConfigured) {
+            try await coord.upload(file: tmp, contentType: "image/png")
+        }
+        #expect(await stub.lastContentType == nil)
+    }
+
     @Test("upload network failure transitions to failed")
     func failurePath() async throws {
         let stub = StubDestination()
