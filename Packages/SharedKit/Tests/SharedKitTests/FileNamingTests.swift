@@ -107,6 +107,35 @@ struct FileNamingTests {
         #expect(fileName == "Foo-Bar-Beta-Doc-One-Draft-2024-01-15 at 16.00.00.png")
     }
 
+    /// Audit E22 (21.11.): window titles come from other apps and web pages.
+    @Test("Window titles can't hide the file, disguise its name or inject placeholders")
+    func windowTitleIsNeutralised() {
+        let date = localDate()
+        let hidden = FileNaming.generateFileName(
+            for: .screenshot, format: .png, date: date,
+            sourceAppName: nil, sourceWindowTitle: ".secret", template: "{window}"
+        )
+        #expect(hidden == "secret.png")
+
+        let override = FileNaming.generateFileName(
+            for: .screenshot, format: .png, date: date,
+            sourceAppName: nil, sourceWindowTitle: "invoice\u{202E}gnp.exe", template: "{window}"
+        )
+        #expect(override == "invoicegnp.exe.png")
+
+        let injected = FileNaming.generateFileName(
+            for: .screenshot, format: .png, date: date,
+            sourceAppName: nil, sourceWindowTitle: "{random}", template: "{window}"
+        )
+        #expect(injected == "(random).png")
+
+        let family = FileNaming.generateFileName(
+            for: .screenshot, format: .png, date: date,
+            sourceAppName: nil, sourceWindowTitle: "👨\u{200D}👩\u{200D}👧", template: "{window}"
+        )
+        #expect(family == "👨\u{200D}👩\u{200D}👧.png")
+    }
+
     @Test("Screenshot source token includes separator only when app exists")
     func screenshotSourceTokenIncludesSeparatorOnlyWhenAppExists() {
         let date = localDate()

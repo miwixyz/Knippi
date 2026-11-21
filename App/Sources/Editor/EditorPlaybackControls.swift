@@ -122,7 +122,13 @@ struct EditorPlaybackControls: View {
 
     private func exportToClipboard() {
         let outputFormat = coordinator.outputFormat
+        // One fixed folder whose previous file is removed on the next Copy; the file
+        // has to outlive this call because the clipboard only holds its URL. Before,
+        // every Copy left a file in tmp (audit E23, 21.11.).
         let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("KnippiClipboardExport", isDirectory: true)
+        try? FileManager.default.removeItem(at: tempDir)
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         let tempURL = tempDir
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension(outputFormat.fileExtension)
@@ -148,7 +154,8 @@ struct EditorPlaybackControls: View {
     private func showExportError(_ error: Error) {
         let alert = NSAlert()
         alert.messageText = String(localized: "Export Failed")
-        alert.informativeText = String(describing: error)
+        // localizedDescription instead of the raw enum dump (audit E24, 21.11.).
+        alert.informativeText = error.localizedDescription
         alert.alertStyle = .warning
         alert.runModal()
     }

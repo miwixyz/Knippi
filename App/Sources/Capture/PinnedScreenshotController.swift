@@ -5,7 +5,6 @@ import CaptureKit
 @MainActor
 final class PinnedScreenshotController {
     let id = UUID()
-    private let image: CGImage
     private let onCopy: () -> Void
     private let onSave: () -> Void
     private let onDidClose: (UUID) -> Void
@@ -17,7 +16,6 @@ final class PinnedScreenshotController {
     private var isLocked = false
     private var hoverTimer: Timer?
     private var isClosing = false
-    private var currentScale: CGFloat = 1.0
 
     init(
         image: CGImage,
@@ -27,7 +25,6 @@ final class PinnedScreenshotController {
         onSave: @escaping () -> Void,
         onDidClose: @escaping (UUID) -> Void
     ) {
-        self.image = image
         self.onCopy = onCopy
         self.onSave = onSave
         self.onDidClose = onDidClose

@@ -556,6 +556,20 @@ final class RecordingCoordinator {
             options: .defaultTap,
             eventsOfInterest: eventMask,
             callback: { _, type, event, refcon in
+                // macOS disables a tap whose callback was too slow or on certain user
+                // input; without re-enabling, ESC silently stops working (audit R16,
+                // 21.11.). The tap's run-loop source is on the main run loop.
+                if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                    if let refcon {
+                        let coordinator = Unmanaged<RecordingCoordinator>.fromOpaque(refcon).takeUnretainedValue()
+                        MainActor.assumeIsolated {
+                            if let tap = coordinator.escEventTap {
+                                CGEvent.tapEnable(tap: tap, enable: true)
+                            }
+                        }
+                    }
+                    return Unmanaged.passUnretained(event)
+                }
                 guard type == .keyDown,
                       event.getIntegerValueField(.keyboardEventKeycode) == 53,
                       let refcon else {
@@ -792,7 +806,9 @@ final class RecordingCoordinator {
             defer { isStopping = false }
             do {
                 let result = try await recorder.stopRecording()
-                let cursorTelemetryURL = stopCursorTelemetry()
+                // Only the editor reads cursor.json; the quick-preview flow never did, so
+                // writing it there just piled files up (audit R11, 21.11.).
+                let cursorTelemetryURL = stopCursorTelemetry(save: settings.openEditorAfterRecording)
                 hideRecordingUI()
 
                 let tempURL = result.fileURL
@@ -984,20 +1000,34 @@ final class RecordingCoordinator {
                 // Discard temp file — restart should not show preview.
                 InterruptedRecording.clear(ifMarking: result.fileURL)
                 try? FileManager.default.removeItem(at: result.fileURL)
-                hideRecordingUI()
-
-                startRecording(
-                    format: format,
-                    cameraEnabled: currentCameraEnabled,
-                    micEnabled: currentMicEnabled,
-                    systemAudioEnabled: currentSystemAudioEnabled,
-                    restoredCameraPiPState: restoredCameraPiPState
-                )
+            } catch RecordingError.noFramesCaptured {
+                // Restart pressed before the first frame: nothing to discard (the
+                // recorder already removed the empty file), so just start again.
             } catch {
-                print("Failed to restart recording: \(error)")
+                // Used to be a bare print: the controls vanished with no reason
+                // given, and a partly written file stayed in tmp (audit R12, 21.11.).
+                discardPartialRecording()
                 hideRecordingUI()
+                showRecordingProblem(String(localized: "Couldn't restart recording"), error: error)
+                return
             }
+            hideRecordingUI()
+            startRecording(
+                format: format,
+                cameraEnabled: currentCameraEnabled,
+                micEnabled: currentMicEnabled,
+                systemAudioEnabled: currentSystemAudioEnabled,
+                restoredCameraPiPState: restoredCameraPiPState
+            )
         }
+    }
+
+    /// Restart and Delete mean "throw this recording away"; a partly written file the
+    /// recorder kept for recovery would otherwise stay in tmp (audit R12, 21.11.).
+    private func discardPartialRecording() {
+        guard let partial = recorder.partialRecordingURL else { return }
+        InterruptedRecording.clear(ifMarking: partial)
+        try? FileManager.default.removeItem(at: partial)
     }
 
     private func confirmDeleteRecording() {
@@ -1019,6 +1049,7 @@ final class RecordingCoordinator {
                 hideRecordingUI()
             } catch {
                 print("Failed to delete recording: \(error)")
+                discardPartialRecording()
                 hideRecordingUI()
             }
         }
@@ -1139,6 +1170,11 @@ final class RecordingCoordinator {
 
             let coordinator = EditorCoordinator(project: project, outputFormat: outputFormat)
             coordinator.onClose = { [weak self] in
+                // The editor is the only reader of cursor.json and it is not reopened
+                // later, so remove it with the editor (audit R11, 21.11.).
+                if let cursorTelemetryURL {
+                    try? FileManager.default.removeItem(at: cursorTelemetryURL)
+                }
                 self?.editorWindow?.close()
                 self?.editorWindow = nil
                 self?.editorCoordinator = nil
@@ -1522,10 +1558,11 @@ final class RecordingCoordinator {
         cursorTelemetry = telemetry
     }
 
-    private func stopCursorTelemetry() -> URL? {
+    private func stopCursorTelemetry(save: Bool) -> URL? {
         guard let telemetry = cursorTelemetry else { return nil }
         telemetry.stop()
         cursorTelemetry = nil
+        guard save else { return nil }
 
         let recordingsDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Knippi/Recordings", isDirectory: true)
@@ -1558,12 +1595,10 @@ final class RecordingCoordinator {
     private func showBorder() {
         guard let screen = selectedScreen,
               let recordingFrame = appKitRecordingFrame() else { return }
-        // Expand the border frame outward by the border width (3pt) so the
-        // border is drawn entirely OUTSIDE the capture area. This prevents
-        // ScreenCaptureKit from capturing the red border in the recording.
-        let borderInset: CGFloat = 3
-        let borderFrame = recordingFrame.insetBy(dx: -borderInset, dy: -borderInset)
-        borderWindow = RecordingBorderWindow(frame: borderFrame, screen: screen)
+        // RecordingBorderWindow takes the capture rect and pushes the stroke outside
+        // it by itself (`outset`); expanding here as well put the border 3 pt too
+        // far out (audit R15, 21.11.).
+        borderWindow = RecordingBorderWindow(frame: recordingFrame, screen: screen)
         borderWindow?.show()
     }
 

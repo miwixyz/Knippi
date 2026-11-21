@@ -455,7 +455,9 @@ final class AllInOneAnnotationSession: ObservableObject {
     }
 
     /// `property` groups repeated changes (slider drags) into one undo step (audit A9).
-    func updateSelectedStyle(_ property: String = "style") {
+    /// No default: each control names its own property, otherwise colour, fill and
+    /// pattern changes on one object merged into a single undo step (audit, 21.11.).
+    func updateSelectedStyle(_ property: String) {
         if let obj = document.selectedObject {
             document.beginStyleChange(for: obj.id, property: property)
             if let pixelate = obj as? PixelateObject {
@@ -664,7 +666,7 @@ private struct AllInOneAnnotationToolbarView: View {
                             set: {
                                 session.currentColor = $0
                                 UserDefaults.standard.set($0.rawValue, forKey: "annotationLastColor")
-                                session.updateSelectedStyle()
+                                session.updateSelectedStyle("color")
                             }
                         ),
                         swatchSize: 17,
@@ -703,7 +705,7 @@ private struct AllInOneAnnotationToolbarView: View {
                             set: {
                                 session.currentColor = $0
                                 UserDefaults.standard.set($0.rawValue, forKey: "annotationLastColor")
-                                session.updateSelectedStyle()
+                                session.updateSelectedStyle("color")
                             }
                         ),
                         swatchSize: 17,
@@ -836,7 +838,7 @@ private struct AllInOneAnnotationToolbarView: View {
                     action: {
                         session.filled.toggle()
                         UserDefaults.standard.set(session.filled, forKey: "annotationFilled")
-                        session.updateSelectedStyle()
+                        session.updateSelectedStyle("filled")
                     }
                 )
             }
@@ -945,7 +947,7 @@ private struct AllInOneAnnotationToolbarView: View {
         Button {
             let newValue = toggle()
             UserDefaults.standard.set(newValue, forKey: defaultsKey)
-            session.updateSelectedStyle()
+            session.updateSelectedStyle(defaultsKey)
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: systemName)
@@ -978,7 +980,7 @@ private struct AllInOneAnnotationToolbarView: View {
         Button {
             let newValue = toggle()
             UserDefaults.standard.set(newValue, forKey: defaultsKey)
-            session.updateSelectedStyle()
+            session.updateSelectedStyle(defaultsKey)
         } label: {
             VStack(spacing: hoveredTextEffect == kind ? 1 : 0) {
                 Image(systemName: systemName)
@@ -1015,7 +1017,7 @@ private struct AllInOneAnnotationToolbarView: View {
         Button {
             let newValue = toggle()
             UserDefaults.standard.set(newValue, forKey: defaultsKey)
-            session.updateSelectedStyle()
+            session.updateSelectedStyle(defaultsKey)
         } label: {
             VStack(spacing: hoveredTextEffect == kind ? 1 : 0) {
                 Text(verbatim: glyph)
@@ -1134,7 +1136,7 @@ private struct AllInOneAnnotationToolbarView: View {
                 Button {
                     session.redactionMode = mode
                     UserDefaults.standard.set(mode.rawValue, forKey: "annotationRedactionMode")
-                    session.updateSelectedStyle()
+                    session.updateSelectedStyle("redactionMode")
                 } label: {
                     Text(mode.localizedLabel)
                         .font(.system(size: 11, weight: .semibold))
@@ -1166,7 +1168,7 @@ private struct AllInOneAnnotationToolbarView: View {
                 Button {
                     session.strokePattern = pattern
                     UserDefaults.standard.set(pattern.rawValue, forKey: "annotationStrokePattern")
-                    session.updateSelectedStyle()
+                    session.updateSelectedStyle("pattern")
                 } label: {
                     StrokePatternGlyph(pattern: pattern)
                         .foregroundStyle(.white)

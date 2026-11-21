@@ -30,7 +30,8 @@ DRY_RUN=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --dry-run) DRY_RUN=1 ;;
-        --keep)    shift; KEEP="${1:-5}" ;;
+        --keep)    [ $# -ge 2 ] || { echo "  ✗ --keep braucht eine Zahl" >&2; exit 2; }
+                   shift; KEEP="$1" ;;
         --keep=*)  KEEP="${1#*=}" ;;
         # Abbrechen statt weiterlaufen: ein Tippfehler wie --dryrun löschte sonst echt (Audit S4).
         *)         echo "  ✗ unbekanntes Argument: $1" >&2; exit 2 ;;

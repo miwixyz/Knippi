@@ -14,8 +14,10 @@ public final class ClickHighlightWindow: NSPanel {
         let screen = screens.first { s in
             let key = NSDeviceDescriptionKey("NSScreenNumber")
             return (s.deviceDescription[key] as? CGDirectDisplayID) == displayID
-        } ?? screens.first!
-        let frame = screen.frame
+        } ?? screens.first
+        // No screen at all (display unplugged mid-recording, headless): fall back to
+        // the display's bounds instead of crashing on `screens.first!` (audit E18, 21.11.).
+        let frame = screen?.frame ?? CGDisplayBounds(displayID)
 
         super.init(
             contentRect: frame,

@@ -187,8 +187,8 @@ enum S3CompatibleHTTP {
             case "NoSuchBucket":
                 return .unknown("Bucket not found — verify the bucket name in Cloud Share settings")
             default:
-                let message = xmlTag(text, "Message") ?? text
-                return .unknown("\(code): \(message)")
+                let message = xmlTag(text, "Message").map { errorSnippet($0) } ?? errorSnippet(text)
+                return .unknown(message.isEmpty ? code : "\(code): \(message)")
             }
         }
 
@@ -198,8 +198,24 @@ enum S3CompatibleHTTP {
         case 413, 507:
             return .quotaExceeded
         default:
-            return .unknown(text.isEmpty ? "HTTP \(statusCode)" : "HTTP \(statusCode): \(text)")
+            let snippet = errorSnippet(text)
+            return .unknown(snippet.isEmpty ? "HTTP \(statusCode)" : "HTTP \(statusCode): \(snippet)")
         }
+    }
+
+    /// Error bodies end up in a toast. An HTML page (captive portal, proxy)
+    /// is dropped, anything else is collapsed to one line of at most
+    /// `maxErrorSnippetLength` characters (audit Q17, 21.11.).
+    static let maxErrorSnippetLength = 120
+
+    static func errorSnippet(_ text: String) -> String {
+        let lower = text.lowercased()
+        if lower.contains("<html") || lower.contains("<!doctype") || lower.contains("<body") {
+            return ""
+        }
+        let oneLine = text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        guard oneLine.count > maxErrorSnippetLength else { return oneLine }
+        return String(oneLine.prefix(maxErrorSnippetLength)) + "…"
     }
 
     // MARK: - Endpoint helpers

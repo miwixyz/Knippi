@@ -5,7 +5,7 @@ import AnnotationKit
 import OCRKit
 
 /// "Find Sensitive Data": OCR finds email addresses, phone numbers, IBANs, card
-/// numbers and secrets; the editor suggests a black bar for each. Suggestions
+/// numbers and secrets; the editor suggests a secure pixelation for each. Suggestions
 /// are overlay UI only — they never enter `AnnotationDocument.objects`, so
 /// save, copy, pin and drag (all rendered from `objects`) cannot include them.
 @MainActor
@@ -109,7 +109,7 @@ final class SensitiveSuggestionsModel {
     }
 
     /// The one gate in front of every export and crop: blocks while scanning,
-    /// otherwise blacks out pending suggestions ("over-redact, never leak").
+    /// otherwise pixelates pending suggestions ("over-redact, never leak").
     func prepareForExport(_ document: AnnotationDocument) -> ExportReadiness {
         if isScanning { return .blockedWhileScanning }
         return .ready(appliedSuggestions: applyPendingRedactions(to: document))
@@ -120,15 +120,15 @@ final class SensitiveSuggestionsModel {
     @discardableResult
     func applyPendingRedactions(to document: AnnotationDocument) -> Bool {
         guard isShowing else { return false }
-        let bars: [any AnnotationObject] = selectedRects.map {
+        let redactions: [any AnnotationObject] = selectedRects.map {
             PixelateObject(
                 rect: $0, blockSize: Self.secureBlockSize(for: $0), mode: .pixelate,
                 noiseSeed: UInt64.random(in: .min ... .max)
             )
         }
         cancel()
-        guard !bars.isEmpty else { return false }
-        document.addObjects(bars)
+        guard !redactions.isEmpty else { return false }
+        document.addObjects(redactions)
         return true
     }
 
@@ -199,10 +199,10 @@ struct SensitiveSuggestionsOverlay: View {
     }
 }
 
-/// Floating glass bar above the canvas: "N found – Black Out All · Cancel".
+/// Floating glass bar above the canvas: "N found – Pixelate All · Cancel".
 struct SensitiveSuggestionsBar: View {
     let model: SensitiveSuggestionsModel
-    let onBlackOut: () -> Void
+    let onPixelateAll: () -> Void
 
     var body: some View {
         let count = model.selectedRects.count
@@ -214,7 +214,7 @@ struct SensitiveSuggestionsBar: View {
                 .font(FamilyTheme.font(13, weight: .semibold))
                 .foregroundStyle(FamilyTheme.textPrimary)
                 .monospacedDigit()
-            Button(action: onBlackOut) {
+            Button(action: onPixelateAll) {
                 Text("Pixelate All")
                     .font(FamilyTheme.font(13, weight: .semibold))
                     .foregroundStyle(FamilyTheme.onAccent)

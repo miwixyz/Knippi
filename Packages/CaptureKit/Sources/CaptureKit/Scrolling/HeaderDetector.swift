@@ -12,25 +12,27 @@ enum HeaderDetector {
     /// Per-pixel difference tolerance (accounts for sub-pixel rendering differences).
     private static let tolerance: Int = 2
 
-    /// Detect the sticky header height by comparing two consecutive frames.
-    /// Returns the number of pixel rows at the top that are identical (frozen).
-    static func detectHeaderHeight(frame1: CGImage, frame2: CGImage) -> Int {
-        unchangedRowCount(frame1: frame1, frame2: frame2, fromBottom: false)
+    /// Sticky header and footer heights of two consecutive frames: the
+    /// number of identical pixel rows at the top and at the bottom. Each
+    /// frame's bytes are copied once for both scans (audit C13, 21.11.).
+    static func detectFixedRows(frame1: CGImage, frame2: CGImage) -> (header: Int, footer: Int) {
+        guard let data1 = frame1.dataProvider?.data,
+              let data2 = frame2.dataProvider?.data else { return (0, 0) }
+        return (
+            unchangedRowCount(frame1: frame1, data1: data1, frame2: frame2, data2: data2, fromBottom: false),
+            unchangedRowCount(frame1: frame1, data1: data1, frame2: frame2, data2: data2, fromBottom: true)
+        )
     }
 
-    /// Number of pixel rows at the bottom that are identical (a sticky footer).
-    static func detectFooterHeight(frame1: CGImage, frame2: CGImage) -> Int {
-        unchangedRowCount(frame1: frame1, frame2: frame2, fromBottom: true)
-    }
-
-    private static func unchangedRowCount(frame1: CGImage, frame2: CGImage, fromBottom: Bool) -> Int {
+    private static func unchangedRowCount(
+        frame1: CGImage, data1: CFData,
+        frame2: CGImage, data2: CFData,
+        fromBottom: Bool
+    ) -> Int {
         let width = min(frame1.width, frame2.width)
         let height = min(frame1.height, frame2.height)
         let maxScanRows = Int(Double(height) * maxScanPercent)
         guard width > sampleColumns, maxScanRows > 0 else { return 0 }
-
-        guard let data1 = frame1.dataProvider?.data,
-              let data2 = frame2.dataProvider?.data else { return 0 }
 
         let ptr1 = CFDataGetBytePtr(data1)!
         let ptr2 = CFDataGetBytePtr(data2)!

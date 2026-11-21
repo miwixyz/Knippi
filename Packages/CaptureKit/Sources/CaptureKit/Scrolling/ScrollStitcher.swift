@@ -10,7 +10,8 @@ public enum StitchResult: Sendable {
 }
 
 /// Incrementally stitches captured frames into a single tall image.
-/// The offset is detected externally (by ScrollCaptureController via Vision)
+/// The offset is detected externally (by ScrollCaptureController via
+/// RowProfileMatcher; comment corrected, audit C19, 21.11.)
 /// and passed in. This class only handles the pixel compositing.
 ///
 /// Pixels live in one growing buffer, so a stitch only writes the new rows

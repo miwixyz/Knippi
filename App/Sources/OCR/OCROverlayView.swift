@@ -5,6 +5,8 @@ import OCRKit
 struct OCROverlayView: View {
     let image: CGImage
     let regions: [TextRegion]
+    /// Separator for "Copy All", from the "keep line breaks" setting (audit Q13, 21.11.).
+    var lineSeparator: String = "\n"
     let onClose: () -> Void
 
     @State private var selectedID: UUID?
@@ -139,7 +141,7 @@ struct OCROverlayView: View {
     }
 
     private func copyAll() {
-        let allText = regions.map(\.text).joined(separator: "\n")
+        let allText = regions.map(\.text).joined(separator: lineSeparator)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(allText, forType: .string)

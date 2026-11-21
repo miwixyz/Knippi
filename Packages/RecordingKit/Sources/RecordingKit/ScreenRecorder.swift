@@ -113,8 +113,9 @@ public final class ScreenRecorder {
             let streamSetup = try await setupStream(config: config, excludeWindowIDs: excludeWindowIDs)
             recordingSourceSize = streamSetup.sourceSize
 
-            // Create writer ON the recording dispatch queue (thread affinity —
-            // AVAssetWriter's AAC encoder must be created and used on same thread)
+            // Create the writer on the recording dispatch queue, where the sample-buffer
+            // callbacks run, so setup is serialized with the first appends. AVAssetWriter
+            // itself has no thread affinity (audit R17, 21.11.).
             let wr = writer
             let cfg = config
             let w = streamSetup.dimensions.w; let h = streamSetup.dimensions.h; let url = fileURL
@@ -140,6 +141,10 @@ public final class ScreenRecorder {
             startElapsedTimer()
             knippiLog("Recording started")
         } catch {
+            // AVAssetWriter.startWriting may already have created the file; don't leave
+            // a dead .mov in tmp when the start fails (audit R12, 21.11.).
+            if let url = outputFileURL { try? FileManager.default.removeItem(at: url) }
+            outputFileURL = nil
             state = .idle; self.error = error; cleanup(); throw error
         }
     }
@@ -367,7 +372,7 @@ public final class ScreenRecorder {
     private func startElapsedTimer() {
         recordingStartTime = Date()
         let base = elapsedTime
-        elapsedTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, let s = self.recordingStartTime else { return }
                 self.elapsedTime = base + Date().timeIntervalSince(s)
@@ -376,6 +381,10 @@ public final class ScreenRecorder {
                 if let error = self.writer.error { self.reportWriterFailure(error) }
             }
         }
+        // .common so the timer keeps firing while a menu is tracking (audit R14, 21.11.).
+        timer.tolerance = 0.02
+        RunLoop.main.add(timer, forMode: .common)
+        elapsedTimer = timer
     }
 
     func reportWriterFailure(_ error: Error) {
@@ -678,12 +687,11 @@ private final class RecordingWriter: @unchecked Sendable {
         // Get the raw audio data via CMSampleBufferGetDataBuffer (flat data, no ABL needed)
         guard let dataBuffer = CMSampleBufferGetDataBuffer(buf) else { return nil }
 
-        var dataLength = 0
-        var dataPointer: UnsafeMutablePointer<CChar>?
-        guard CMBlockBufferGetDataPointer(dataBuffer, atOffset: 0, lengthAtOffsetOut: nil,
-                                          totalLengthOut: &dataLength,
-                                          dataPointerOut: &dataPointer) == noErr,
-              let srcPtr = dataPointer else { return nil }
+        // The source block buffer may be non-contiguous; GetDataPointer only covers the
+        // first contiguous piece, so copying totalLength from it could read past it.
+        // CopyDataBytes below walks all pieces (audit R10, 21.11.).
+        let dataLength = CMBlockBufferGetDataLength(dataBuffer)
+        guard dataLength > 0 else { return nil }
 
         if !audioFormatLogged {
             knippiLog("\(label) data: \(dataLength) bytes, expected=\(numSamples * bytesPerSample * channels)")
@@ -699,10 +707,13 @@ private final class RecordingWriter: @unchecked Sendable {
             blockBufferOut: &newBlockBuf
         ) == noErr, let nb = newBlockBuf else { return nil }
 
-        guard CMBlockBufferReplaceDataBytes(
-            with: srcPtr, blockBuffer: nb,
-            offsetIntoDestination: 0, dataLength: dataLength
-        ) == noErr else { return nil }
+        var destPtr: UnsafeMutablePointer<CChar>?
+        guard CMBlockBufferGetDataPointer(nb, atOffset: 0, lengthAtOffsetOut: nil,
+                                          totalLengthOut: nil, dataPointerOut: &destPtr) == noErr,
+              let dst = destPtr,
+              CMBlockBufferCopyDataBytes(dataBuffer, atOffset: 0, dataLength: dataLength,
+                                         destination: dst) == noErr
+        else { return nil }
 
         // Use the SAME format description from the original buffer
         let pts = CMSampleBufferGetPresentationTimeStamp(buf)

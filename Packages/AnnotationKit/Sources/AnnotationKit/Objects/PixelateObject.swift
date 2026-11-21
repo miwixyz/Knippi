@@ -9,12 +9,17 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
     public var rect: CGRect
     public var blockSize: CGFloat = 12
     public var mode: RedactionMode
-    /// Set for redactions of confidential text ("Vertrauliches finden"): every block gets a
+    /// Set for redactions of confidential text ("Vertrauliches finden") and, since audit A12
+    /// (21.11.), for hand-drawn pixelations too: every block gets a
     /// fixed random brightness offset from this seed. Plain block averages still let someone
     /// who knows the font rule out candidates (measured 21.11.: one changed IBAN digit moved a
     /// block by 12 levels); an offset larger than that makes comparing against candidates
     /// useless. Fixed per object so the picture doesn't flicker between renders.
     public var noiseSeed: UInt64?
+    /// Secure redaction ("Vertrauliches finden"): restyling never makes it weaker. Separate from
+    /// `noiseSeed` so hand-drawn pixelations can get the noise too and still be restyled
+    /// freely (audit A12, 21.11.). Defaults to `noiseSeed != nil`, the earlier meaning.
+    public var locksStrength: Bool
 
     /// Brightness offset range per block, in 8-bit levels (± this value).
     static let noiseAmplitude = 40
@@ -34,19 +39,23 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
     /// One shared context: creating a CIContext per blur call is the expensive part (audit A13, 21.11.).
     private static let ciContext = CIContext()
 
-    public init(rect: CGRect, blockSize: CGFloat = 12, mode: RedactionMode = .pixelate, noiseSeed: UInt64? = nil) {
+    public init(
+        rect: CGRect, blockSize: CGFloat = 12, mode: RedactionMode = .pixelate,
+        noiseSeed: UInt64? = nil, locksStrength: Bool? = nil
+    ) {
         self.rect = rect
         self.style = StrokeStyle()
         self.blockSize = blockSize
         self.mode = mode
         self.noiseSeed = noiseSeed
+        self.locksStrength = locksStrength ?? (noiseSeed != nil)
     }
 
     /// Applies new toolbar values to an existing redaction. A secure one ("Find Sensitive",
-    /// `noiseSeed` set) never gets weaker: blocks don't shrink and the only mode change
+    /// `locksStrength` set) never gets weaker: blocks don't shrink and the only mode change
     /// allowed is to the opaque bar (audit A1, 21.11.).
     public func restyle(blockSize newBlockSize: CGFloat, mode newMode: RedactionMode) {
-        guard noiseSeed != nil else {
+        guard locksStrength else {
             blockSize = newBlockSize
             mode = newMode
             return
@@ -70,23 +79,11 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
             ctx.setFillColor(CGColor(gray: 0, alpha: 1))
             ctx.fill(rect)
         case .pixelate, .blur:
-            ctx.setFillColor(CGColor(gray: 0.5, alpha: 0.3))
+            // Without the source image nothing can be pixelated: fail closed with an opaque
+            // fill instead of a see-through grid over the plain text (audit A19, 21.11.).
+            ctx.setAlpha(1)
+            ctx.setFillColor(CGColor(gray: 0, alpha: 1))
             ctx.fill(rect)
-            ctx.setStrokeColor(CGColor(gray: 0.5, alpha: 0.2))
-            ctx.setLineWidth(0.5)
-            var x = rect.minX
-            while x <= rect.maxX {
-                ctx.move(to: CGPoint(x: x, y: rect.minY))
-                ctx.addLine(to: CGPoint(x: x, y: rect.maxY))
-                x += blockSize
-            }
-            var y = rect.minY
-            while y <= rect.maxY {
-                ctx.move(to: CGPoint(x: rect.minX, y: y))
-                ctx.addLine(to: CGPoint(x: rect.maxX, y: y))
-                y += blockSize
-            }
-            ctx.strokePath()
         }
         ctx.restoreGState()
     }
@@ -274,7 +271,9 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
     }
 
     public func copy() -> any AnnotationObject {
-        let copy = PixelateObject(rect: rect, blockSize: blockSize, mode: mode, noiseSeed: noiseSeed)
+        let copy = PixelateObject(
+            rect: rect, blockSize: blockSize, mode: mode, noiseSeed: noiseSeed, locksStrength: locksStrength
+        )
         copy.style = style
         return copy
     }

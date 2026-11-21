@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// One area to black out, built from one or more overlapping sensitive regions.
+/// One area to pixelate, built from one or more overlapping sensitive regions.
 public struct RedactionSuggestion: Sendable, Equatable {
     /// Image pixels, top-left origin.
     public let rect: CGRect

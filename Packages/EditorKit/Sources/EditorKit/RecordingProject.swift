@@ -74,7 +74,9 @@ public struct CursorSmoothingConfig: Codable, Sendable, Equatable {
 
 /// The top-level model representing all editor state for a single recorded video.
 ///
-/// Serialized to JSON and stored alongside the source video file.
+/// Lives in memory for one editor session; it is not written to disk. It stays
+/// `Codable` (round-trip covered by tests) so a saved project remains possible
+/// (comment corrected, audit E19, 21.11.).
 ///
 /// `CGSize` does not conform to `Codable`, so this type provides manual encoding/decoding
 /// that stores width and height as separate JSON keys.
@@ -204,30 +206,5 @@ public struct RecordingProject: Codable, Sendable {
         try c.encode(createdAt, forKey: .createdAt)
     }
 
-    // MARK: - Persistence
-
-    private static var encoder: JSONEncoder {
-        let e = JSONEncoder()
-        e.outputFormatting = [.prettyPrinted, .sortedKeys]
-        e.dateEncodingStrategy = .iso8601
-        return e
-    }
-
-    private static var decoder: JSONDecoder {
-        let d = JSONDecoder()
-        d.dateDecodingStrategy = .iso8601
-        return d
-    }
-
-    /// Serializes the project to a JSON file at the given URL.
-    public func save(to url: URL) throws {
-        let data = try Self.encoder.encode(self)
-        try data.write(to: url, options: .atomic)
-    }
-
-    /// Deserializes a project from a JSON file at the given URL.
-    public static func load(from url: URL) throws -> RecordingProject {
-        let data = try Data(contentsOf: url)
-        return try decoder.decode(RecordingProject.self, from: data)
-    }
+    // save(to:)/load(from:) removed: only tests called them (audit E19, 21.11.).
 }

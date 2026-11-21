@@ -2,6 +2,41 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.4.4] — 2026-11-21
+
+### Behoben
+
+- **Bild-Editor:** Ein Klick zum Auswählen legt keinen leeren Rückgängig-Schritt mehr an. Eine
+  Stilvorlage ist ein einziger Rückgängig-Schritt. Höchstens 100 Rückgängig-Schritte. Esc beim
+  Schreiben übernimmt erst den Text. Überfahren des Zieh-Symbols verpixelt die Vorschläge von
+  „Vertrauliches finden“ nicht mehr vorzeitig. Kann Knippi das Bild nicht exportieren oder
+  skalieren, sagt es das.
+- **Verpixeln von Hand** bekommt dasselbe Zufallsrauschen wie „Vertrauliches finden“, damit sich
+  Text nicht zurückrechnen lässt. Die Blöcke wirken dadurch etwas fleckiger.
+- **All-in-One:** Kann Knippi die Anmerkungen nicht übernehmen, wird nichts unbearbeitet
+  weitergegeben. Rückgängig trennt Farbe, Füllung und Muster.
+- **Scroll-Aufnahme:** Return und Enter funktionieren in anderen Apps wieder, sobald die Aufnahme
+  läuft. Wird der Bildschirm abgesteckt, bricht sie ab, statt ein anderes Display aufzunehmen.
+- **Selbstauslöser:** Ein Abbruch kurz vor Null löst nicht mehr trotzdem aus.
+- **Video:** Zeitanzeige läuft auch bei offenem Menü weiter. Esc während des Countdowns bleibt
+  zuverlässig. Mauszeiger-Daten sammeln sich nicht mehr an. Neustart einer Aufnahme meldet Fehler.
+  Fehlermeldungen beim Export sind verständlich und deutsch. Hochformat-Videos werden für
+  „Social“ und „Web“ verkleinert. Der Aufnahme-Rahmen sitzt enger.
+- **Texterkennung:** „Alles kopieren“ beachtet die Einstellung für Zeilenumbrüche, Meldungen sind
+  deutsch.
+- **Cloud-Freigabe:** Tencent-COS-Uploads sind enger signiert und kürzer gültig. Fehlerseiten von
+  WLAN-Anmeldeseiten erscheinen nicht mehr als HTML in der Meldung. Ein http://-Ziel zeigt einen
+  Hinweis.
+- **Dateinamen:** Fenstertitel können keine versteckten Dateien, unsichtbare Steuerzeichen oder
+  Platzhalter mehr in den Namen bringen.
+- **Einstellungen:** Der Schalter „andere Apps dürfen steuern“ zeigt nach der Rückfrage sofort den
+  richtigen Stand.
+
+### Intern
+
+- Nicht genutzte Bibliothek „Defaults“ entfernt, ebenso toter Code (u. a. aus dem Capso-Erbe).
+- Release-Scripts: Wiederanlauf-Hinweis auch bei Abbruch, Probelauf ohne Plugin-Notarisierung.
+
 ## [0.4.3] — 2026-11-21
 
 ### Behoben

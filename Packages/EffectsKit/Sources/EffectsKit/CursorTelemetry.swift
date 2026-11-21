@@ -39,7 +39,10 @@ public final class CursorTelemetry: @unchecked Sendable {
 
     private static let debugLogURL: URL = URL(fileURLWithPath: "/tmp/knippi-telemetry.log")
 
+    /// Debug builds only: release builds must not write a world-readable log of
+    /// cursor activity to /tmp (audit E11, 21.11.).
     private static func debugLog(_ message: String) {
+        #if DEBUG
         let ts = Date().ISO8601Format()
         let line = "[\(ts)] \(message)\n"
         guard let data = line.data(using: .utf8) else { return }
@@ -52,6 +55,7 @@ public final class CursorTelemetry: @unchecked Sendable {
         } else {
             try? data.write(to: debugLogURL)
         }
+        #endif
     }
 
     /// Opaque pointer produced by `Unmanaged.passRetained(self)` in `start()`.
@@ -131,7 +135,9 @@ public final class CursorTelemetry: @unchecked Sendable {
 
         // Reset the debug log at the start of each recording so the file
         // reflects the current session.
+        #if DEBUG
         try? FileManager.default.removeItem(at: Self.debugLogURL)
+        #endif
         Self.debugLog("start() called; recordingRect=\(recordingRect)")
 
         // Record the reference time for relative timestamps.

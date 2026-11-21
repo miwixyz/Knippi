@@ -92,12 +92,12 @@ final class OCRCoordinator {
 
 
                 if text.isEmpty {
-                    showToast("No text detected", icon: "info.circle.fill", iconColor: .systemYellow, screen: screen)
+                    showToast(String(localized: "No text detected"), icon: "info.circle.fill", iconColor: .systemYellow, screen: screen)
                 } else {
                     let pasteboard = NSPasteboard.general
                     pasteboard.clearContents()
                     pasteboard.setString(text, forType: .string)
-                    showToast("Copied \(text.count) characters", screen: screen)
+                    showToast(String(localized: "Copied \(text.count) characters"), screen: screen)
                 }
             } catch {
                 logger.error("Instant OCR failed: \(error.localizedDescription, privacy: .public)")
@@ -105,7 +105,7 @@ final class OCRCoordinator {
                     CapturePermissionNotice.show()
                     return
                 }
-                showToast("OCR: \(error.localizedDescription)", icon: "xmark.circle.fill", iconColor: .systemRed, screen: screen)
+                showToast(String(localized: "OCR: \(error.localizedDescription)"), icon: "xmark.circle.fill", iconColor: .systemRed, screen: screen)
             }
         }
     }
@@ -135,21 +135,27 @@ final class OCRCoordinator {
                 )
 
                 if regions.isEmpty {
-                    showToast("No text detected", icon: "info.circle.fill", iconColor: .systemYellow)
+                    showToast(String(localized: "No text detected"), icon: "info.circle.fill", iconColor: .systemYellow)
                     return
                 }
 
                 showOCROverlay(image: image, regions: regions, anchorScreen: anchorScreen)
             } catch {
                 logger.error("Visual OCR failed: \(error.localizedDescription, privacy: .public)")
-                showToast("OCR: \(error.localizedDescription)", icon: "xmark.circle.fill", iconColor: .systemRed)
+                showToast(String(localized: "OCR: \(error.localizedDescription)"), icon: "xmark.circle.fill", iconColor: .systemRed)
             }
         }
     }
 
     private func showOCROverlay(image: CGImage, regions: [TextRegion], anchorScreen: NSScreen?) {
         ocrOverlayWindow?.close()
-        ocrOverlayWindow = OCROverlayWindow(image: image, regions: regions, anchorScreen: anchorScreen)
+        // "Copy All" joins like Instant OCR does (audit Q13, 21.11.).
+        ocrOverlayWindow = OCROverlayWindow(
+            image: image,
+            regions: regions,
+            lineSeparator: settings.ocrKeepLineBreaks ? "\n" : " ",
+            anchorScreen: anchorScreen
+        )
         ocrOverlayWindow?.onClose = { [weak self] in
             self?.ocrOverlayWindow = nil
         }

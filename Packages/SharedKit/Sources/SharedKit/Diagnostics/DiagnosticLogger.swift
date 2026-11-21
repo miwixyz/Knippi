@@ -129,10 +129,15 @@ public enum DiagnosticLogger {
         }
     }
 
-    private static func timestamp() -> String {
+    /// One formatter for all lines instead of a new one per line (audit P7). Only used on `queue`.
+    nonisolated(unsafe) private static let timestampFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.string(from: Date())
+        return formatter
+    }()
+
+    private static func timestamp() -> String {
+        timestampFormatter.string(from: Date())
     }
 
     private static func rotateIfNeeded(fileURL: URL) {

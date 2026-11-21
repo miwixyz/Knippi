@@ -578,7 +578,14 @@ private struct InlineAnnotationEditorView: View {
     /// `property` names the control, so a slider drag books one undo step (audit A9, 21.11.).
     private func updateSelectedStyle(_ property: String) {
         if let obj = document.selectedObject {
-            document.beginStyleChange(for: obj.id, property: property)
+            let before = AnnotationStyleState(of: obj)
+            let bookedStep = document.beginStyleChange(for: obj.id, property: property)
+            defer {
+                // A restyle that changes nothing books no undo step (audit undo granularity, 21.11.).
+                if bookedStep, AnnotationStyleState(of: obj) == before {
+                    document.discardUnchangedStep()
+                }
+            }
             if let pixelate = obj as? PixelateObject {
                 // The slider only means "block size" while the pixelate tool is active;
                 // otherwise it is the line width (audit A1).
@@ -615,6 +622,8 @@ private struct InlineAnnotationEditorView: View {
         DispatchQueue.main.async {
             if let rendered = renderedOutputImage() {
                 onSave(rendered)
+            } else {
+                showRenderFailure()
             }
         }
     }
@@ -624,6 +633,8 @@ private struct InlineAnnotationEditorView: View {
         DispatchQueue.main.async {
             if let rendered = renderedOutputImage() {
                 onCopy(rendered)
+            } else {
+                showRenderFailure()
             }
         }
     }
@@ -633,8 +644,15 @@ private struct InlineAnnotationEditorView: View {
         DispatchQueue.main.async {
             if let rendered = renderedOutputImage() {
                 onPin(rendered)
+            } else {
+                showRenderFailure()
             }
         }
+    }
+
+    /// A failed render used to make Save/Copy/Pin do nothing at all (audit A6, 21.11.).
+    private func showRenderFailure() {
+        AnnotationEditorView.showBeautifyWarning(String(localized: "Could not prepare the image"))
     }
 }
 

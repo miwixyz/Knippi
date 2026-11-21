@@ -35,19 +35,16 @@ public actor TencentCOSDestination: ShareDestination {
             throw ShareError.notConfigured
         }
 
-        let now = Int(Date().timeIntervalSince1970)
-        let keyTime = "\(now);\(now + 3600)"
-        let signKey = ShareSigning.hex(ShareSigning.hmacSHA1(key: secretKey, message: keyTime))
-        let httpString = "\(method.lowercased())\n/\(encodedKey)\n\n\n"
-        let stringToSign = "sha1\n\(keyTime)\n\(ShareSigning.sha1Hex(httpString))\n"
-        let signature = ShareSigning.hex(ShareSigning.hmacSHA1(key: signKey, message: stringToSign))
-        let authorization = "q-sign-algorithm=sha1"
-            + "&q-ak=\(secretID)"
-            + "&q-sign-time=\(keyTime)"
-            + "&q-key-time=\(keyTime)"
-            + "&q-header-list="
-            + "&q-url-param-list="
-            + "&q-signature=\(signature)"
+        var signedHeaders = ["host": host]
+        if let contentType { signedHeaders["content-type"] = contentType }
+        let authorization = Self.authorization(
+            method: method,
+            encodedKey: encodedKey,
+            headers: signedHeaders,
+            secretID: secretID,
+            secretKey: secretKey,
+            now: Int(Date().timeIntervalSince1970)
+        )
 
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -57,5 +54,47 @@ public actor TencentCOSDestination: ShareDestination {
             request.setValue(contentType, forHTTPHeaderField: "Content-Type")
         }
         return request
+    }
+
+    /// Lifetime of a request signature. Short, because it only has to cover
+    /// the request about to be sent (audit Q4, 21.11.; was 1 h).
+    static let signatureLifetime = 900
+
+    /// COS request signature (sign version 5). Host and Content-Type are part
+    /// of the signature, so a leaked Authorization header cannot be replayed
+    /// against another host or with another content type (audit Q4, 21.11.).
+    static func authorization(
+        method: String,
+        encodedKey: String,
+        headers: [String: String],
+        secretID: String,
+        secretKey: String,
+        now: Int
+    ) -> String {
+        let keyTime = "\(now);\(now + signatureLifetime)"
+        let signKey = ShareSigning.hex(ShareSigning.hmacSHA1(key: secretKey, message: keyTime))
+        let sorted = headers
+            .map { (cosEncode($0.key.lowercased()), cosEncode($0.value)) }
+            .sorted { $0.0 < $1.0 }
+        let headerList = sorted.map(\.0).joined(separator: ";")
+        let httpHeaders = sorted.map { "\($0.0)=\($0.1)" }.joined(separator: "&")
+        let httpString = "\(method.lowercased())\n/\(encodedKey)\n\n\(httpHeaders)\n"
+        let stringToSign = "sha1\n\(keyTime)\n\(ShareSigning.sha1Hex(httpString))\n"
+        let signature = ShareSigning.hex(ShareSigning.hmacSHA1(key: signKey, message: stringToSign))
+        return "q-sign-algorithm=sha1"
+            + "&q-ak=\(secretID)"
+            + "&q-sign-time=\(keyTime)"
+            + "&q-key-time=\(keyTime)"
+            + "&q-header-list=\(headerList)"
+            + "&q-url-param-list="
+            + "&q-signature=\(signature)"
+    }
+
+    /// URL encoding as COS expects it: everything except RFC 3986 unreserved
+    /// characters, with upper-case hex.
+    static func cosEncode(_ text: String) -> String {
+        var allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+        allowed.insert(charactersIn: "-_.~")
+        return text.addingPercentEncoding(withAllowedCharacters: allowed) ?? text
     }
 }

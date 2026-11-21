@@ -30,7 +30,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var automationURLRequestBuffer = AutomationURLRequestBuffer()
     private var imageFileOpenBuffer = ImageFileOpenBuffer()
     /// Sparkle update coordinator used by preferences and manual update checks.
-    let updateManager = UpdateManager()
+    /// Lazy: built after the test-host check in applicationDidFinishLaunching, so a test run
+    /// never starts the real updater with its network check (audit P14).
+    lazy var updateManager = UpdateManager()
 
     func showPixelateFailureToast() {
         // draw(_:) kann den Fehler mit bis zu 60 Hz melden; Hinweis höchstens alle 3 s.
@@ -75,7 +77,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        migrateShortcutsIfNeeded()
         captureCoordinator = CaptureCoordinator(settings: settings)
         recordingCoordinator = RecordingCoordinator(settings: settings)
         ocrCoordinator = OCRCoordinator(settings: settings)
@@ -144,15 +145,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task.detached(priority: .utility) {
                 await TextRecognizer.prewarm()
             }
-        }
-    }
-
-    /// One-time migration: clear stale KeyboardShortcuts UserDefaults so new defaults apply.
-    private func migrateShortcutsIfNeeded() {
-        let migrationKey = "shortcutsMigratedToOptionShift"
-        if !UserDefaults.standard.bool(forKey: migrationKey) {
-            KeyboardShortcuts.reset(.captureArea, .captureFullscreen, .captureWindow, .captureText, .recordScreen)
-            UserDefaults.standard.set(true, forKey: migrationKey)
         }
     }
 
@@ -252,6 +244,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        // A request during an open selection is dropped by the buffer; say so in the log
+        // instead of the command just vanishing (audit P16).
+        if captureCoordinator?.isCaptureSelectionActive == true {
+            logAutomationURL("Ignored request: a capture selection is open")
+        }
         automationURLRequestBuffer.enqueue(action)
         performPendingAutomationURLAction()
     }
@@ -274,6 +271,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.buttons.last?.keyEquivalent = ""
         let allowed = alert.runModal() == .alertSecondButtonReturn
         settings.automationURLsEnabled = allowed
+        // An open Settings window keeps its view model: tell it, or the switch shows the old
+        // state (audit P3).
+        NotificationCenter.default.post(name: .knippiAutomationURLsSettingChanged, object: nil)
         return allowed
     }
 
@@ -459,4 +459,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return nil
         }
     }
+}
+
+extension Notification.Name {
+    /// Posted when the "other apps may control Knippi" answer changes outside Settings.
+    static let knippiAutomationURLsSettingChanged = Notification.Name("dev.mwlr.knippi.automationURLsSettingChanged")
 }

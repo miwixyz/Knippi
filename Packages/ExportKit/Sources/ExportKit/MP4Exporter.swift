@@ -8,7 +8,6 @@ enum MP4Exporter {
         source: URL,
         quality: ExportQuality,
         destination: URL,
-        timeRange: CMTimeRange? = nil,
         progress: (@Sendable (Double) -> Void)?,
         status: (@Sendable (ExportStatus) -> Void)?
     ) async throws -> URL {
@@ -45,8 +44,10 @@ enum MP4Exporter {
             let tracks = try await asset.loadTracks(withMediaType: .video)
             if let track = tracks.first {
                 let size = try await track.load(.naturalSize)
-                let targetWidth: CGFloat = quality == .social ? 1920 : 1280
-                if size.width <= targetWidth {
+                // Check both sides against the preset's box: a portrait 1080x1920
+                // recording passed the width-only check and was never scaled down
+                // (audit E21, 21.11.).
+                if Self.fitsPreset(size, quality: quality) {
                     effectivePreset = AVAssetExportPresetPassthrough
                 } else {
                     effectivePreset = presetName
@@ -63,10 +64,6 @@ enum MP4Exporter {
         }
 
         session.shouldOptimizeForNetworkUse = true
-        if let timeRange {
-            session.timeRange = timeRange
-            status?(ExportStatus(stage: .trimming, fractionCompleted: 0.1))
-        }
         status?(ExportStatus(stage: .encoding, fractionCompleted: 0.12))
 
         // AVAssetExportSession cannot overwrite existing files
@@ -83,6 +80,18 @@ enum MP4Exporter {
         status?(ExportStatus(stage: .finalizing, fractionCompleted: 1.0))
         progress?(1.0)
         return destination
+    }
+
+    /// True when `size` already fits the preset's box (1920x1080 / 1280x720), in either
+    /// orientation, so a re-encode would not make it smaller (audit E21, 21.11.).
+    static func fitsPreset(_ size: CGSize, quality: ExportQuality) -> Bool {
+        let (long, short): (CGFloat, CGFloat) = switch quality {
+        case .maximum: (.infinity, .infinity)
+        case .social: (1920, 1080)
+        case .web: (1280, 720)
+        }
+        let w = abs(size.width), h = abs(size.height)
+        return max(w, h) <= long && min(w, h) <= short
     }
 
     /// Returns a file with at most one audio track: the source itself, or —

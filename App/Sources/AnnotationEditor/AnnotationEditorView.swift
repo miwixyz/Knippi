@@ -328,7 +328,9 @@ struct AnnotationEditorView: View {
     }
 
     private func handleEscape() {
-        if sensitiveSuggestions.isShowing {
+        // While text is being edited, Esc first commits it; the next Esc dismisses the
+        // suggestions. Before, it threw the suggestions away mid-edit (audit A16, 21.11.).
+        if sensitiveSuggestions.isShowing, !isEditingText {
             sensitiveSuggestions.cancel()
             return
         }
@@ -431,7 +433,7 @@ struct AnnotationEditorView: View {
             .background(Color(white: 0.12))
             .overlay(alignment: .top) {
                 if sensitiveSuggestions.isShowing {
-                    SensitiveSuggestionsBar(model: sensitiveSuggestions, onBlackOut: blackOutSensitiveData)
+                    SensitiveSuggestionsBar(model: sensitiveSuggestions, onPixelateAll: pixelateSensitiveData)
                         .padding(.top, FamilyTheme.Space.m)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
@@ -644,7 +646,7 @@ struct AnnotationEditorView: View {
     }
 
     /// Crop goes through the same gate as export: blocked while scanning,
-    /// pending suggestions are blacked out first instead of being discarded.
+    /// pending suggestions are pixelated first instead of being discarded.
     static func beginCrop(
         document: AnnotationDocument,
         suggestions: SensitiveSuggestionsModel,
@@ -673,7 +675,7 @@ struct AnnotationEditorView: View {
         sensitiveSuggestions.scan(image: sourceImage, screen: NSApp.keyWindow?.screen)
     }
 
-    private func blackOutSensitiveData() {
+    private func pixelateSensitiveData() {
         if sensitiveSuggestions.applyPendingRedactions(to: document) {
             handleDocumentChanged()
         }
@@ -839,7 +841,17 @@ struct AnnotationEditorView: View {
     /// `property` names the control, so a slider drag books one undo step (audit A9, 21.11.).
     private func updateSelectedStyle(_ property: String) {
         if let obj = document.selectedObject {
-            document.beginStyleChange(for: obj.id, property: property)
+            let before = AnnotationStyleState(of: obj)
+            let bookedStep = document.beginStyleChange(for: obj.id, property: property)
+            defer {
+                // A preset sets up to 8 controls; the first onChange applies them all, the
+                // others change nothing. Dropping those empty steps makes a preset one undo
+                // step, and a no-op restyle (secure pixelation, text editing start) none
+                // (audit undo granularity, 21.11.).
+                if bookedStep, AnnotationStyleState(of: obj) == before {
+                    document.discardUnchangedStep()
+                }
+            }
             if let pixelate = obj as? PixelateObject {
                 // The slider only means "block size" while the pixelate tool is active;
                 // otherwise it is the line width (audit A1).
@@ -894,8 +906,8 @@ struct AnnotationEditorView: View {
     }
 
     /// The single export entry. While a sensitive-data scan runs it returns nil
-    /// (and calls `onBlockedWhileScanning`); pending suggestions are blacked
-    /// out first ("over-redact, never leak"), exactly like Black Out All.
+    /// (and calls `onBlockedWhileScanning`); pending suggestions are pixelated
+    /// first ("over-redact, never leak"), exactly like Pixelate All.
     static func renderForExport(
         sourceImage: CGImage,
         document: AnnotationDocument,
@@ -924,12 +936,19 @@ struct AnnotationEditorView: View {
         // The crop's output size applies to the cropped image, before the background is drawn
         // around it. Resizing the beautified canvas instead squeezed formats like 16:9 into the
         // crop's aspect ratio. Without beautify the result is unchanged.
-        let sized = outputSize.flatMap { size -> CGImage? in
+        var sized = annotated
+        if let size = outputSize {
             let width = max(1, Int(size.width.rounded()))
             let height = max(1, Int(size.height.rounded()))
-            guard width != annotated.width || height != annotated.height else { return nil }
-            return ImageUtilities.resized(annotated, width: width, height: height)
-        } ?? annotated
+            if width != annotated.width || height != annotated.height {
+                // Say so instead of silently exporting at the original size (audit A5, 21.11.).
+                if let resized = ImageUtilities.resized(annotated, width: width, height: height) {
+                    sized = resized
+                } else {
+                    onWarning(String(localized: "Could not resize the image. It was exported at its original size."))
+                }
+            }
+        }
         guard let beautified = BeautifyRenderer.render(image: sized, settings: beautifySettings) else {
             return nil
         }
@@ -972,7 +991,11 @@ struct AnnotationEditorView: View {
         return (dragRenderCache ?? makeDragRenderCache())?.previewImage
     }
 
+    /// Runs when the pointer enters the drag button. With suggestions showing it must not
+    /// render: rendering applies them, so merely passing over the button pixelated them.
+    /// The drag itself still applies them (`dragFileURL`) (audit A11, 21.11.).
     private func prepareDragFile() {
+        guard !sensitiveSuggestions.isShowing else { return }
         _ = dragFileURL()
     }
 
@@ -999,6 +1022,8 @@ struct AnnotationEditorView: View {
         DispatchQueue.main.async {
             if let rendered = renderedOutputImage() {
                 onSave(rendered)
+            } else {
+                showRenderFailure()
             }
         }
     }
@@ -1009,6 +1034,8 @@ struct AnnotationEditorView: View {
         DispatchQueue.main.async {
             if let rendered = renderedOutputImage() {
                 onSaveAs(rendered)
+            } else {
+                showRenderFailure()
             }
         }
     }
@@ -1018,6 +1045,8 @@ struct AnnotationEditorView: View {
         DispatchQueue.main.async {
             if let rendered = renderedOutputImage() {
                 onCopy(rendered)
+            } else {
+                showRenderFailure()
             }
         }
     }
@@ -1062,7 +1091,16 @@ struct AnnotationEditorView: View {
         DispatchQueue.main.async {
             if let rendered = renderedOutputImage() {
                 onPin(rendered)
+            } else {
+                showRenderFailure()
             }
         }
+    }
+
+    /// A failed render used to make Save/Copy/Pin do nothing at all (audit A6, 21.11.).
+    /// While a scan runs, `renderForExport` has already said so.
+    private func showRenderFailure() {
+        guard !sensitiveSuggestions.isScanning else { return }
+        Self.showBeautifyWarning(String(localized: "Could not prepare the image"))
     }
 }

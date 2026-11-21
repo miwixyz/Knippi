@@ -19,6 +19,10 @@ final class SelfTimerHUD {
     private var positionPersist: ((CGPoint) -> Void)?
     private var onCancel: (() -> Void)?
     private var playTickSound: Bool = false
+    /// The running countdown. Cancelled synchronously on every cancel path so
+    /// a cancel within the 160 ms fade-out cannot still fire the capture
+    /// (audit C16, 21.11.).
+    private var countdownTask: Task<Void, Never>?
 
     /// Reusable system "Tink" sound for per-second countdown ticks. Loaded
     /// once and stopped/restarted on each tick so consecutive ticks don't
@@ -96,7 +100,8 @@ final class SelfTimerHUD {
 
         // Drive the visible digit on a 1Hz tick. The progress ring is driven
         // by TimelineView in SwiftUI for sub-second smoothness.
-        Task { [weak self] in
+        countdownTask?.cancel()
+        countdownTask = Task { [weak self] in
             guard let self else { return }
             for tick in 1...duration {
                 try? await Task.sleep(for: .seconds(1))
@@ -116,6 +121,8 @@ final class SelfTimerHUD {
             // two frames to ensure they're fully off-screen, then fire.
             self.dismissImmediate()
             try? await Task.sleep(for: .milliseconds(33))
+            guard !Task.isCancelled else { return }
+            self.countdownTask = nil
             onComplete()
         }
     }
@@ -158,6 +165,8 @@ final class SelfTimerHUD {
 
     /// User-driven cancel (Esc / click). Animates out then calls onCancel.
     private func cancelByUser() {
+        countdownTask?.cancel()
+        countdownTask = nil
         let cb = onCancel
         animatedDismiss { cb?() }
     }
@@ -208,6 +217,8 @@ final class SelfTimerHUD {
 
     /// External cancel (e.g., another capture flow starts). No callback fires.
     func dismiss() {
+        countdownTask?.cancel()
+        countdownTask = nil
         if let mon = keyMonitor {
             NSEvent.removeMonitor(mon)
             keyMonitor = nil

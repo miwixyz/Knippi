@@ -638,14 +638,6 @@ final class CaptureCoordinator {
         }
     }
 
-    /// Replay the last area or fullscreen capture without showing the
-    /// selection overlay. Bound to the user-assignable "Capture Previous
-    /// Area" global shortcut. Silent no-op when nothing has been captured
-    /// yet, or when the saved display is no longer connected.
-    ///
-    /// `pendingAction` is reset to `.default` on every branch so a previous
-    /// `Capture Area & Annotate` (or any other mode-specific entry point)
-    /// that left `pendingAction` non-default can't leak into the replay.
     /// Set by automation commands that capture with no on-screen step. A capture
     /// that completes before it expires posts a notification; a failed or
     /// skipped capture just lets it lapse.
@@ -667,11 +659,26 @@ final class CaptureCoordinator {
         return true
     }
 
+    /// Replay the last area or fullscreen capture without showing the
+    /// selection overlay. Bound to the user-assignable "Capture Previous
+    /// Area" global shortcut. Silent no-op when nothing has been captured
+    /// yet, or when the saved display is no longer connected.
+    ///
+    /// `pendingAction` is reset to `.default` on every branch so a previous
+    /// `Capture Area & Annotate` (or any other mode-specific entry point)
+    /// that left `pendingAction` non-default can't leak into the replay.
+    /// The no-op paths clear `automatedCaptureDeadline`: an automation request
+    /// that captures nothing must not flag the user's next own capture as
+    /// "taken by another app" (audit C15, 21.11.).
     func replayLastCapture() {
-        guard let selection = settings.lastCaptureSelection else { return }
+        guard let selection = settings.lastCaptureSelection else {
+            automatedCaptureDeadline = nil
+            return
+        }
         switch selection {
         case let .area(x, y, width, height, screenID):
             guard let screen = NSScreen.screens.first(where: { $0.displayID == screenID }) else {
+                automatedCaptureDeadline = nil
                 return
             }
             let rect = CGRect(x: x, y: y, width: width, height: height)
@@ -870,6 +877,14 @@ final class CaptureCoordinator {
             self.settings.lastCaptureSelection = .area(rect: rect, screenID: screen.displayID)
             self.pendingAction = .ocr
             self.performAreaCapture(rect: rect, screen: screen)
+        }
+        toolbar.onAnnotationRenderFailed = { [weak self] in
+            // (audit C12, 21.11.)
+            self?.showToast(
+                String(localized: "Couldn't apply the annotations. Nothing was exported."),
+                icon: "exclamationmark.triangle",
+                iconColor: .systemYellow
+            )
         }
         toolbar.onOCRRendered = { [weak self] image, _ in
             guard let self else { return }
@@ -1524,7 +1539,6 @@ final class CaptureCoordinator {
         let config = ScrollCaptureConfig(
             captureRect: captureRect,
             displayID: displayID,
-            mode: .manual,
             debugFrameDirectory: debugFolder
         )
         let controller = ScrollCaptureController(
@@ -2199,7 +2213,15 @@ final class CaptureCoordinator {
 
         inlineAnnotationWindow?.close()
         inlineAnnotationWindow = nil
-        annotationWindow = AnnotationEditorWindow(
+        // An earlier editor may still be open. Its callbacks must only clear
+        // `annotationWindow` while it is still the current one, otherwise
+        // closing it drops the reference to the newer editor (audit C18, 21.11.).
+        weak var editor: AnnotationEditorWindow?
+        let releaseEditor = { [weak self] in
+            guard let self, self.annotationWindow === editor else { return }
+            self.annotationWindow = nil
+        }
+        let newEditor = AnnotationEditorWindow(
             image: result.image,
             anchorScreen: screen,
             sourceAppName: result.appName,
@@ -2219,7 +2241,7 @@ final class CaptureCoordinator {
                         date: result.timestamp
                     )
                     if didSave {
-                        self.annotationWindow = nil
+                        releaseEditor()
                     }
                     return didSave
                 } else {
@@ -2238,14 +2260,14 @@ final class CaptureCoordinator {
                     if replaceableFile != nil {
                         replaceableFile = SavedScreenshotFile(url: savedURL)
                     }
-                    self.annotationWindow = nil
+                    releaseEditor()
                     return true
                 }
             },
             onCopy: { [weak self] (rendered: CGImage) in
                 self?.copyRenderedImage(rendered)
                 replaceableFile = self?.replaceAutoSavedOriginal(with: rendered, original: replaceableFile)
-                self?.annotationWindow = nil
+                releaseEditor()
             },
             onPin: { [weak self] (rendered: CGImage, anchor: CGRect?) in
                 replaceableFile = self?.replaceAutoSavedOriginal(with: rendered, original: replaceableFile)
@@ -2256,15 +2278,17 @@ final class CaptureCoordinator {
                     sourceWindowTitle: result.windowName,
                     date: result.timestamp
                 )
-                self?.annotationWindow = nil
+                releaseEditor()
             },
             onSavedAs: { [weak self] (rendered: CGImage) in
                 replaceableFile = self?.replaceAutoSavedOriginal(with: rendered, original: replaceableFile)
             },
-            onClose: { [weak self] in
-                self?.annotationWindow = nil
+            onClose: {
+                releaseEditor()
             }
         )
+        editor = newEditor
+        annotationWindow = newEditor
         annotationWindow?.show()
     }
 

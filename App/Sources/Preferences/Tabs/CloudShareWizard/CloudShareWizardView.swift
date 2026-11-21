@@ -389,6 +389,14 @@ final class CloudShareWizardModel {
         return nil
     }
 
+    /// http:// sends screenshots and signed requests unencrypted, and macOS
+    /// only allows it for local-network hosts (audit Q6, 21.11.).
+    var endpointWarning: String? {
+        let trimmed = endpoint.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard trimmed.hasPrefix("http://") else { return nil }
+        return String(localized: "Unencrypted connection. Use http:// only for a server in your local network.")
+    }
+
     var bucketError: String? {
         guard blurredBucket, !bucket.isEmpty else { return nil }
         let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz0123456789-")
@@ -764,7 +772,7 @@ private struct CredentialsStep: View {
                     FieldGroup(
                         label: String(localized: "Endpoint"),
                         icon: nil,
-                        error: nil
+                        error: model.endpointWarning
                     ) {
                         MonoTextField(
                             text: $model.endpoint,

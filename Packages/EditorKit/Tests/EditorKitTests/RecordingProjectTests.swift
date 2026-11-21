@@ -31,12 +31,9 @@ struct RecordingProjectTests {
     @Test("Round-trip JSON encode/decode")
     func jsonRoundTrip() throws {
         let original = makeProject(duration: 42.5)
-        let url = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("test-\(UUID().uuidString).json")
-        defer { try? FileManager.default.removeItem(at: url) }
 
-        try original.save(to: url)
-        let loaded = try RecordingProject.load(from: url)
+        let data = try JSONEncoder().encode(original)
+        let loaded = try JSONDecoder().decode(RecordingProject.self, from: data)
 
         #expect(loaded.id == original.id)
         #expect(loaded.videoDuration == original.videoDuration)

@@ -19,6 +19,13 @@ public final class AnnotationDocument {
     /// Set once the working image was rotated/flipped. That step is not undoable, so it
     /// must count as unsaved work on its own (audit A8, 21.11.).
     private var hasReplacedImage = false
+    /// What the newest undo step replaced, while it may still turn out to change nothing
+    /// (a plain click to select, a restyle that keeps every value). Lets that step be
+    /// dropped again without losing the redo history (audit A10, 21.11.).
+    private var tentativeStep: (redo: [Snapshot], openStyleChange: (id: ObjectID, property: String)?, trimmed: [Snapshot])?
+
+    /// Oldest steps are dropped beyond this; each step copies every object (audit A20, 21.11.).
+    public static let maxUndoSteps = 100
 
     private struct Snapshot {
         let objects: [any AnnotationObject]
@@ -54,7 +61,7 @@ public final class AnnotationDocument {
     }
 
     /// Inserts several objects as one undo step without changing the selection
-    /// (e.g. blacking out all suggested sensitive regions at once).
+    /// (e.g. pixelating all suggested sensitive regions at once).
     public func addObjects(_ newObjects: [any AnnotationObject]) {
         guard !newObjects.isEmpty else { return }
         pushUndo()
@@ -94,10 +101,14 @@ public final class AnnotationDocument {
     /// Call before restyling an object (colour, width, pattern ...). Books one undo step
     /// per gesture: repeated calls for the same object and property without any other
     /// edit in between (a slider drag) share the first step (audit A9, 21.11.).
-    public func beginStyleChange(for id: ObjectID, property: String) {
-        if let open = openStyleChange, open.id == id, open.property == property { return }
-        pushUndo()
+    /// Returns whether a new step was booked; only then may the caller drop it again with
+    /// `discardUnchangedStep()` when the restyle changed nothing.
+    @discardableResult
+    public func beginStyleChange(for id: ObjectID, property: String) -> Bool {
+        if let open = openStyleChange, open.id == id, open.property == property { return false }
+        pushTentativeUndo()
         openStyleChange = (id, property)
+        return true
     }
 
     public var selectedObject: (any AnnotationObject)? {
@@ -120,7 +131,22 @@ public final class AnnotationDocument {
     }
 
     public func beginDrag() {
-        pushUndo()
+        pushTentativeUndo()
+    }
+
+    /// Drops the step booked by the last `beginDrag()` / `beginStyleChange` (when it returned
+    /// true) and brings the redo history back, for gestures that turned out to change
+    /// nothing. Call it right after that gesture; any other edit, undo or redo since then
+    /// makes it a no-op (audit A10, 21.11.).
+    public func discardUnchangedStep() {
+        guard let step = tentativeStep, !undoStack.isEmpty else { return }
+        undoStack.removeLast()
+        // A full history dropped its oldest step for this tentative one: put it back, or every
+        // plain click on a full history would cost one real step (diff audit, 21.11.).
+        undoStack.insert(contentsOf: step.trimmed, at: 0)
+        redoStack = step.redo
+        openStyleChange = step.openStyleChange
+        tentativeStep = nil
     }
 
     public func setCropRect(_ rect: CGRect?) {
@@ -142,6 +168,7 @@ public final class AnnotationDocument {
         undoStack.removeAll()
         redoStack.removeAll()
         openStyleChange = nil
+        tentativeStep = nil
         imageSize = size
         cropRect = newCropRect
         hasReplacedImage = true
@@ -157,6 +184,7 @@ public final class AnnotationDocument {
         // (audit A3, 21.11.).
         undoStack = undoStack.map { $0.resized(to: size, offset: objectOffset) }
         redoStack = redoStack.map { $0.resized(to: size, offset: objectOffset) }
+        tentativeStep = nil
         if objectOffset != .zero {
             for object in objects {
                 object.move(by: objectOffset)
@@ -175,10 +203,26 @@ public final class AnnotationDocument {
         selectedObjectID = nil
     }
 
-    private func pushUndo() {
+    /// Returns the oldest steps dropped to stay within `maxUndoSteps`.
+    @discardableResult
+    private func pushUndo() -> [Snapshot] {
         undoStack.append(currentSnapshot())
+        var trimmed: [Snapshot] = []
+        if undoStack.count > Self.maxUndoSteps {
+            let excess = undoStack.count - Self.maxUndoSteps
+            trimmed = Array(undoStack.prefix(excess))
+            undoStack.removeFirst(excess)
+        }
         redoStack.removeAll()
         openStyleChange = nil
+        tentativeStep = nil
+        return trimmed
+    }
+
+    private func pushTentativeUndo() {
+        let redo = redoStack, open = openStyleChange
+        let trimmed = pushUndo()
+        tentativeStep = (redo: redo, openStyleChange: open, trimmed: trimmed)
     }
 
     public func undo() {
@@ -186,6 +230,7 @@ public final class AnnotationDocument {
         redoStack.append(currentSnapshot())
         apply(snapshot)
         openStyleChange = nil
+        tentativeStep = nil
     }
 
     public func redo() {
@@ -193,5 +238,6 @@ public final class AnnotationDocument {
         undoStack.append(currentSnapshot())
         apply(snapshot)
         openStyleChange = nil
+        tentativeStep = nil
     }
 }

@@ -46,6 +46,33 @@ struct RedactionObjectTests {
         #expect(manual.mode == .blur)
     }
 
+    @Test("A hand-drawn pixelation with noise still restyles freely (audit A12)")
+    func noisyManualRestyleApplies() {
+        let manual = PixelateObject(rect: .zero, blockSize: 14, mode: .pixelate, noiseSeed: 5, locksStrength: false)
+        manual.restyle(blockSize: 6, mode: .blur)
+        #expect(manual.blockSize == 6)
+        #expect(manual.mode == .blur)
+        let copy = manual.copy() as? PixelateObject
+        #expect(copy?.locksStrength == false)
+        #expect(copy?.noiseSeed == 5)
+        #expect(PixelateObject(rect: .zero, noiseSeed: 1).locksStrength)
+    }
+
+    @Test("Without the source image a pixelation is drawn opaque black (audit A19)")
+    func renderWithoutSourceFailsClosed() throws {
+        let ctx = try #require(CGContext(
+            data: nil, width: 8, height: 8, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ))
+        ctx.setFillColor(CGColor(gray: 1, alpha: 1))
+        ctx.fill(CGRect(x: 0, y: 0, width: 8, height: 8))
+        for mode in [RedactionMode.pixelate, .blur] {
+            PixelateObject(rect: CGRect(x: 0, y: 0, width: 8, height: 8), mode: mode).render(in: ctx)
+            let image = try #require(ctx.makeImage())
+            #expect(sampleRGBA(image, x: 4, y: 4) == RGBA(r: 0, g: 0, b: 0, a: 255))
+        }
+    }
+
     @Test("Solid redaction renders a flat filled region")
     func solidRedactionRendersFill() throws {
         let source = try makeTestImage(width: 8, height: 8, color: CGColor(gray: 1, alpha: 1))

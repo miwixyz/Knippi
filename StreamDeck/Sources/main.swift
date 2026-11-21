@@ -3,7 +3,7 @@ import Foundation
 import OSLog
 
 // KnippiDeck – Stream Deck plugin for Knippi. Every key and dial only opens one of Knippi's fixed automation URLs
-// (`knippi://grab/…`, the same list as Settings → General → Automation URLs). No socket, no permissions, no own logic.
+// (`knippi://grab/…`, the same list as Settings → General → Automation URLs). No listening socket of its own (only the outgoing WebSocket to Stream Deck), no permissions, no own logic.
 // Knippi's own gate stays in charge: Automation URLs off → Knippi asks once or ignores the request.
 // Never writes to stdout/stderr (Stream Deck keeps a log file of that per plugin) – only os_log with fixed texts.
 

@@ -20,7 +20,6 @@ public enum VideoExporter {
                 source: source,
                 quality: options.quality,
                 destination: options.destination,
-                timeRange: options.timeRange,
                 progress: progress,
                 status: status
             )

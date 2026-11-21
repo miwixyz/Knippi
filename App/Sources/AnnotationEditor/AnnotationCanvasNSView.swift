@@ -184,6 +184,9 @@ final class AnnotationCanvasNSView: NSView {
     /// Extra key that, with Shift, grows a constrained creation from the click.
     var squareCenterLockShortcut = SquareCenterLockShortcut.default
     private var isDragging = false
+    /// Set once the mouse moved during the current press. A plain click on an object (or a
+    /// handle) books no undo step then (audit A10, 21.11.).
+    private var dragDidMove = false
     private var dragObjectID: ObjectID?
     private var activeResizeHandle: ResizeHandle?
     private var resizeOriginalBounds: CGRect?
@@ -935,6 +938,7 @@ final class AnnotationCanvasNSView: NSView {
         centerLockKeyHeld = event.modifierFlags.intersection([.command, .option, .control]).isEmpty
             && squareCenterLockShortcut.isHardwareKeyPressed
         isDragging = true
+        dragDidMove = false
         activeResizeHandle = nil
         resizeOriginalTextFontSize = nil
         resizeOriginalFreehandPoints = nil
@@ -1033,6 +1037,7 @@ final class AnnotationCanvasNSView: NSView {
 
     override func mouseDragged(with event: NSEvent) {
         let point = toImagePoint(convert(event.locationInWindow, from: nil))
+        if point != dragCurrent { dragDidMove = true }
         dragCurrent = point
         squareLock = event.modifierFlags.contains(.shift)
 
@@ -1225,6 +1230,7 @@ final class AnnotationCanvasNSView: NSView {
         let end = drag.end
 
         if activeResizeHandle != nil {
+            if !dragDidMove { doc.discardUnchangedStep() }
             dragObjectID = nil
             activeResizeHandle = nil
             resizeOriginalBounds = nil
@@ -1241,6 +1247,7 @@ final class AnnotationCanvasNSView: NSView {
         }
 
         if currentTool == .select {
+            if dragObjectID != nil, !dragDidMove { doc.discardUnchangedStep() }
             dragObjectID = nil
             activeResizeHandle = nil
             resizeOriginalBounds = nil
@@ -1298,10 +1305,13 @@ final class AnnotationCanvasNSView: NSView {
                 let rect = CGRect(x: min(start.x, end.x), y: min(start.y, end.y),
                                   width: abs(end.x - start.x), height: abs(end.y - start.y))
                 if rect.width > 5 / zoomScale && rect.height > 5 / zoomScale {
+                    // Same block noise as "Find Sensitive", but freely restylable (audit A12, 21.11.).
                     let redaction = PixelateObject(
                         rect: rect,
                         blockSize: currentStyle.lineWidth,
-                        mode: redactionMode
+                        mode: redactionMode,
+                        noiseSeed: UInt64.random(in: .min ... .max),
+                        locksStrength: false
                     )
                     if redactionMode != .solid { redaction.style = currentStyle }
                     doc.addObject(redaction)

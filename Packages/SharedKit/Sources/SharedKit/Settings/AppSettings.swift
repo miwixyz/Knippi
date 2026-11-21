@@ -195,10 +195,6 @@ public final class AppSettings: @unchecked Sendable {
     let defaults: UserDefaults
 
     // MARK: General
-    public var startAtLogin: Bool {
-        get { defaults.object(forKey: "startAtLogin") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "startAtLogin") }
-    }
 
     public var playShutterSound: Bool {
         get { defaults.object(forKey: "playShutterSound") as? Bool ?? true }

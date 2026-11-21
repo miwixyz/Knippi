@@ -53083,6 +53083,146 @@
           }
         }
       }
+    },
+    "Could not resize the image. It was exported at its original size." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Bild konnte nicht skaliert werden. Es wurde in Originalgröße exportiert."
+          }
+        }
+      }
+    },
+    "Could not prepare the image" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Bild konnte nicht vorbereitet werden."
+          }
+        }
+      }
+    },
+    "Couldn't restart recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme konnte nicht neu gestartet werden"
+          }
+        }
+      }
+    },
+    "The recording file could not be found." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufnahmedatei wurde nicht gefunden."
+          }
+        }
+      }
+    },
+    "The video could not be exported: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Video konnte nicht exportiert werden: %@"
+          }
+        }
+      }
+    },
+    "The frames of the video could not be read." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Bilder des Videos konnten nicht gelesen werden."
+          }
+        }
+      }
+    },
+    "The GIF could not be created." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das GIF konnte nicht erstellt werden."
+          }
+        }
+      }
+    },
+    "The export was cancelled." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Export wurde abgebrochen."
+          }
+        }
+      }
+    },
+    "Couldn't apply the annotations. Nothing was exported." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmerkungen konnten nicht übernommen werden. Es wurde nichts exportiert."
+          }
+        }
+      }
+    },
+    "Unencrypted connection. Use http:// only for a server in your local network." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unverschlüsselte Verbindung. http:// nur für einen Server im eigenen Netzwerk verwenden."
+          }
+        }
+      }
+    },
+    "No text detected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Text erkannt"
+          }
+        }
+      }
+    },
+    "Copied %lld characters" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Zeichen kopiert"
+          }
+        }
+      }
+    },
+    "OCR: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texterkennung: %@"
+          }
+        }
+      }
+    },
+    "OCR — Text Recognition" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texterkennung"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

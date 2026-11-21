@@ -68,6 +68,9 @@ final class ScrollCaptureOverlay {
         }
         if let tap = keyEventTap {
             CGEvent.tapEnable(tap: tap, enable: false)
+            // Invalidate so the tap can never call back into a freed overlay
+            // through its unretained refcon (audit C7, 21.11.).
+            CFMachPortInvalidate(tap)
             keyEventTap = nil
         }
         borderWindow?.orderOut(nil)
@@ -76,15 +79,6 @@ final class ScrollCaptureOverlay {
         controlsWindow = nil
         previewWindow?.orderOut(nil)
         previewWindow = nil
-    }
-
-    /// CGWindowIDs of all overlay panels, for excluding from capture.
-    var windowIDs: [CGWindowID] {
-        var ids: [CGWindowID] = []
-        if let w = borderWindow { ids.append(CGWindowID(w.windowNumber)) }
-        if let w = controlsWindow { ids.append(CGWindowID(w.windowNumber)) }
-        if let w = previewWindow { ids.append(CGWindowID(w.windowNumber)) }
-        return ids
     }
 
     private func installKeyHandlers() {
@@ -100,6 +94,8 @@ final class ScrollCaptureOverlay {
                 self.onCancel?()
                 return nil // consume the event
             case 36, 76: // Return, keypad Enter
+                // Pass through while capturing (audit C7, 21.11.).
+                if self.viewModel.isCapturing { return event }
                 self.startCaptureFromKeyboard()
                 return nil
             default:
@@ -138,6 +134,12 @@ final class ScrollCaptureOverlay {
                 }
 
                 let overlay = Unmanaged<ScrollCaptureOverlay>.fromOpaque(refcon).takeUnretainedValue()
+                // Once capture is running, Return/Enter belong to the app being
+                // scrolled again; only ESC stays reserved (audit C7, 21.11.).
+                // The tap's run-loop source lives on the main run loop.
+                if keyCode != 53, MainActor.assumeIsolated({ overlay.viewModel.isCapturing }) {
+                    return Unmanaged.passUnretained(event)
+                }
                 Task { @MainActor in
                     if keyCode == 53 {
                         overlay.onCancel?()

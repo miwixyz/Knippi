@@ -31,6 +31,20 @@ final class PreferencesViewModel {
     init(settings: AppSettings, permissionManager: PermissionManager) {
         self.settings = settings
         self.permissionManager = permissionManager
+        automationObserver = NotificationCenter.default.addObserver(
+            forName: .knippiAutomationURLsSettingChanged, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                // Re-read: the "Allow?" prompt wrote the setting directly (audit P3).
+                self?.withMutation(keyPath: \.automationURLsEnabled) {}
+            }
+        }
+    }
+
+    @ObservationIgnored nonisolated(unsafe) private var automationObserver: NSObjectProtocol?
+
+    deinit {
+        if let automationObserver { NotificationCenter.default.removeObserver(automationObserver) }
     }
 
     // MARK: General

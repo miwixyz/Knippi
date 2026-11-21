@@ -35,6 +35,22 @@ struct AnnotationDocumentTests {
         #expect(doc.imageSize == CGSize(width: 250, height: 130))
     }
 
+    @Test("A discarded click on a full history keeps all 100 steps")
+    @MainActor
+    func discardedClickKeepsFullHistory() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        for i in 0..<(AnnotationDocument.maxUndoSteps + 5) {
+            doc.addObject(RectangleObject(rect: CGRect(x: i, y: 0, width: 4, height: 4)))
+        }
+        let selected = doc.objects[0]
+        doc.beginDrag()          // tentative step from a plain click …
+        doc.discardUnchangedStep() // … that changed nothing
+        _ = selected
+        var undos = 0
+        while doc.canUndo { doc.undo(); undos += 1 }
+        #expect(undos == AnnotationDocument.maxUndoSteps)
+    }
+
     @Test("Undo and redo add")
     @MainActor
     func undoRedo() {
@@ -318,5 +334,72 @@ struct AnnotationDocumentTests {
         arrow.style.lineWidth = 7
         doc.undo()
         #expect(doc.objects.first?.style.lineWidth == 5)
+    }
+
+    @Test("A drag that changed nothing leaves no undo step and keeps redo (audit A10)")
+    @MainActor
+    func unchangedDragIsDiscarded() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        doc.addObject(RectangleObject(rect: CGRect(x: 0, y: 0, width: 10, height: 10)))
+        doc.addObject(RectangleObject(rect: CGRect(x: 20, y: 0, width: 10, height: 10)))
+        doc.undo()
+        #expect(doc.canRedo)
+        doc.beginDrag()          // plain click on the remaining object to select it
+        doc.discardUnchangedStep()
+        #expect(doc.canRedo)
+        doc.redo()
+        #expect(doc.objects.count == 2)
+        doc.undo()
+        doc.undo()
+        #expect(doc.objects.isEmpty)
+        #expect(!doc.canUndo)
+    }
+
+    @Test("Discarding after another edit does nothing")
+    @MainActor
+    func discardAfterOtherEditIsNoOp() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        let a = RectangleObject(rect: CGRect(x: 0, y: 0, width: 10, height: 10))
+        doc.beginDrag()
+        doc.addObject(a)
+        doc.discardUnchangedStep()
+        #expect(doc.objects.count == 1)
+        doc.undo()
+        #expect(doc.objects.isEmpty)
+    }
+
+    @Test("A joined style change can't be discarded, a fresh unchanged one can")
+    @MainActor
+    func styleChangeDiscard() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        let arrow = ArrowObject(start: .zero, end: CGPoint(x: 100, y: 100))
+        doc.addObject(arrow)
+        #expect(doc.beginStyleChange(for: arrow.id, property: "color"))
+        arrow.style.color = .blue
+        // Preset: the next control's onChange finds everything already applied.
+        let before = AnnotationStyleState(of: arrow)
+        #expect(doc.beginStyleChange(for: arrow.id, property: "filled"))
+        #expect(AnnotationStyleState(of: arrow) == before)
+        doc.discardUnchangedStep()
+        // Same property again joins the open colour step.
+        #expect(!doc.beginStyleChange(for: arrow.id, property: "color"))
+        doc.undo()
+        #expect(arrow.style.color == .blue) // undo restores a copy, check the document
+        #expect(doc.objects.first?.style.color == .red)
+        doc.undo()
+        #expect(doc.objects.isEmpty)
+    }
+
+    @Test("Undo history is capped (audit A20)")
+    @MainActor
+    func undoHistoryIsCapped() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        for i in 0..<(AnnotationDocument.maxUndoSteps + 20) {
+            doc.addObject(RectangleObject(rect: CGRect(x: CGFloat(i), y: 0, width: 5, height: 5)))
+        }
+        var steps = 0
+        while doc.canUndo { doc.undo(); steps += 1 }
+        #expect(steps == AnnotationDocument.maxUndoSteps)
+        #expect(doc.objects.count == 20)
     }
 }

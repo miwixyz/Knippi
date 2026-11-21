@@ -55,7 +55,6 @@ public enum CompositorExporter {
         blurEffects: [RecordingEffectSegment] = [],
         cursorImage: SendableCIImage = SendableCIImage(nil),
         cursorOverlayProvider: CursorOverlayProvider? = nil,
-        applyTrimRegions: Bool = true,
         destination: URL,
         quality: ExportQuality,
         progress: (@Sendable (Double) -> Void)? = nil,
@@ -88,13 +87,8 @@ public enum CompositorExporter {
         let outSize = compositor.outputSize
         let ciContext = CIContext(options: [.useSoftwareRenderer: false])
 
-        // Build the video composition with per-frame CIFilter handler
-        let videoComposition = AVMutableVideoComposition()
-        videoComposition.renderSize = outSize
-        videoComposition.frameDuration = frameDuration
-
-        // Use the customVideoCompositorClass approach is complex; instead use
-        // the simpler CIFilter handler. But we must create it properly.
+        // Video composition with a per-frame CIFilter handler. (An unused
+        // AVMutableVideoComposition built here before was removed, audit E19, 21.11.)
         let filterComposition = try await AVMutableVideoComposition.videoComposition(
             with: asset,
             applyingCIFiltersWithHandler: { request in
@@ -156,22 +150,15 @@ public enum CompositorExporter {
         session.videoComposition = filterComposition
         session.shouldOptimizeForNetworkUse = true
 
-        // Apply trim
-        let sortedTrims = project.trimRegions.sorted { $0.startTime < $1.startTime }
-        let effectiveStart = sortedTrims.filter { $0.startTime < 0.01 }.map(\.endTime).max() ?? 0
+        // Trims are not applied here: the only caller cuts afterwards with
+        // CutExporter, so the former `applyTrimRegions: true` branch was dead
+        // (audit E19, 21.11.).
         let duration = try await asset.load(.duration).seconds
-        let effectiveEnd = sortedTrims.filter { $0.endTime >= duration - 0.01 }.map(\.startTime).min() ?? duration
 
         // Always pin the range to the source: with a video composition AVFoundation stretches a
         // sparse recording's last frame (measured 21.11.: 8.56 s → 12.52 s), which later
         // cuts then measured against.
         session.timeRange = CMTimeRange(start: .zero, duration: CMTime(seconds: duration, preferredTimescale: 600))
-        if applyTrimRegions && (effectiveStart > 0.01 || effectiveEnd < duration - 0.01) {
-            let cmStart = CMTime(seconds: effectiveStart, preferredTimescale: 600)
-            let cmDuration = CMTime(seconds: effectiveEnd - effectiveStart, preferredTimescale: 600)
-            session.timeRange = CMTimeRange(start: cmStart, duration: cmDuration)
-            status?(ExportStatus(stage: .trimming, fractionCompleted: 0.12))
-        }
 
         try? FileManager.default.removeItem(at: destination)
 

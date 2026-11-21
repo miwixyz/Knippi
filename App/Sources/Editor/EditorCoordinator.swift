@@ -47,6 +47,9 @@ final class EditorCoordinator {
     // MARK: - Private
 
     nonisolated(unsafe) private var timeObserver: Any?
+    /// Token of the block-based end-of-playback observer; `removeObserver(self)`
+    /// does not remove block observers (audit E17, 21.11.).
+    nonisolated(unsafe) private var endObserver: NSObjectProtocol?
     let playerItem: AVPlayerItem
 
     // MARK: - Init
@@ -67,7 +70,9 @@ final class EditorCoordinator {
         if let timeObserver {
             player.removeTimeObserver(timeObserver)
         }
-        NotificationCenter.default.removeObserver(self)
+        if let endObserver {
+            NotificationCenter.default.removeObserver(endObserver)
+        }
     }
 
     // MARK: - Playback Controls
@@ -284,8 +289,7 @@ final class EditorCoordinator {
     /// Returns the number of new `.auto` segments inserted.
     @discardableResult
     func autoZoom() -> Int {
-        guard let url = project.cursorTelemetryURL,
-              let data = try? CursorTelemetry.load(from: url) else {
+        guard let data = loadedTelemetry() else {
             return 0
         }
 
@@ -310,17 +314,9 @@ final class EditorCoordinator {
         return suggested.count
     }
 
-    func removeZoomSegment(id: UUID) {
-        removeEffectSegment(id: id)
-    }
-
     func removeEffectSegment(id: UUID) {
         project.effectSegments.removeAll { $0.id == id }
         if selectedEffectSegmentID == id { selectedEffectSegmentID = nil }
-    }
-
-    func moveZoomSegment(id: UUID, to newStart: TimeInterval) {
-        moveEffectSegment(id: id, to: newStart)
     }
 
     func moveEffectSegment(id: UUID, to newStart: TimeInterval) {
@@ -329,10 +325,6 @@ final class EditorCoordinator {
         let clamped = max(0, min(duration - dur, newStart))
         project.effectSegments[index].startTime = clamped
         project.effectSegments[index].endTime = clamped + dur
-    }
-
-    func resizeZoomSegment(id: UUID, newStart: TimeInterval? = nil, newEnd: TimeInterval? = nil) {
-        resizeEffectSegment(id: id, newStart: newStart, newEnd: newEnd)
     }
 
     func resizeEffectSegment(id: UUID, newStart: TimeInterval? = nil, newEnd: TimeInterval? = nil) {
@@ -373,6 +365,20 @@ final class EditorCoordinator {
         project.effectSegments[index].payload = .blur(payload)
     }
 
+    // MARK: - Cursor telemetry (decoded once)
+
+    /// The telemetry JSON used to be decoded up to three times on the main thread
+    /// (auto-zoom, cursor timeline, overlay); decode it once per URL (audit E16, 21.11.).
+    @ObservationIgnored private var _telemetryCache: (url: URL, data: CursorTelemetryData?)?
+
+    private func loadedTelemetry() -> CursorTelemetryData? {
+        guard let url = project.cursorTelemetryURL else { return nil }
+        if let cache = _telemetryCache, cache.url == url { return cache.data }
+        let data = try? CursorTelemetry.load(from: url)
+        _telemetryCache = (url, data)
+        return data
+    }
+
     // MARK: - Cursor Timeline
 
     /// Cursor timeline — always loaded if telemetry data exists.
@@ -390,8 +396,7 @@ final class EditorCoordinator {
         if _cursorTimelineConfig != config {
             _cursorTimelineConfig = config
             _cursorTimeline = nil
-            if let url = project.cursorTelemetryURL,
-               let data = try? CursorTelemetry.load(from: url) {
+            if let data = loadedTelemetry() {
                 let smoother = CursorSmoother(telemetry: data, config: config)
                 _cursorTimeline = smoother.buildSmoothedTimeline(fps: 60, duration: project.videoDuration)
             }
@@ -422,8 +427,7 @@ final class EditorCoordinator {
         let hidesIdle = project.hidesIdleCursor
         if _cursorOverlayProviderHidesIdle != hidesIdle {
             _cursorOverlayProviderHidesIdle = hidesIdle
-            if let url = project.cursorTelemetryURL,
-               let data = try? CursorTelemetry.load(from: url) {
+            if let data = loadedTelemetry() {
                 _cursorOverlayProvider = CursorOverlayProvider(events: data.events, hidesIdleCursor: hidesIdle)
             }
         }
@@ -694,7 +698,6 @@ final class EditorCoordinator {
             blurEffects: blurEffects,
             cursorImage: SendableCIImage(cursorCIImage),
             cursorOverlayProvider: cursorOverlayProvider,
-            applyTrimRegions: false,
             destination: destination,
             quality: quality
         ) { [weak self] progress in
@@ -747,7 +750,7 @@ final class EditorCoordinator {
     }
 
     private func setupEndObserver() {
-        NotificationCenter.default.addObserver(
+        endObserver = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime,
             object: playerItem,
             queue: .main

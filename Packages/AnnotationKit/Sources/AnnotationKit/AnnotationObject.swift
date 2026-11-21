@@ -54,7 +54,7 @@ public enum ArrowHeadStyle: String, Codable, CaseIterable, Sendable {
     case tapered
 }
 
-public struct StrokeStyle: Sendable {
+public struct StrokeStyle: Sendable, Equatable {
     public var color: AnnotationColor
     public var lineWidth: CGFloat
     public var opacity: CGFloat
@@ -181,4 +181,27 @@ public protocol AnnotationObject: AnyObject, Sendable {
     func render(in context: CGContext)
     func move(by delta: CGSize)
     func copy() -> any AnnotationObject
+}
+
+/// Every value the toolbar can restyle on an object. Comparing it before and after a
+/// restyle tells whether the booked undo step changed anything (audit A10, 21.11.).
+public struct AnnotationStyleState: Equatable {
+    let style: StrokeStyle
+    let blockSize: CGFloat?
+    let mode: RedactionMode?
+    let radius: CGFloat?
+    let textColors: [AnnotationColor?]
+
+    public init(of object: any AnnotationObject) {
+        style = object.style
+        let pixelate = object as? PixelateObject
+        blockSize = pixelate?.blockSize
+        mode = pixelate?.mode
+        radius = (object as? CounterObject)?.radius
+        if let text = object as? TextObject {
+            textColors = [text.fillColor, text.outlineColor, text.glyphStrokeColor]
+        } else {
+            textColors = []
+        }
+    }
 }

@@ -43,8 +43,13 @@ RESUME_HINT=""
 fail() {
     echo "✗ $*" >&2
     [ -z "${RESUME_HINT}" ] || echo "→ ${RESUME_HINT}" >&2
+    RESUME_HINT=""
     exit 1
 }
+# Abbruch ohne fail() (set -e bei git tag/add/commit, control-C): den Wiederanlauf-Hinweis
+# trotzdem zeigen, sonst steht ein halb veröffentlichtes Release ohne „ZU TUN“ da (Audit S2).
+trap 'rc=$?; if [ "$rc" -ne 0 ] && [ -n "${RESUME_HINT}" ]; then echo "✗ abgebrochen (Exit $rc)" >&2; echo "→ ${RESUME_HINT}" >&2; fi' EXIT
+trap 'exit 130' INT TERM
 step() { echo ""; echo "▶ $*"; }
 
 # Nur 0 oder 1: `[ "$PUBLISH" -eq 0 ]` war bei "no" ein Vergleichsfehler und
@@ -265,7 +270,10 @@ echo "  ✓ ${ZIP} ($(du -h "${ZIP}" | cut -f1)), mit unzip und ditto geprüft"
 
 # Stream-Deck-Plugin: eigene Release-Datei (README → Stream Deck), notarisiert, Version = App.
 DECK_PKG="${DIST}/streamdeck/Knippi.streamDeckPlugin"
-DEVELOPER_ID="${DEVELOPER_ID}" NOTARY_PROFILE="${NOTARY_PROFILE}" sh StreamDeck/build.sh \
+# Probelauf ohne Notarisierung des Plugins: spart Minuten, veröffentlicht wird ja nichts (Audit S14).
+DECK_NOTARY_FLAG=""
+[ "${PUBLISH}" = "1" ] || DECK_NOTARY_FLAG="--no-notary"
+DEVELOPER_ID="${DEVELOPER_ID}" NOTARY_PROFILE="${NOTARY_PROFILE}" sh StreamDeck/build.sh ${DECK_NOTARY_FLAG} \
     || fail "Stream-Deck-Plugin nicht gebaut"
 DECK_ABS="${PWD}/${DECK_PKG}"
 V="$(mktemp -d)"
@@ -373,7 +381,10 @@ fi
 RESUME_HINT=""
 
 FEED="https://raw.githubusercontent.com/${REPO}/main/appcast.xml"
-if curl -fsS --netrc-file /dev/null "${FEED}" 2>/dev/null | grep -q "${VERSION}"; then
+# Erst lesen, dann suchen: mit pipefail meldet `curl | grep -q` bei großem Feed einen
+# Schreibfehler (141) trotz Treffer, und eine nackte Versionsnummer trifft auch Fließtext (Audit S11).
+FEED_XML="$(curl -fsS --netrc-file /dev/null "${FEED}" 2>/dev/null || true)"
+if grep -qF "<sparkle:shortVersionString>${VERSION}<" <<<"${FEED_XML}"; then
     echo "  ✓ Feed nennt ${VERSION}"
 else
     echo "  ⚠️  Feed nennt ${VERSION} noch nicht — raw.githubusercontent cacht bis zu 5 Min."

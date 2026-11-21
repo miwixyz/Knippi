@@ -189,7 +189,11 @@ public enum FileNaming {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
+        // Braces become parentheses so a window title like "{date}" is not replaced as a
+        // placeholder (audit E22/P15).
         let sanitized = sanitizeFilenameScalars(in: trimmed)
+            .replacingOccurrences(of: "{", with: "(")
+            .replacingOccurrences(of: "}", with: ")")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return sanitized.isEmpty ? nil : sanitized
     }
@@ -199,6 +203,10 @@ public enum FileNaming {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         while sanitized.hasSuffix(".") {
             sanitized.removeLast()
+        }
+        // A leading dot makes a hidden file: the screenshot seemed not to be saved (audit E22).
+        while sanitized.hasPrefix(".") {
+            sanitized.removeFirst()
         }
         sanitized = sanitized.trimmingCharacters(in: .whitespacesAndNewlines)
         return capToByteLength(sanitized, bytes: maxBaseNameUTF8Length)
@@ -212,12 +220,22 @@ public enum FileNaming {
             case "/", ":", "\0":
                 result.append("-")
             default:
-                if scalar.value >= 0x20 {
+                // Bidi controls (e.g. U+202E right-to-left override from a web page title) could
+                // disguise the shown file name (audit E22). Only those: joiners like U+200D
+                // keep emoji sequences and some scripts intact.
+                if scalar.value >= 0x20, !Self.isBidiControl(scalar) {
                     result.unicodeScalars.append(scalar)
                 }
             }
         }
         return result
+    }
+
+    private static func isBidiControl(_ scalar: Unicode.Scalar) -> Bool {
+        switch scalar.value {
+        case 0x200E, 0x200F, 0x061C, 0x202A...0x202E, 0x2066...0x2069: true
+        default: false
+        }
     }
 
     private static func capToByteLength(_ value: String, bytes: Int) -> String {

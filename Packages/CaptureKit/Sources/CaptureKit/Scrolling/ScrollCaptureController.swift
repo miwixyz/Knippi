@@ -8,7 +8,6 @@ import os
 public struct ScrollCaptureConfig: Sendable {
     public let captureRect: CGRect
     public let displayID: CGDirectDisplayID
-    public let mode: ScrollMode
     public let maxHeight: Int
     /// Diagnostics: every captured frame is written here as PNG, with the
     /// detected offsets in `offsets.csv`. Nil in normal use.
@@ -17,21 +16,14 @@ public struct ScrollCaptureConfig: Sendable {
     public init(
         captureRect: CGRect,
         displayID: CGDirectDisplayID,
-        mode: ScrollMode = .manual,
         maxHeight: Int = 30_000,
         debugFrameDirectory: URL? = nil
     ) {
         self.captureRect = captureRect
         self.displayID = displayID
-        self.mode = mode
         self.maxHeight = maxHeight
         self.debugFrameDirectory = debugFrameDirectory
     }
-}
-
-public enum ScrollMode: Sendable {
-    case auto
-    case manual
 }
 
 public struct ScrollCaptureProgress: @unchecked Sendable {
@@ -342,9 +334,12 @@ public final class ScrollCaptureController: @unchecked Sendable {
             let content = try await SCShareableContent.excludingDesktopWindows(
                 false, onScreenWindowsOnly: true
             )
+            // No fallback to another display: the capture rect is in this
+            // display's coordinates, so any other display would yield the
+            // wrong content (audit C17, 21.11.).
             guard let display = content.displays.first(where: {
                 $0.displayID == config.displayID
-            }) ?? content.displays.first else {
+            }) else {
                 throw CaptureError.noDisplayFound
             }
 
@@ -424,10 +419,8 @@ public final class ScrollCaptureController: @unchecked Sendable {
         var footer = 0
 
         static func detect(frame1: CGImage, frame2: CGImage) -> FixedRegions {
-            FixedRegions(
-                header: HeaderDetector.detectHeaderHeight(frame1: frame1, frame2: frame2),
-                footer: HeaderDetector.detectFooterHeight(frame1: frame1, frame2: frame2)
-            )
+            let rows = HeaderDetector.detectFixedRows(frame1: frame1, frame2: frame2)
+            return FixedRegions(header: rows.header, footer: rows.footer)
         }
     }
 

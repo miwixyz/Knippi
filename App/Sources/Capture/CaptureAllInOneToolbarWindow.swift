@@ -44,6 +44,10 @@ final class CaptureAllInOneToolbarWindow {
     var onPin: ((CGRect) -> Void)?
     var onPinRendered: ((CGImage, CGRect) -> Void)?
     var onOCRRendered: ((CGImage, CGRect) -> Void)?
+    /// Rendering the annotated image failed while annotations exist. The
+    /// action is aborted instead of silently exporting the unannotated
+    /// original (audit C12, 21.11.).
+    var onAnnotationRenderFailed: (() -> Void)?
     var onCancel: (() -> Void)?
 
     init(
@@ -188,18 +192,10 @@ final class CaptureAllInOneToolbarWindow {
             },
             onOCR: { [weak self] in
                 guard let self else { return }
-                if let annotationOverlay = self.annotationOverlay {
-                    annotationOverlay.renderImage(afterCommit: { [weak self] rendered in
-                        guard let self else { return }
-                        if let rendered {
-                            self.onOCRRendered?(rendered, self.screenLocalSelectionRect)
-                        } else {
-                            self.onOCR?(self.screenLocalSelectionRect)
-                        }
-                    })
-                } else {
-                    self.onOCR?(self.screenLocalSelectionRect)
-                }
+                self.performAnnotatedAction(
+                    rendered: { $0.onOCRRendered?($1, $2) },
+                    original: { $0.onOCR?($1) }
+                )
             },
             onRecording: { [weak self] in
                 guard let self else { return }
@@ -422,48 +418,48 @@ final class CaptureAllInOneToolbarWindow {
     }
 
     private func performCopyAction() {
-        if let annotationOverlay {
-            annotationOverlay.renderImage(afterCommit: { [weak self] rendered in
-                guard let self else { return }
-                if let rendered {
-                    self.onCopyRendered?(rendered, self.screenLocalSelectionRect)
-                } else {
-                    self.onCopy?(self.screenLocalSelectionRect)
-                }
-            })
-        } else {
-            onCopy?(screenLocalSelectionRect)
-        }
+        performAnnotatedAction(
+            rendered: { $0.onCopyRendered?($1, $2) },
+            original: { $0.onCopy?($1) }
+        )
     }
 
     private func performSaveAction() {
-        if let annotationOverlay {
-            annotationOverlay.renderImage(afterCommit: { [weak self] rendered in
-                guard let self else { return }
-                if let rendered {
-                    self.onSaveRendered?(rendered, self.screenLocalSelectionRect)
-                } else {
-                    self.onSave?(self.screenLocalSelectionRect)
-                }
-            })
-        } else {
-            onSave?(screenLocalSelectionRect)
-        }
+        performAnnotatedAction(
+            rendered: { $0.onSaveRendered?($1, $2) },
+            original: { $0.onSave?($1) }
+        )
     }
 
     private func performPinAction() {
-        if let annotationOverlay {
-            annotationOverlay.renderImage(afterCommit: { [weak self] rendered in
-                guard let self else { return }
-                if let rendered {
-                    self.onPinRendered?(rendered, self.screenLocalSelectionRect)
-                } else {
-                    self.onPin?(self.screenLocalSelectionRect)
-                }
-            })
-        } else {
-            onPin?(screenLocalSelectionRect)
+        performAnnotatedAction(
+            rendered: { $0.onPinRendered?($1, $2) },
+            original: { $0.onPin?($1) }
+        )
+    }
+
+    /// Runs an export action with the annotated render when an annotation
+    /// overlay exists, otherwise with the plain selection. A failed render
+    /// only falls back to the original when there is nothing to lose; with
+    /// annotations present the action is aborted (audit C12, 21.11.).
+    private func performAnnotatedAction(
+        rendered: @escaping (CaptureAllInOneToolbarWindow, CGImage, CGRect) -> Void,
+        original: @escaping (CaptureAllInOneToolbarWindow, CGRect) -> Void
+    ) {
+        guard let annotationOverlay else {
+            original(self, screenLocalSelectionRect)
+            return
         }
+        annotationOverlay.renderImage(afterCommit: { [weak self] image in
+            guard let self else { return }
+            if let image {
+                rendered(self, image, self.screenLocalSelectionRect)
+            } else if annotationOverlay.annotationDocument?.objects.isEmpty == false {
+                self.onAnnotationRenderFailed?()
+            } else {
+                original(self, self.screenLocalSelectionRect)
+            }
+        })
     }
 
     private func installKeyboardMonitor() {

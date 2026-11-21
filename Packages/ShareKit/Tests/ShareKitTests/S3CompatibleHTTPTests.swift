@@ -469,6 +469,20 @@ struct S3CompatibleHTTPTests {
         )
     }
 
+    @Test("HTML error pages are dropped and long bodies are cut (audit Q17)")
+    func shortensErrorBodies() {
+        let portal = Data("<!DOCTYPE html><html><body>Please log in to the hotel Wi-Fi</body></html>".utf8)
+        #expect(S3CompatibleHTTP.mapResponseError(statusCode: 502, body: portal) == .unknown("HTTP 502"))
+
+        let long = String(repeating: "x", count: 500)
+        guard case let .unknown(message) = S3CompatibleHTTP.mapResponseError(statusCode: 500, body: Data(long.utf8)) else {
+            Issue.record("expected .unknown")
+            return
+        }
+        #expect(message == "HTTP 500: " + String(repeating: "x", count: 120) + "…")
+        #expect(S3CompatibleHTTP.errorSnippet("a\n  b\tc") == "a b c")
+    }
+
     // MARK: - Destinations / public URL
 
     @Test("S3 and R2 destinations still construct through the factory")
