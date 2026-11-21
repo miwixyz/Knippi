@@ -39,6 +39,15 @@ enum BeautifyRenderer {
 
         let canvasRect = CGRect(x: 0, y: 0, width: outputWidth, height: outputHeight)
 
+        // Rounded outer corners: everything below (background, shadow, screenshot)
+        // is clipped, the corners stay transparent. Not for "none": there the
+        // transparent canvas has no visible edge to round.
+        if settings.backgroundStyle != .none {
+            let radius = min(settings.outerCornerRadius, min(canvasRect.width, canvasRect.height) / 2)
+            ctx.addPath(Path(roundedRect: canvasRect, cornerRadius: radius, style: .continuous).cgPath)
+            ctx.clip()
+        }
+
         switch settings.backgroundStyle {
         case .solid:
             fillSolid(ctx, canvasRect, settings)

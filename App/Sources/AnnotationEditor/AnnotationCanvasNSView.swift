@@ -157,6 +157,13 @@ final class AnnotationCanvasNSView: NSView {
         commitTextEditing()
     }
 
+    /// With a background behind (Beautify preview), the margin a grown canvas adds and
+    /// transparent pixels show that background instead of the dark fill and the
+    /// checkerboard; the export puts the background there too (Michael, 21.11.).
+    var showsBackgroundBehind = false {
+        didSet { if showsBackgroundBehind != oldValue { needsDisplay = true } }
+    }
+
     var zoomScale: CGFloat = 1.0 {
         didSet {
             updateBoundsOrigin()
@@ -444,9 +451,13 @@ final class AnnotationCanvasNSView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
 
-        ctx.setFillColor(CGColor(gray: 0.12, alpha: 1))
-        ctx.fill(bounds)
-        if let img = sourceImage {
+        if showsBackgroundBehind {
+            ctx.clear(bounds)
+        } else {
+            ctx.setFillColor(CGColor(gray: 0.12, alpha: 1))
+            ctx.fill(bounds)
+        }
+        if let img = sourceImage, !showsBackgroundBehind {
             drawTransparencyChecker(ctx: ctx, outside: CGRect(x: 0, y: 0, width: CGFloat(img.width) * zoomScale, height: CGFloat(img.height) * zoomScale), dirtyRect: dirtyRect)
         }
 

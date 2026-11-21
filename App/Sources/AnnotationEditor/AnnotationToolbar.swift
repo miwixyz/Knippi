@@ -71,19 +71,27 @@ struct AnnotationToolbar: View {
                         presetsMenu
                         toolbarDivider
                         cropGroup
-                        findSensitiveButton
-                        toolbarDivider
-                        beautifyGroup
                         toolbarDivider
                         undoGroup
                     }
                 }
                 Spacer(minLength: 0)
+                // Pinned like the actions: in a narrow editor the scrolling row hid
+                // them without any hint (Michael, 21.11.: "wo kann ich den Hintergrund ändern?").
+                HStack(spacing: 12) {
+                    findSensitiveButton
+                    beautifyGroup
+                }
+                .fixedSize()
+                toolbarDivider
                 actionGroup
             }
 
             if isFontSizeMode {
                 textEffectsGroup
+                    .transition(.opacity)
+            } else if currentTool == .pixelate {
+                redactionModeGroup
                     .transition(.opacity)
             }
         }
@@ -155,6 +163,26 @@ struct AnnotationToolbar: View {
         AnnotationColorControls(currentColor: $currentColor)
     }
 
+    /// Second row for the pixelate tool, like the text effects for the text tool.
+    /// In the main row the German labels ("Schwarzer Balken") didn't fit: first they
+    /// covered the colour field, then the pinned buttons cut them off (Michael, 21.11.).
+    private var redactionModeGroup: some View {
+        HStack(spacing: 8) {
+            Picker("", selection: $redactionMode) {
+                ForEach(RedactionMode.allCases, id: \.self) { mode in
+                    Text(mode.localizedLabel).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .fixedSize()
+            .help(redactionMode == .solid
+                  ? String(localized: "Redaction Mode")
+                  : String(localized: "Not for confidential data – use the black bar."))
+            Spacer(minLength: 0)
+        }
+    }
+
     private var strokeGroup: some View {
         HStack(spacing: 8) {
             if isFontSizeMode {
@@ -163,20 +191,7 @@ struct AnnotationToolbar: View {
                     .frame(width: 80)
                     .help("Font Size: \(Int(lineWidth))")
             } else if currentTool == .pixelate {
-                Picker("", selection: $redactionMode) {
-                    ForEach(RedactionMode.allCases, id: \.self) { mode in
-                        Text(mode.localizedLabel).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                // Natural width: German labels ("Schwarzer Balken") overflowed a fixed
-                // 184 pt and covered the colour field (Michael, 21.11.). The row scrolls.
-                .fixedSize()
-                .help(redactionMode == .solid
-                      ? String(localized: "Redaction Mode")
-                      : String(localized: "Not for confidential data – use the black bar."))
-
+                // The mode picker sits in its own row below (`redactionModeGroup`).
                 if redactionMode != .solid {
                     Slider(value: $lineWidth, in: 4...48, step: 2)
                         .frame(width: 80)

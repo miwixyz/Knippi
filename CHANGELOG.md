@@ -2,6 +2,27 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.1.3] — 2026-11-21
+
+### Geändert
+
+- **Hintergrund mit runden Ecken:** Das ganze Bild samt Hintergrund hat jetzt abgerundete
+  Ecken, passend zu den Ecken der Aufnahme. Außerhalb ist es durchsichtig (PNG). Die Vorschau
+  im Editor zeigt die Ecken genauso.
+- **Editor-Vorschau passt sich an:** Änderst du Hintergrund, Format oder Abstand oder klappst
+  den Bereich „Hintergrund“ auf, zeigt der Editor wieder das ganze Bild. Vorher blieb der Zoom
+  stehen und das Bild lief unten aus dem Fenster. Hast du selbst gezoomt, bleibt dein Zoom.
+- **Editor-Vorschau mit Hintergrund:** Durchsichtige Stellen zeigen den Hintergrund statt eines
+  Karomusters, so wie im fertigen Bild.
+
+### Behoben
+
+- **Editor:** „Hintergrund“ und „Vertrauliches finden“ stehen jetzt fest rechts neben Sichern
+  und Teilen. In einem schmalen Editor-Fenster waren sie vorher aus der Werkzeugleiste
+  herausgeschoben, ohne dass man es sah.
+- **Editor:** Die Auswahl Verpixeln / Weichzeichnen / Schwarzer Balken steht jetzt in einer
+  eigenen Zeile unter der Werkzeugleiste, sobald das Verpixeln-Werkzeug aktiv ist.
+
 ## [0.1.2] — 2026-11-21
 
 ### Neu

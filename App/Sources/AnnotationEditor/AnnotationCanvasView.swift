@@ -19,6 +19,9 @@ struct AnnotationCanvasView: NSViewRepresentable {
     let zoomScale: CGFloat
     /// Top-left of the visible canvas in image coordinates; negative once annotations grow it past the image.
     var canvasOrigin: CGPoint = .zero
+    /// A background preview lies behind the canvas: transparent areas stay clear so
+    /// it shows through, as in the exported picture.
+    var showsBackgroundBehind = false
     let refreshTrigger: Int
     var textRegions: [CGRect] = []
     var commitEditingTrigger: Int = 0
@@ -63,6 +66,7 @@ struct AnnotationCanvasView: NSViewRepresentable {
         view.currentTextGlyphStrokeColor = textGlyphStrokeColor
         view.zoomScale = zoomScale
         view.canvasOrigin = canvasOrigin
+        view.showsBackgroundBehind = showsBackgroundBehind
         view.textRegions = textRegions
         view.onDocumentChanged = { onDocumentChanged?() }
         view.onObjectCreated = {
@@ -99,6 +103,7 @@ struct AnnotationCanvasView: NSViewRepresentable {
         nsView.currentTextGlyphStrokeColor = textGlyphStrokeColor
         nsView.zoomScale = zoomScale
         nsView.canvasOrigin = canvasOrigin
+        nsView.showsBackgroundBehind = showsBackgroundBehind
         nsView.textRegions = textRegions
         nsView.onDocumentChanged = { onDocumentChanged?() }
         nsView.onObjectCreated = {

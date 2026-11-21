@@ -128,14 +128,29 @@ final class BeautifyRendererTests: XCTestCase {
 
     // MARK: - Backgrounds
 
+    /// The whole picture has rounded corners (inner radius + margin), transparent outside.
+    func testBackgroundHasRoundedOuterCorners() throws {
+        var settings = Self.enabledSettings()
+        settings.backgroundColor = .black
+        let output = try XCTUnwrap(BeautifyRenderer.render(image: try Self.opaqueImage(width: 100, height: 100), settings: settings)).image
+        let rep = NSBitmapImageRep(cgImage: output)
+        XCTAssertEqual(settings.outerCornerRadius, settings.cornerRadius + settings.padding)
+        for (x, y) in [(1, 1), (output.width - 2, 1), (1, output.height - 2), (output.width - 2, output.height - 2)] {
+            XCTAssertEqual(try XCTUnwrap(rep.colorAt(x: x, y: y)).alphaComponent, 0, "corner \(x),\(y) transparent")
+        }
+        XCTAssertEqual(try XCTUnwrap(rep.colorAt(x: 1, y: output.height / 2)).alphaComponent, 1, "edge midpoint opaque")
+        XCTAssertEqual(try XCTUnwrap(rep.colorAt(x: output.width / 2, y: 1)).alphaComponent, 1, "edge midpoint opaque")
+    }
+
     func testGradientIsNotFlat() throws {
         var settings = Self.enabledSettings()
         settings.backgroundStyle = .gradient(.polarlicht)
         let output = try XCTUnwrap(BeautifyRenderer.render(image: try Self.opaqueImage(width: 100, height: 100), settings: settings))
         XCTAssertNil(output.warning)
         let rep = NSBitmapImageRep(cgImage: output.image)
-        let topLeft = try XCTUnwrap(rep.colorAt(x: 1, y: 1)?.usingColorSpace(.deviceRGB))
-        let bottomRight = try XCTUnwrap(rep.colorAt(x: output.image.width - 2, y: output.image.height - 2)?.usingColorSpace(.deviceRGB))
+        // Inside the rounded outer corners (radius 52), outside the screenshot (inset 66).
+        let topLeft = try XCTUnwrap(rep.colorAt(x: 60, y: 60)?.usingColorSpace(.deviceRGB))
+        let bottomRight = try XCTUnwrap(rep.colorAt(x: output.image.width - 60, y: output.image.height - 60)?.usingColorSpace(.deviceRGB))
         let delta = abs(topLeft.redComponent - bottomRight.redComponent)
             + abs(topLeft.greenComponent - bottomRight.greenComponent)
             + abs(topLeft.blueComponent - bottomRight.blueComponent)
@@ -149,7 +164,7 @@ final class BeautifyRendererTests: XCTestCase {
         settings.backgroundStyle = .image(URL(fileURLWithPath: "/nonexistent/knippi-\(UUID().uuidString).png"))
         let output = try XCTUnwrap(BeautifyRenderer.render(image: try Self.opaqueImage(width: 100, height: 100), settings: settings))
         XCTAssertNotNil(output.warning)
-        let corner = try XCTUnwrap(NSBitmapImageRep(cgImage: output.image).colorAt(x: 1, y: 1)?.usingColorSpace(.deviceRGB))
+        let corner = try XCTUnwrap(NSBitmapImageRep(cgImage: output.image).colorAt(x: 1, y: output.image.height / 2)?.usingColorSpace(.deviceRGB))
         XCTAssertEqual(corner.alphaComponent, 1)
         XCTAssertLessThan(corner.redComponent + corner.greenComponent + corner.blueComponent, 0.05, "solid fallback")
     }
@@ -168,7 +183,7 @@ final class BeautifyRendererTests: XCTestCase {
         settings.aspect = .portrait4x5
         let output = try XCTUnwrap(BeautifyRenderer.render(image: try Self.opaqueImage(width: 100, height: 100), settings: settings))
         XCTAssertNil(output.warning)
-        let corner = try XCTUnwrap(NSBitmapImageRep(cgImage: output.image).colorAt(x: 1, y: 1)?.usingColorSpace(.deviceRGB))
+        let corner = try XCTUnwrap(NSBitmapImageRep(cgImage: output.image).colorAt(x: 1, y: output.image.height / 2)?.usingColorSpace(.deviceRGB))
         XCTAssertGreaterThan(corner.greenComponent, 0.9)
         XCTAssertLessThan(corner.redComponent, 0.1)
     }

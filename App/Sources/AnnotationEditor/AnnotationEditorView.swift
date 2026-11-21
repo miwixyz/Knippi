@@ -97,6 +97,11 @@ struct AnnotationEditorView: View {
     @State private var isEditingText = false
     @State private var beautifySettings = BeautifySettings.saved()
     @State private var showBeautifyPanel = false
+    /// Size of the canvas area, so the zoom can be refitted when the picture or
+    /// the space for it changes (background panel, format, margin).
+    @State private var canvasAreaSize: CGSize = .zero
+    /// True while the zoom shows the whole picture; zooming by hand turns it off.
+    @State private var isZoomFitted = true
     @State private var beautifyBackgroundPreview: CGImage?
     @State private var beautifyBackgroundPreviewURL: URL?
     @State private var refreshTrigger = 0
@@ -449,6 +454,14 @@ struct AnnotationEditorView: View {
             .onChange(of: textStrokeEnabled) { _, _ in updateSelectedStyle() }
             .onChange(of: redactionMode) { _, _ in updateSelectedStyle() }
             .onChange(of: geo.size, handleCanvasSizeChange)
+            .onChange(of: CGSize(width: previewContentWidth, height: previewContentHeight)) { _, _ in
+                handlePreviewContentSizeChange()
+            }
+            // Pinch, scroll or buttons: still showing the whole picture?
+            .onChange(of: zoomScale) { _, newScale in
+                guard canvasAreaSize.width > 0 else { return }
+                isZoomFitted = abs(newScale - fitScale(for: canvasAreaSize)) < 0.001
+            }
         }
     }
 
@@ -465,6 +478,27 @@ struct AnnotationEditorView: View {
             width: beautifySettings.isEnabled ? previewWidth : effectiveImageWidth * zoomScale,
             height: beautifySettings.isEnabled ? previewHeight : effectiveImageHeight * zoomScale
         )
+        // Same rounded outer corners as `BeautifyRenderer` on export, so the
+        // preview shows what gets copied or saved (Michael, 21.11.).
+        // Only with a visible background: without it nothing may be clipped
+        // (selection handles can reach past the image edge).
+        .modifier(OuterCornerClip(radius: previewOuterCornerRadius))
+    }
+
+    private struct OuterCornerClip: ViewModifier {
+        let radius: CGFloat
+        func body(content: Content) -> some View {
+            if radius > 0 {
+                content.clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+            } else {
+                content
+            }
+        }
+    }
+
+    private var previewOuterCornerRadius: CGFloat {
+        guard beautifySettings.isEnabled, beautifySettings.backgroundStyle != .none else { return 0 }
+        return min(beautifySettings.outerCornerRadius * zoomScale, min(previewWidth, previewHeight) / 2)
     }
 
     private var annotationCanvas: some View {
@@ -480,6 +514,7 @@ struct AnnotationEditorView: View {
             textGlyphStrokeColor: textGlyphStrokeColor,
             zoomScale: zoomScale,
             canvasOrigin: canvasRect.origin,
+            showsBackgroundBehind: beautifySettings.isEnabled && beautifySettings.backgroundStyle != .none,
             refreshTrigger: refreshTrigger,
             textRegions: textRegions,
             commitEditingTrigger: commitEditingTrigger,
@@ -637,6 +672,7 @@ struct AnnotationEditorView: View {
     }
 
     private func handleCanvasAppear(size: CGSize) {
+        canvasAreaSize = size
         fitToWindow(availableSize: size)
         lineWidth = savedWidth(for: currentTool)
         strokePattern = savedStrokePattern
@@ -703,8 +739,23 @@ struct AnnotationEditorView: View {
         updateSelectedStyle()
     }
 
+    /// The canvas area changed (window resized, background panel opened or closed):
+    /// keep showing the whole picture unless the user zoomed by hand.
     private func handleCanvasSizeChange(oldSize: CGSize, newSize: CGSize) {
-        if zoomScale == fitScale(for: newSize) { return }
+        canvasAreaSize = newSize
+        refitIfFitted()
+    }
+
+    /// The picture changed size (background on/off, format, margin, shadow): before,
+    /// the zoom stayed put and the picture ran out of the window (Michael, 21.11.:
+    /// "keine richtige Vorschau").
+    private func handlePreviewContentSizeChange() {
+        refitIfFitted()
+    }
+
+    private func refitIfFitted() {
+        guard isZoomFitted, canvasAreaSize.width > 0, canvasAreaSize.height > 0 else { return }
+        zoomScale = fitScale(for: canvasAreaSize)
     }
 
     private func handleDocumentChanged() {
@@ -738,15 +789,11 @@ struct AnnotationEditorView: View {
         invalidateDragCache()
     }
 
+    /// "Einpassen": the measured canvas area, not the window minus a fixed toolbar
+    /// height, which ignored the background panel.
     private func refitToCurrentWindow() {
-        if let window = NSApp.keyWindow {
-            let toolbarH: CGFloat = 90
-            let available = CGSize(
-                width: window.contentView?.bounds.width ?? 800,
-                height: (window.contentView?.bounds.height ?? 600) - toolbarH
-            )
-            fitToWindow(availableSize: available)
-        }
+        guard canvasAreaSize.width > 0, canvasAreaSize.height > 0 else { return }
+        fitToWindow(availableSize: canvasAreaSize)
     }
 
     private func fitScale(for size: CGSize) -> CGFloat {
@@ -759,14 +806,17 @@ struct AnnotationEditorView: View {
 
     private func fitToWindow(availableSize: CGSize) {
         zoomScale = fitScale(for: availableSize)
+        isZoomFitted = true
     }
 
     private func zoomIn() {
         zoomScale = CanvasZoom.clampScale(zoomScale * 1.25, min: 0.1, max: 4.0)
+        isZoomFitted = false
     }
 
     private func zoomOut() {
         zoomScale = CanvasZoom.clampScale(zoomScale / 1.25, min: 0.1, max: 4.0)
+        isZoomFitted = false
     }
 
     /// Update the selected object's style when color/lineWidth/filled changes

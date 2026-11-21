@@ -41,7 +41,7 @@ Bildschirmfotos landen ab Werk in **Bilder/Knippi**, als „Knippi JJJJ-MM-TT um
 
 Pfeil, Linie, Rechteck, Ellipse, Text, Freihand, Textmarker, Zähler, Spotlight und Verpixeln. command + Z widerruft den letzten Schritt. Mit „Kopieren“ (command + C) landet das fertige Bild in der Zwischenablage, mit „Sichern“ im Ausgabeordner.
 
-**Hintergrund:** Im Editor unter „Hintergrund“ legst du einen Rahmen um die Aufnahme: einen der Verläufe Polarlicht, Abendglut oder Graphit, eine Farbe oder ein eigenes Bild. Die Formate 16:9, 1:1 und 4:5 passen für Folien und soziale Netzwerke. Fenster-Aufnahmen können „Transparent mit Schatten“ bleiben.
+**Hintergrund:** Im Editor rechts oben, neben Sichern und Teilen, öffnet der Knopf „Hintergrund“ die Einstellungen. Damit legst du einen Rahmen um die Aufnahme: einen der Verläufe Polarlicht, Abendglut oder Graphit, eine Farbe oder ein eigenes Bild. Die Formate 16:9, 1:1 und 4:5 passen für Folien und soziale Netzwerke. Das ganze Bild bekommt dabei abgerundete Ecken, außen durchsichtig; im Format JPEG gibt es keine Durchsichtigkeit. Fenster-Aufnahmen können „Transparent mit Schatten“ bleiben.
 
 ## Vertrauliches finden
 

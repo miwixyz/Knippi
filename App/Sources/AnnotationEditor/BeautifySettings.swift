@@ -116,6 +116,10 @@ struct BeautifySettings {
     var clampedShadowRadius: CGFloat { shadowEnabled ? max(0, shadowRadius) : 0 }
     var shadowInset: CGFloat { shadowEnabled ? clampedShadowRadius + 6 : 0 }
     var outerInset: CGFloat { clampedPadding + shadowInset }
+    /// Corner radius of the whole picture (background included), concentric with the
+    /// screenshot's own corners: inner radius plus the margin (Michael, 21.11.: "das
+    /// ganze Fenster mit Hintergrund soll abgerundete Ecken haben").
+    var outerCornerRadius: CGFloat { clampedCornerRadius + clampedPadding }
 
     /// Whole-pixel canvas size for an image of `imageSize`: uniform
     /// `outerInset` on every side, then widened or heightened to `aspect`.
