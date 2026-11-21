@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.1.3</title>
+            <pubDate>Sat, 21 Nov 2026 10:47:25 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>521</sparkle:version>
+            <sparkle:shortVersionString>0.1.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Hintergrund mit runden Ecken:</b> Das ganze Bild samt Hintergrund hat jetzt abgerundete Ecken, passend zu den Ecken der Aufnahme. Außerhalb ist es durchsichtig (PNG). Die Vorschau im Editor zeigt die Ecken genauso.</li><li><b>Editor-Vorschau passt sich an:</b> Änderst du Hintergrund, Format oder Abstand oder klappst den Bereich „Hintergrund“ auf, zeigt der Editor wieder das ganze Bild. Vorher blieb der Zoom stehen und das Bild lief unten aus dem Fenster. Hast du selbst gezoomt, bleibt dein Zoom.</li><li><b>Editor-Vorschau mit Hintergrund:</b> Durchsichtige Stellen zeigen den Hintergrund statt eines Karomusters, so wie im fertigen Bild.</li></ul><h3>Behoben</h3><ul><li><b>Editor:</b> „Hintergrund“ und „Vertrauliches finden“ stehen jetzt fest rechts neben Sichern und Teilen. In einem schmalen Editor-Fenster waren sie vorher aus der Werkzeugleiste herausgeschoben, ohne dass man es sah.</li><li><b>Editor:</b> Die Auswahl Verpixeln / Weichzeichnen / Schwarzer Balken steht jetzt in einer eigenen Zeile unter der Werkzeugleiste, sobald das Verpixeln-Werkzeug aktiv ist.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.3/Knippi-0.1.3.zip" length="5532803" type="application/octet-stream" sparkle:edSignature="N09/r77WhyprJem4XBFtU1/5iSq6Z1/PBuNQLL9ZnuSmaZ1sGcZwObA53afVxmY0kdKlXxqnD3xJ5rvhi8dTCA=="/>
+        </item>
+        <item>
             <title>0.1.2</title>
             <pubDate>Sat, 21 Nov 2026 09:51:09 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Updates:</b> In 0.1.0 startete die Update-Suche nicht („Update nicht erfolgreich“). Ab 0.1.1 sucht Knippi wieder selbst nach neuen Versionen. Wer 0.1.0 installiert hat, lädt 0.1.1 einmal von Hand, danach kommen Updates automatisch.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.1/Knippi-0.1.1.zip" length="5524061" type="application/octet-stream" sparkle:edSignature="x3sfA+gi22xt4TsrX1DneJ4fPAc7VDVgW+KSfo6GKuZTWG1jQlvFcr504k6XA1fHRTbff/TTPtI1aqpsTVP7Bw=="/>
         </item>
-        <item>
-            <title>0.1.0</title>
-            <pubDate>Fri, 20 Nov 2026 17:38:18 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>512</sparkle:version>
-            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><p>Erste Fassung. Knippi ist eine schlanke Screenshot-App für die Menüleiste, entstanden aus Capso von lzhgus (MIT).</p><h3>Neu</h3><ul><li><b>Aufnehmen:</b> Bereich, Fenster oder ganzer Bildschirm. Eigene Kürzel ab Werk, auf Wunsch auch command + shift + 3, 4 und 5.</li><li><b>Schnellzugriff:</b> Nach jeder Aufnahme erscheint ein Vorschaubild in der Ecke. Alternativ öffnet sich gleich der Editor, oder Knippi sichert still. Einstellbar unter „Nach der Aufnahme“.</li><li><b>Editor</b> mit Pfeilen, Text, Markierungen, Zählern und Verpixeln.</li><li><b>Vertrauliches finden:</b> Knippi schlägt E-Mail-Adressen, Telefonnummern, IBAN, Kartennummern und Zugangsschlüssel zum Schwärzen vor. Offene Vorschläge werden vor jedem Export geschwärzt.</li><li><b>Schwarzer Balken</b> als Standard zum Schwärzen, deckend statt durchscheinend.</li><li><b>Color Picker</b> als eigene Aufnahmeart (option + shift + 9) mit Lupe, mehreren Farbformaten und „Letzte Farben“ in der Menüleiste.</li><li><b>Hintergründe:</b> drei Verläufe (Polarlicht, Abendglut, Graphit), eigenes Bild, Formate 16:9, 1:1 und 4:5. Fenster-Aufnahmen behalten auf Wunsch einen durchsichtigen Hintergrund mit Schatten.</li><li><b>Texterkennung:</b> Text aus einem Bildschirmbereich kopieren.</li><li><b>Teilen-Menü</b> im Schnellzugriff (AirDrop, Nachrichten und mehr). command + P heftet die Aufnahme an.</li><li><b>Speichern:</b> Ordner wählbar, ab Werk <code>Bilder/Knippi</code>, Dateiname „Knippi JJJJ-MM-TT um HH.MM.SS“. Knippi überschreibt nie eine fremde Datei und meldet Speicherfehler sichtbar.</li><li><b>Ohne Bildschirmaufnahme-Freigabe</b> zeigt Knippi einen Hinweis mit „Einstellungen öffnen“, statt still ein leeres Bild zu liefern.</li><li><b>Updates</b> kommen automatisch über einen signierten Update-Feed.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.0/Knippi-0.1.0.zip" length="5523941" type="application/octet-stream" sparkle:edSignature="8dkWKNpJxcB67BWL2uv0hTuJSeUaXx4tlpxrF5usG/ZsFY86XfOsrljnHvAwrJqd0IsCp9sPEiV+dcRvbaG4Bw=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: 0983ZudbuXwqMUu1A9Bg6pScJDpCZCHHznnUY+sv/askxX9hxAl9HGovW5OnWLNnIN4Iihvcl80Tas5wPGGtBw==
-length: 6481
+edSignature: LUImRv9b9KMuNEPi8m7Gc6GNyceH0VfDw+cnF0FW2dRj56R2wa7rZ4u9io7UV5Gw36F6Hck5oMqJGvlAxcM4BQ==
+length: 5781
 -->
