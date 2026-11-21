@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.3.0</title>
+            <pubDate>Sat, 21 Nov 2026 16:23:20 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>526</sparkle:version>
+            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Bildschirmvideo und GIF:</b> Im Menü „Bereich aufzeichnen“ (option + shift + 5) oder „Ganzen Bildschirm aufzeichnen“. In der Leiste wählst du Video oder GIF, Systemaudio und wahlweise das Mikrofon. Pausieren ist möglich, die Pause fehlt im fertigen Video.</li><li><b>Sprecherbild:</b> Über das Kamera-Symbol in der Leiste blendest du dein Kamerabild ein, in Kreis-, Quadrat-, Quer- oder Hochformat und drei Größen. Vor dem Start ziehst du es an seinen Platz. Während der Aufnahme weicht es der Maus sanft aus und kehrt danach zurück; mit gedrückter command-Taste lässt es sich auch während der Aufnahme greifen. Die Einstellungen bleiben offen, bis du daneben klickst.</li><li><b>Automatisch gesichert:</b> Nach dem Stoppen landet das Video sofort im Sicherungsordner.</li></ul><h3>Hinweise</h3><ul><li>Mikrofon und Kamera fragt macOS erst, wenn du sie zum ersten Mal einschaltest.</li><li>Lange GIFs werden zuerst ruckeliger (bis 10 Bilder pro Sekunde), dann kleiner, damit der Speicher nicht überläuft (gemessen: 150 Bilder in voller Größe brauchten 3,6 GB).</li><li>Bricht eine Aufnahme ab (Freigabe entzogen, Datei nicht schreibbar), sagt Knippi es und sichert, was bis dahin aufgenommen war.</li></ul><h3>Behoben</h3><ul><li><b>Speicher nach der Aufnahme:</b> Knippi hielt das zuletzt aufgenommene Bild dauerhaft im Speicher, auch nachdem das Vorschaubild geschlossen war. Bei einer langen Scroll-Aufnahme waren das rund 180 MB (gemessen: 229 MB statt etwa 50 MB im Ruhezustand). Jetzt gibt Knippi das Bild frei, sobald es nirgends mehr angezeigt wird.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.3.0/Knippi-0.3.0.zip" length="5636828" type="application/octet-stream" sparkle:edSignature="LS3VdENdZLSaOVPe6k0yhXjWwJ0mBzD96Z+1BUTamIhfMP3Z1KWVzLiHGfcjoZ1OkZ295SP7qXmiuHAjAgZNCQ=="/>
+        </item>
+        <item>
             <title>0.2.0</title>
             <pubDate>Sat, 21 Nov 2026 14:18:22 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Geändert</h3><ul><li><b>Hintergrund mit runden Ecken:</b> Das ganze Bild samt Hintergrund hat jetzt abgerundete Ecken, passend zu den Ecken der Aufnahme. Außerhalb ist es durchsichtig (PNG). Die Vorschau im Editor zeigt die Ecken genauso.</li><li><b>Editor-Vorschau passt sich an:</b> Änderst du Hintergrund, Format oder Abstand oder klappst den Bereich „Hintergrund“ auf, zeigt der Editor wieder das ganze Bild. Vorher blieb der Zoom stehen und das Bild lief unten aus dem Fenster. Hast du selbst gezoomt, bleibt dein Zoom.</li><li><b>Editor-Vorschau mit Hintergrund:</b> Durchsichtige Stellen zeigen den Hintergrund statt eines Karomusters, so wie im fertigen Bild.</li></ul><h3>Behoben</h3><ul><li><b>Editor:</b> „Hintergrund“ und „Vertrauliches finden“ stehen jetzt fest rechts neben Sichern und Teilen. In einem schmalen Editor-Fenster waren sie vorher aus der Werkzeugleiste herausgeschoben, ohne dass man es sah.</li><li><b>Editor:</b> Die Auswahl Verpixeln / Weichzeichnen / Schwarzer Balken steht jetzt in einer eigenen Zeile unter der Werkzeugleiste, sobald das Verpixeln-Werkzeug aktiv ist.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.3/Knippi-0.1.3.zip" length="5532803" type="application/octet-stream" sparkle:edSignature="N09/r77WhyprJem4XBFtU1/5iSq6Z1/PBuNQLL9ZnuSmaZ1sGcZwObA53afVxmY0kdKlXxqnD3xJ5rvhi8dTCA=="/>
         </item>
-        <item>
-            <title>0.1.2</title>
-            <pubDate>Sat, 21 Nov 2026 09:51:09 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>519</sparkle:version>
-            <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Nach Updates suchen</b> jetzt auch direkt im Menü der Menüleiste.</li><li><b>Update-Hinweis im Menü:</b> Findet Knippi im Hintergrund eine neue Version, steht oben im Menü „Update auf … verfügbar“. Vorher öffnete sich dafür ein Fenster, das hinter anderen Programmen verschwinden konnte.</li></ul><h3>Geändert</h3><ul><li><b>Vertrauliches finden verpixelt jetzt</b> statt schwarz zu balken. Die Klötzchen sind so groß wie die Textzeile hoch ist und bekommen zusätzlich eine zufällige Helligkeit. Dadurch lässt sich der Text praktisch nicht zurückrechnen. Ruhiger als der schwarze Balken.</li><li><b>Editor:</b> Der Knopf für Hintergrund und Format (16:9, 1:1, 4:5) heißt jetzt „Hintergrund“ statt nur ein Symbol zu zeigen.</li><li><b>Letzte Farben</b> zeigen neben dem Farbcode die Farbe.</li></ul><h3>Behoben</h3><ul><li><b>Editorleiste:</b> Die Auswahl Verpixeln / Weichzeichnen / Schwarzer Balken überdeckte das Farbfeld. Der Fenstertitel des Editors ist jetzt deutsch.</li><li><b>Sichern aus dem Editor:</b> Schlägt das Speichern fehl, bleibt der Editor offen, die Bearbeitung geht nicht mehr verloren.</li><li><b>Dateinamen</b> haben jetzt in jeder Region dasselbe Datumsformat (vorher z. B. mit buddhistischer Jahreszahl, wenn der Mac so eingestellt war).</li><li><b>Farbwert HSL</b> zeigt bei Rottönen nicht mehr „360“, sondern richtig „0“.</li><li>Knippi verlangt keine Mikrofon-Berechtigung mehr (Bildschirmvideo ist noch nicht enthalten).</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.2/Knippi-0.1.2.zip" length="5530058" type="application/octet-stream" sparkle:edSignature="i/MpCueGe+eLPdgA5jEvJPTM0nq9pS046FMkjD/jggptMsuiwz/DRF05gjjlc1/eEqjiwoqmOu06IXdv/D3MAg=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: 6AZrDfrwzs0v7DzCsUrthlxAbD0kBNGqJeixd6C4FQGX4SroOOThR6KaU6yttyIqxFJRSAOGRIzO9XMRo54xAg==
-length: 6816
+edSignature: aBpMyfftCzFrNEYtxxeIbNeg1qdqFeLh3bAHf13hoTcbopjvhBLGtZx2MZe128VF66YyokigLmPjJVAJ/zOaBw==
+length: 6911
 -->
