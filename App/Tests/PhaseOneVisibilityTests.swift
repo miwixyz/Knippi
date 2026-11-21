@@ -2,11 +2,11 @@ import XCTest
 import SharedKit
 @testable import Knippi
 
-/// Phase 1 hides screen recording and scrolling capture (Knippi spec §2).
+/// Screen recording stays hidden; scrolling capture is on since 0.2.0 (Knippi spec §2).
 final class PhaseOneVisibilityTests: XCTestCase {
-    func testFlagsAreOffInPhaseOne() {
+    func testOnlyScreenRecordingIsHidden() {
         XCTAssertFalse(FeatureFlags.screenRecording)
-        XCTAssertFalse(FeatureFlags.scrollingCapture)
+        XCTAssertTrue(FeatureFlags.scrollingCapture)
     }
 
     func testAutomationSheetDropsHiddenCommandsAndEmptySections() {
@@ -22,7 +22,7 @@ final class PhaseOneVisibilityTests: XCTestCase {
         ])
 
         XCTAssertEqual(sections.map(\.id), ["screenshots"])
-        XCTAssertEqual(sections.first?.items.map(\.id), ["area"])
+        XCTAssertEqual(sections.first?.items.map(\.id), ["area", "scrolling"])
     }
 
     func testPreferencesSidebarHidesRecordingTab() {

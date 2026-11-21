@@ -165,3 +165,193 @@ struct ScrollCapturePipelineTests {
         }
     }
 }
+
+/// Text pages repeat: lines that differ only in a small detail (a number)
+/// must not be mistaken for each other once the real overlap is gone.
+@Suite("Scroll offset with repeating lines")
+struct ScrollOffsetRepeatingLinesTests {
+    private static let width = 600
+    private static let lineHeight = 40
+    private static let viewport = 800
+
+    /// A well-scattered shade per line, like a printed line number.
+    static func numberShade(_ line: Int) -> UInt8 {
+        var x = UInt64(line) &+ 0x9E37_79B9_7F4A_7C15
+        x = (x ^ (x >> 30)) &* 0xBF58_476D_1CE4_E5B9
+        x = (x ^ (x >> 27)) &* 0x94D0_49BB_1331_11EB
+        return UInt8(20 + (x ^ (x >> 31)) % 200)
+    }
+
+    /// Line n: a stripe pattern repeating every 6 lines, plus a small
+    /// "number" block whose shade is unique to the line.
+    static func image(scrolledTo scroll: Int, numberWidth: Int = 60) -> CGImage {
+        var pixels = [UInt8](repeating: 255, count: width * viewport * 4)
+        for row in 0..<viewport {
+            let y = scroll + row
+            let line = y / lineHeight
+            let inLine = y % lineHeight
+            for col in 0..<width {
+                var shade: UInt8 = 255
+                if (8..<30).contains(inLine) {
+                    if col < numberWidth {
+                        // Wide: one shade per line. Narrow: black and white bars
+                        // unique to the line, like the digits of a line number.
+                        shade = numberWidth >= 60 ? Self.numberShade(line)
+                            : (Int(Self.numberShade(line)) * 2654435761 >> (col / 2 + 3)) & 1 == 0 ? 30 : 230
+                    }
+                    else if col < 80 + 80 * (line % 6) { shade = (col / 7 + line % 6).isMultiple(of: 3) ? 30 : 200 }
+                }
+                let i = (row * width + col) * 4
+                pixels[i] = shade; pixels[i + 1] = shade; pixels[i + 2] = shade; pixels[i + 3] = 255
+            }
+        }
+        return CGImage(
+            width: width, height: viewport, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: width * 4,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue),
+            provider: CGDataProvider(data: Data(pixels) as CFData)!, decode: nil, shouldInterpolate: false, intent: .defaultIntent
+        )!
+    }
+
+    private func profile(_ scroll: Int) throws -> RowProfileMatcher.Profile {
+        try #require(RowProfileMatcher.Profile(Self.image(scrolledTo: scroll)))
+    }
+
+    @Test("A real shift with half the frame overlapping is found exactly")
+    func realShiftIsFound() throws {
+        #expect(RowProfileMatcher.offset(from: try profile(0), to: try profile(400), top: 0, bottom: 0)?.offset == 400)
+        #expect(RowProfileMatcher.offset(from: try profile(400), to: try profile(123), top: 0, bottom: 0)?.offset == -277)
+    }
+
+    @Test("Without real overlap, a look-alike is rejected when re-finding the page")
+    func lookAlikeIsRejected() throws {
+        // 2400 rows = 60 lines further: same stripes, only the number blocks differ.
+        #expect(RowProfileMatcher.offset(
+            from: try profile(0), to: try profile(2400), top: 0, bottom: 0, strict: true
+        ) == nil)
+    }
+
+    /// Like a monospaced text page: only a narrow "number" (2 % of the width)
+    /// tells lines six apart, as in the PDF and Mail tests of 2026-11-21.
+    private func narrowProfile(_ scroll: Int) throws -> RowProfileMatcher.Profile {
+        try #require(RowProfileMatcher.Profile(Self.image(scrolledTo: scroll, numberWidth: 12)))
+    }
+
+    @Test("Lines that differ only in a narrow number are still told apart")
+    func narrowDifferenceIsFound() throws {
+        for shift in [240, 417, 480, 577] {
+            #expect(RowProfileMatcher.offset(from: try narrowProfile(0), to: try narrowProfile(shift),
+                                             top: 0, bottom: 0)?.offset == shift)
+        }
+    }
+
+    @Test("Without real overlap, a narrow look-alike is rejected when re-finding the page")
+    func narrowLookAlikeIsRejected() throws {
+        #expect(RowProfileMatcher.offset(from: try narrowProfile(0), to: try narrowProfile(2400),
+                                         top: 0, bottom: 0, strict: true) == nil)
+    }
+
+    private func capture(_ scrolls: [Int], numberWidth: Int = 60) async -> (CGImage?, sawTrackingLost: Bool) {
+        let frames = scrolls.map { Self.image(scrolledTo: $0, numberWidth: numberWidth) }
+        let feed = FrameFeed(frames)
+        let lost = Counter()
+        let controller = ScrollCaptureController(
+            config: ScrollCaptureConfig(captureRect: .zero, displayID: 0),
+            frameInterval: .zero, maxConsecutiveFailures: 1, frameSource: { try feed.next() }
+        )
+        let outcome = await withCheckedContinuation { continuation in
+            controller.start(onProgress: { if $0.isTrackingLost { lost.increment() } },
+                             onComplete: { continuation.resume(returning: $0) })
+        }
+        guard case let .failed(_, partial) = outcome else { return (nil, lost.value > 0) }
+        return (partial, lost.value > 0)
+    }
+
+    @Test("Fast scrolling through repeating lines gives the exact page")
+    func fastScrollThroughRepeatingLines() async {
+        let (page, lost) = await capture(Array(stride(from: 0, through: 2400, by: 300)))
+        #expect(page?.height == 2400 + Self.viewport)
+        #expect(!lost)
+    }
+
+    @Test("Fast scrolling through narrowly different lines gives the exact page")
+    func fastScrollThroughNarrowLines() async {
+        let (page, lost) = await capture(Array(stride(from: 0, through: 2400, by: 240)), numberWidth: 12)
+        #expect(page?.height == 2400 + Self.viewport)
+        #expect(!lost)
+    }
+
+    @Test("A jump past the overlap is not stitched; scrolling back continues")
+    func jumpLosesTrackUntilScrolledBack() async {
+        // 0 → 300 stitched; jump to 2400 (no overlap with 300…1100); back to 700.
+        let (page, lost) = await capture([0, 300, 2400, 2100, 700])
+        #expect(lost)
+        #expect(page?.height == 700 + Self.viewport)
+    }
+}
+
+final class FrameFeed: @unchecked Sendable {
+    private struct EndOfFrames: Error {}
+    private let lock = NSLock()
+    private var index = 0
+    private let frames: [CGImage]
+    init(_ frames: [CGImage]) { self.frames = frames }
+    func next() throws -> CGImage {
+        try lock.withLock {
+            guard index < frames.count else { throw EndOfFrames() }
+            defer { index += 1 }
+            return frames[index]
+        }
+    }
+}
+
+@Suite("Scroll capture auto mode")
+struct ScrollCaptureAutoModeTests {
+    /// A page that moves `step` rows per scroll call and stops at `end`.
+    final class FakePage: @unchecked Sendable {
+        private let lock = NSLock()
+        private var scroll = 0
+        private(set) var scrollCalls = 0
+        let step: Int, end: Int
+        init(step: Int, end: Int) { self.step = step; self.end = end }
+        func scrollDown() { lock.withLock { scrollCalls += 1; scroll = min(end, scroll + step) } }
+        func frame() -> CGImage { ScrollOffsetRepeatingLinesTests.image(scrolledTo: lock.withLock { scroll }) }
+        var calls: Int { lock.withLock { scrollCalls } }
+    }
+
+    @Test("Auto mode scrolls by itself and stops at the end of the page")
+    func autoModeStopsAtPageEnd() async {
+        let page = FakePage(step: 400, end: 2000)
+        let controller = ScrollCaptureController(
+            config: ScrollCaptureConfig(captureRect: .zero, displayID: 0),
+            frameInterval: .milliseconds(1), maxConsecutiveFailures: 3,
+            frameSource: { page.frame() },
+            autoScroller: { page.scrollDown() }
+        )
+        let outcome = await withCheckedContinuation { continuation in
+            controller.start(onProgress: { _ in }, onComplete: { continuation.resume(returning: $0) })
+        }
+        guard case let .finished(image) = outcome else { Issue.record("expected finished, got \(outcome)"); return }
+        #expect(image.height == 2000 + 800)
+        // 5 steps to reach the end, then 2 steps that no longer move.
+        #expect(page.calls == 5 + ScrollCaptureController.unmovedStepsAtPageEnd)
+    }
+
+    @Test("Auto mode stops early when the user clicks Done")
+    func autoModeStopsOnDone() async {
+        let page = FakePage(step: 400, end: 100_000)
+        let controller = ScrollCaptureController(
+            config: ScrollCaptureConfig(captureRect: .zero, displayID: 0, maxHeight: 1_000_000),
+            frameInterval: .milliseconds(5), maxConsecutiveFailures: 3,
+            frameSource: { page.frame() },
+            autoScroller: { page.scrollDown() }
+        )
+        let outcome = await withCheckedContinuation { continuation in
+            controller.start(onProgress: { progress in
+                if progress.frameCount >= 3 { controller.stop() }
+            }, onComplete: { continuation.resume(returning: $0) })
+        }
+        guard case let .finished(image) = outcome else { Issue.record("expected finished, got \(outcome)"); return }
+        #expect(image.height >= 800 + 2 * 400)
+        #expect(page.calls < 20)
+    }
+}

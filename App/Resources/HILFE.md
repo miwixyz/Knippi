@@ -14,6 +14,7 @@ Beim ersten Bildschirmfoto fragt macOS nach der Freigabe **Bildschirm- und Syste
 | option + shift + 2 | Vollbild aufnehmen |
 | option + shift + 3 | Fenster aufnehmen |
 | option + shift + 4 | Text erfassen (Texterkennung) |
+| option + shift + 6 | Scroll-Aufnahme (lange Seite) |
 | option + shift + 7 | Bereich in die Zwischenablage |
 | option + shift + 8 | Bereich aufnehmen & annotieren |
 | option + shift + 9 | Farbe aufnehmen (Color Picker) |
@@ -32,6 +33,22 @@ Unter Einstellungen → Bildschirmfotos → „Nach der Aufnahme“ wählst du:
 - **Still:** Knippi kopiert und sichert, ohne etwas anzuzeigen.
 
 Ab Werk wird jede Aufnahme gleich in die Zwischenablage kopiert.
+
+## Scroll-Aufnahme
+
+Für Seiten, die länger sind als der Bildschirm: Webseiten, Mails, PDFs.
+
+1. Im Menü **Scroll-Aufnahme** wählen (oder option + shift + 6) und den Bereich aufziehen, der gescrollt wird.
+2. **Aufnahme starten** und selbst scrollen, oder **Automatisch**: Knippi scrollt dann von allein und hört am Seitenende auf. Die Maus dabei nicht bewegen.
+3. **Fertig** beendet die Aufnahme, **Esc** oder **Abbrechen** verwirft sie.
+
+Feste Kopf- und Fußleisten der Seite erscheinen im Bild nur einmal.
+
+**Rahmen wird orange („Zu schnell – etwas zurückscrollen“):** Du hast schneller gescrollt, als Knippi Bilder machen kann, und der Anschluss fehlt. Scroll ein Stück zurück, bis der Rahmen wieder blau ist, dann weiter. Knippi setzt nie an einer unsicheren Stelle an.
+
+**„Automatisch“** braucht die Freigabe **Gerätesteuerung und Datenzugriff** unter Systemeinstellungen → Datenschutz & Sicherheit. Beim ersten Mal fragt macOS danach.
+
+**Höchstlänge:** Bei 30 000 Pixeln endet die Aufnahme mit dem Hinweis „Maximale Länge erreicht“. Für noch längere Seiten in zwei Teilen aufnehmen.
 
 ## Speichern
 

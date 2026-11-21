@@ -11,13 +11,16 @@ final class ScrollCaptureOverlay {
     private var borderWindow: NSPanel?
     private var controlsWindow: NSPanel?
     private var previewWindow: NSPanel?
+    private var borderView: ScrollCaptureBorderView?
     private let viewModel = ScrollCaptureViewModel()
     private var localKeyMonitor: Any?
     private var globalKeyMonitor: Any?
     private var keyEventTap: CFMachPort?
     private var keyEventTapRunLoopSource: CFRunLoopSource?
+    private var escapeHotKey: ScrollCaptureEscapeHotKey?
 
     var onStart: (() -> Void)?
+    var onAutoStart: (() -> Void)?
     var onDone: (() -> Void)?
     var onCancel: (() -> Void)?
 
@@ -40,13 +43,17 @@ final class ScrollCaptureOverlay {
         viewModel.isCapturing = capturing
     }
 
-    func updatePreview(image: CGImage, height: Int, frameCount: Int) {
+    func updatePreview(image: CGImage, height: Int, frameCount: Int, isTrackingLost: Bool = false) {
+        viewModel.isTrackingLost = isTrackingLost
+        borderView?.isWarning = isTrackingLost
         viewModel.previewImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
         viewModel.currentHeight = height
         viewModel.frameCount = frameCount
     }
 
     func close() {
+        escapeHotKey?.unregister()
+        escapeHotKey = nil
         if let localKeyMonitor {
             NSEvent.removeMonitor(localKeyMonitor)
             self.localKeyMonitor = nil
@@ -81,6 +88,10 @@ final class ScrollCaptureOverlay {
     }
 
     private func installKeyHandlers() {
+        escapeHotKey = ScrollCaptureEscapeHotKey { [weak self] in
+            self?.onCancel?()
+        }
+
         localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
 
@@ -174,6 +185,7 @@ final class ScrollCaptureOverlay {
 
         let borderView = ScrollCaptureBorderView(frame: NSRect(origin: .zero, size: borderRect.size))
         panel.contentView = borderView
+        self.borderView = borderView
 
         self.borderWindow = panel
         panel.orderFrontRegardless()
@@ -184,7 +196,8 @@ final class ScrollCaptureOverlay {
     private func showControls(screenRect: NSRect, screen: NSScreen) {
         let controlsRect = ScrollCaptureOverlayPlacement.controlsFrame(
             selectionRect: screenRect,
-            visibleFrame: screen.visibleFrame
+            visibleFrame: screen.visibleFrame,
+            controlsSize: CGSize(width: 460, height: ScrollCaptureOverlayPlacement.defaultControlsSize.height)
         )
 
         let panel = NSPanel(
@@ -202,6 +215,7 @@ final class ScrollCaptureOverlay {
         let hostingView = NSHostingView(rootView: ScrollCaptureControlsView(
             viewModel: viewModel,
             onStart: { [weak self] in self?.onStart?() },
+            onAutoStart: { [weak self] in self?.onAutoStart?() },
             onCancel: { [weak self] in self?.onCancel?() },
             onDone: { [weak self] in self?.onDone?() }
         ))
@@ -244,6 +258,10 @@ final class ScrollCaptureOverlay {
 
 final class ScrollCaptureBorderView: NSView {
     private var dashPhase: CGFloat = 0
+    /// Orange while the capture has lost track of the page (scrolled too fast).
+    var isWarning = false {
+        didSet { if isWarning != oldValue { needsDisplay = true } }
+    }
     private nonisolated(unsafe) var animTimer: Timer?
 
     override init(frame: NSRect) {
@@ -263,8 +281,8 @@ final class ScrollCaptureBorderView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
         let rect = bounds.insetBy(dx: 3, dy: 3)
-        ctx.setStrokeColor(NSColor.systemBlue.withAlphaComponent(0.8).cgColor)
-        ctx.setLineWidth(2.5)
+        ctx.setStrokeColor((isWarning ? NSColor.systemOrange : NSColor.systemBlue).withAlphaComponent(0.9).cgColor)
+        ctx.setLineWidth(isWarning ? 4 : 2.5)
         ctx.setLineDash(phase: dashPhase, lengths: [6, 4])
         ctx.stroke(rect)
     }
@@ -279,8 +297,12 @@ final class ScrollCaptureViewModel {
     var currentHeight: Int = 0
     var frameCount: Int = 0
     var isCapturing: Bool = false
+    var isTrackingLost: Bool = false
 
     var statusText: String {
+        if isTrackingLost {
+            return String(localized: "Too fast – scroll back a little")
+        }
         if !isCapturing {
             return String(localized: "Click Start, then scroll")
         }
@@ -296,6 +318,7 @@ final class ScrollCaptureViewModel {
 struct ScrollCaptureControlsView: View {
     let viewModel: ScrollCaptureViewModel
     let onStart: () -> Void
+    let onAutoStart: () -> Void
     let onCancel: () -> Void
     let onDone: () -> Void
 
@@ -315,7 +338,22 @@ struct ScrollCaptureControlsView: View {
                     color: FamilyTheme.accentFill,
                     action: onDone
                 )
+                // The preview panel is missing when the selection fills the
+                // screen, so the warning must show here, next to the buttons.
+                if viewModel.isTrackingLost {
+                    Label(String(localized: "Too fast – scroll back a little"),
+                          systemImage: "exclamationmark.triangle.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.orange)
+                        .lineLimit(2)
+                }
             } else {
+                controlButton(
+                    icon: "arrow.down.to.line",
+                    label: String(localized: "Auto Scroll"),
+                    color: .white.opacity(0.15),
+                    action: onAutoStart
+                )
                 controlButton(
                     icon: "play.fill",
                     label: String(localized: "Start Capture"),

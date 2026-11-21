@@ -28,7 +28,7 @@ struct PermissionSettingsView: View {
                         permissionRow(
                             kind: .accessibility,
                             title: "Accessibility",
-                            subtitle: "Required to cancel recording and scrolling capture with Esc",
+                            subtitle: "Required for auto scroll and to cancel recording with Esc",
                             isGranted: viewModel.accessibilityGranted,
                             showDivider: true
                         )

@@ -2,6 +2,29 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.2.0] — 2026-11-21
+
+### Neu
+
+- **Scroll-Aufnahme:** Nimmt eine lange Seite als ein durchgehendes Bild auf, zum Beispiel
+  eine Webseite, eine Mail oder ein PDF. Im Menü „Scroll-Aufnahme“ oder mit option + shift + 6
+  einen Bereich wählen, dann „Aufnahme starten“ und selbst scrollen, oder „Automatisch“, dann
+  scrollt Knippi bis zum Seitenende von allein. „Fertig“ beendet, Esc bricht ab.
+- **Feste Kopf- und Fußleisten** einer Seite erscheinen im Bild nur einmal.
+- **Zu schnell gescrollt:** Reißt der Anschluss ab, wird der Rahmen orange und Knippi zeigt
+  „Zu schnell – etwas zurückscrollen“. Scrollst du zurück, setzt die Aufnahme dort wieder an.
+  Knippi setzt nie an einer unsicheren Stelle an, auch nicht bei Seiten, deren Zeilen sich
+  stark ähneln (Tabellen, Listen, Protokolle).
+- **Höchstlänge:** Bei 30 000 Pixeln endet die Aufnahme mit dem Hinweis „Maximale Länge
+  erreicht – der Rest der Seite fehlt“.
+
+### Hinweise
+
+- „Automatisch“ braucht die Freigabe **Gerätesteuerung und Datenzugriff**
+  (Systemeinstellungen → Datenschutz & Sicherheit). Fehlt sie, fragt macOS beim ersten Mal.
+- Gemessen an 400 Zeilen langen Seiten: Safari, Mail und Vorschau ohne doppelte oder
+  fehlende Zeilen, 13 bis 24 Sekunden.
+
 ## [0.1.3] — 2026-11-21
 
 ### Geändert

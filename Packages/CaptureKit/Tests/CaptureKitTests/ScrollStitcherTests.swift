@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 import Testing
 @testable import CaptureKit
 
@@ -140,5 +141,57 @@ struct ScrollStitcherTests {
         return abs(pixel.r - components.0)
             + abs(pixel.g - components.1)
             + abs(pixel.b - components.2)
+    }
+}
+
+@Suite("ScrollStitcher cost")
+struct ScrollStitcherCostTests {
+    private static func strip(width: Int, height: Int, shade: UInt8) -> CGImage {
+        var pixels = [UInt8](repeating: shade, count: width * height * 4)
+        for i in stride(from: 3, to: pixels.count, by: 4) { pixels[i] = 255 }
+        return CGImage(
+            width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 32,
+            bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue),
+            provider: CGDataProvider(data: Data(pixels) as CFData)!,
+            decode: nil, shouldInterpolate: false, intent: .defaultIntent
+        )!
+    }
+
+    /// Seconds to stitch `count` frames that each add `step` new rows.
+    private static func stitchTime(count: Int, width: Int = 200, frameHeight: Int = 200, step: Int = 40) -> Double {
+        let frames = (0..<4).map { strip(width: width, height: frameHeight, shade: UInt8(40 + $0 * 50)) }
+        let stitcher = ScrollStitcher()
+        stitcher.setInitialFrame(frames[0])
+        let clock = ContinuousClock()
+        let elapsed = clock.measure {
+            for index in 0..<count {
+                _ = stitcher.stitch(newFrame: frames[index % 4], detectedOffset: step)
+            }
+        }
+        #expect(stitcher.totalHeight == frameHeight + count * step)
+        return Double(elapsed.components.attoseconds) / 1e18 + Double(elapsed.components.seconds)
+    }
+
+    @Test("Stitching grows linearly with page length, not quadratically")
+    func stitchingIsLinear() {
+        _ = Self.stitchTime(count: 50) // warm-up
+        // Fastest of three runs each, so other tests running in parallel do not skew it.
+        let short = (0..<3).map { _ in Self.stitchTime(count: 500) }.min()!
+        let long = (0..<3).map { _ in Self.stitchTime(count: 2000) }.min()!
+        // 4× the frames: linear ≈ 4×, quadratic ≈ 16×.
+        #expect(long / short < 8, "500 frames \(short)s, 2000 frames \(long)s")
+    }
+
+    @Test("Live preview is small and follows the page")
+    func previewIsSmall() throws {
+        let stitcher = ScrollStitcher()
+        stitcher.setInitialFrame(Self.strip(width: 1200, height: 600, shade: 80))
+        for _ in 0..<20 {
+            _ = stitcher.stitch(newFrame: Self.strip(width: 1200, height: 600, shade: 160), detectedOffset: 100)
+        }
+        let preview = try #require(stitcher.previewImage)
+        #expect(preview.width == ScrollStitcher.previewWidth)
+        #expect(abs(preview.height - (600 + 20 * 100) / 5) <= 1)
     }
 }

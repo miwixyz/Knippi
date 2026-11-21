@@ -8,14 +8,16 @@
 # überstehen — unbewiesen, nach dem Neubau im tccd-Log prüfen (auth_value=2).
 #
 # Aufruf:  sh scripts/sichttest.sh
+#          CONFIG=Release sh scripts/sichttest.sh   (optimiert, z. B. für Tempo-Messungen)
 set -eu
 
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_dir"
 
+CONFIG=${CONFIG:-Debug}
 LOG=/tmp/knippi-sichttest-build.log
 xcodegen generate >"$LOG" 2>&1
-if ! xcodebuild -project Knippi.xcodeproj -scheme Knippi -configuration Debug \
+if ! xcodebuild -project Knippi.xcodeproj -scheme Knippi -configuration "$CONFIG" \
     -derivedDataPath build-dev CODE_SIGNING_ALLOWED=NO build >>"$LOG" 2>&1; then
     grep -E 'error:' "$LOG" | sort -u | head -8
     echo "✗ Build fehlgeschlagen — Log: $LOG" >&2
@@ -33,7 +35,7 @@ if [ -e "$DEST" ]; then
     mv "$DEST" "$HOME/.Trash/knippi-sichttest-$(date +%s).app"
 fi
 mkdir -p "$HOME/Applications"
-ditto build-dev/Build/Products/Debug/Knippi.app "$DEST"
+ditto "build-dev/Build/Products/$CONFIG/Knippi.app" "$DEST"
 
 PLIST="$DEST/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c 'Set CFBundleIdentifier dev.mwlr.knippi.sichttest' \

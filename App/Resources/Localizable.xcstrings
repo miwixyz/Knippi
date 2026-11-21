@@ -40720,6 +40720,67 @@
         }
       }
     },
+    "Maximum length reached – the rest of the page is missing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximale Länge erreicht – der Rest der Seite fehlt"
+          }
+        }
+      }
+    },
+    "Scrolling capture stopped early" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scroll-Aufnahme vorzeitig beendet"
+          }
+        }
+      }
+    },
+    "Too fast – scroll back a little" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu schnell – etwas zurückscrollen"
+          }
+        }
+      }
+    },
+    "Auto Scroll" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch"
+          }
+        }
+      }
+    },
+    "Auto scroll needs Accessibility permission in System Settings" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autoscroll braucht in den Systemeinstellungen die Freigabe „Gerätesteuerung und Datenzugriff“"
+          }
+        }
+      }
+    },
+    "Required for auto scroll and to cancel recording with Esc" : {
+      "comment" : "Subtitle of the Accessibility permission row.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erforderlich für Autoscroll und um Aufnahmen mit Esc abzubrechen"
+          }
+        }
+      }
+    },
     "Scroll slowly to capture" : {
       "localizations" : {
         "de" : {

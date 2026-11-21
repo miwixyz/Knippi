@@ -46,6 +46,7 @@ final class CaptureCoordinator {
             || !overlayWindows.isEmpty
             || allInOneToolbarWindow != nil
             || selfTimerHUD != nil
+            || scrollCaptureOverlay != nil
     }
 
     var lastCaptureResult: CaptureResult?
@@ -1403,6 +1404,8 @@ final class CaptureCoordinator {
     private var scrollCaptureDisplayID: CGDirectDisplayID = 0
 
     private func startScrollingCapture(rect: CGRect, screen: NSScreen) {
+        // One scrolling capture at a time; a second overlay would orphan the first.
+        guard scrollCaptureOverlay == nil else { return }
         let screenFrame = screen.frame
         let clampedSelection = ScrollCaptureGeometry.clampedScreenLocalSelection(
             selectionRect: rect,
@@ -1429,6 +1432,10 @@ final class CaptureCoordinator {
             self?.beginScrollingCaptureLoop()
         }
 
+        overlay.onAutoStart = { [weak self] in
+            self?.beginScrollingCaptureLoop(autoScroll: true)
+        }
+
         overlay.onDone = { [weak self] in
             self?.finishScrollingCapture()
         }
@@ -1441,49 +1448,118 @@ final class CaptureCoordinator {
     }
 
     /// Called when user clicks Start — begins the capture loop.
-    private func beginScrollingCaptureLoop() {
+    private func beginScrollingCaptureLoop(autoScroll: Bool = false) {
+        // Start can arrive twice (Return and a click); keep the running loop.
+        guard scrollCaptureController == nil, scrollCaptureOverlay != nil else { return }
         let captureRect = scrollCaptureRect
         let displayID = scrollCaptureDisplayID
+        if autoScroll, !ScrollCaptureAutoScroller.isPermitted {
+            ScrollCaptureAutoScroller.requestPermission()
+            showToast(
+                String(localized: "Auto scroll needs Accessibility permission in System Settings"),
+                icon: "hand.raised",
+                iconColor: .systemYellow
+            )
+            return
+        }
 
+        // Diagnostics for the test copy only (`scripts/sichttest.sh`):
+        // `defaults write dev.mwlr.knippi.sichttest debugScrollFramesFolder <path>`.
+        // Never in the shipped app: any process of the user could set the
+        // default and collect every scrolling capture without its own
+        // Screen Recording permission.
+        let isTestCopy = Bundle.main.bundleIdentifier == "dev.mwlr.knippi.sichttest"
+        let debugFolder = (isTestCopy ? UserDefaults.standard.string(forKey: "debugScrollFramesFolder") : nil).map {
+            URL(fileURLWithPath: $0).appendingPathComponent(
+                "scroll-\(Int(Date().timeIntervalSince1970))", isDirectory: true
+            )
+        }
         let config = ScrollCaptureConfig(
             captureRect: captureRect,
             displayID: displayID,
-            mode: .manual
+            mode: .manual,
+            debugFrameDirectory: debugFolder
         )
-        let controller = ScrollCaptureController(config: config)
+        let controller = ScrollCaptureController(
+            config: config,
+            autoScroller: autoScroll
+                ? ScrollCaptureAutoScroller.make(captureRect: captureRect, displayID: displayID)
+                : nil
+        )
         self.scrollCaptureController = controller
 
         scrollCaptureOverlay?.setCapturing(true)
+        let startedAt = ContinuousClock.now
 
+        // Callbacks of a run that was cancelled (or replaced by a newer one)
+        // must not touch the current overlay.
         controller.start(
             onProgress: { [weak self] progress in
                 Task { @MainActor in
-                    if let mergedImage = controller.currentMergedImage {
-                        self?.scrollCaptureOverlay?.updatePreview(
-                            image: mergedImage,
-                            height: progress.currentHeight,
-                            frameCount: progress.frameCount
-                        )
-                    }
+                    guard let self, self.scrollCaptureController === controller,
+                          let preview = progress.preview else { return }
+                    self.scrollCaptureOverlay?.updatePreview(
+                        image: preview,
+                        height: progress.currentHeight,
+                        frameCount: progress.frameCount,
+                        isTrackingLost: progress.isTrackingLost
+                    )
                 }
             },
-            onComplete: { [weak self] image in
+            onComplete: { [weak self] outcome in
                 Task { @MainActor in
-                    self?.scrollCaptureOverlay?.close()
-                    self?.scrollCaptureOverlay = nil
-                    self?.scrollCaptureController = nil
+                    guard let self, self.scrollCaptureController === controller else { return }
+                    self.scrollCaptureOverlay?.close()
+                    self.scrollCaptureOverlay = nil
+                    self.scrollCaptureController = nil
 
-                    if let image {
-                        let result = CaptureResult(
-                            image: image,
-                            mode: .scrolling,
-                            captureRect: captureRect,
-                            displayID: displayID
+                    let image: CGImage?
+                    defer {
+                        Self.captureLogger.info("Scrolling capture ended: \(String(describing: outcome).prefix(9), privacy: .public), \(image?.width ?? 0, privacy: .public)×\(image?.height ?? 0, privacy: .public) px after \(startedAt.duration(to: .now).formatted(.units(allowed: [.seconds], fractionalPart: .show(length: 1))), privacy: .public)")
+                    }
+                    switch outcome {
+                    case let .finished(finished):
+                        image = finished
+                    case .cancelled:
+                        image = nil
+                    case let .failed(error, partial):
+                        image = partial
+                        self.handleScrollingCaptureFailure(error, keptPartialImage: partial != nil)
+                    }
+                    guard let image else { return }
+                    self.handleCaptureResult(CaptureResult(
+                        image: image,
+                        mode: .scrolling,
+                        captureRect: captureRect,
+                        displayID: displayID
+                    ))
+                    // The page went on, but the image stopped at its limit.
+                    if image.height >= config.maxHeight {
+                        self.showToast(
+                            String(localized: "Maximum length reached – the rest of the page is missing"),
+                            icon: "exclamationmark.triangle",
+                            iconColor: .systemYellow
                         )
-                        self?.handleCaptureResult(result)
                     }
                 }
             }
+        )
+    }
+
+    /// The screen stopped answering mid-capture (e.g. permission revoked).
+    private func handleScrollingCaptureFailure(_ error: Error, keptPartialImage: Bool) {
+        if case .permissionMissing = CaptureErrorPresentation.forError(error) {
+            Self.captureLogger.error("Scrolling capture stopped: permission missing")
+            CapturePermissionNotice.show()
+            return
+        }
+        Self.captureLogger.error("Scrolling capture stopped: \(error.localizedDescription, privacy: .public)")
+        showToast(
+            keptPartialImage
+                ? String(localized: "Scrolling capture stopped early")
+                : String(localized: "Screenshot failed"),
+            icon: "exclamationmark.triangle",
+            iconColor: .systemYellow
         )
     }
 
