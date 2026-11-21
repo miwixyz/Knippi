@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.4.4</title>
+            <pubDate>Sat, 21 Nov 2026 21:19:02 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>536</sparkle:version>
+            <sparkle:shortVersionString>0.4.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Bild-Editor:</b> Ein Klick zum Auswählen legt keinen leeren Rückgängig-Schritt mehr an. Eine Stilvorlage ist ein einziger Rückgängig-Schritt. Höchstens 100 Rückgängig-Schritte. Esc beim Schreiben übernimmt erst den Text. Überfahren des Zieh-Symbols verpixelt die Vorschläge von „Vertrauliches finden“ nicht mehr vorzeitig. Kann Knippi das Bild nicht exportieren oder skalieren, sagt es das.</li><li><b>Verpixeln von Hand</b> bekommt dasselbe Zufallsrauschen wie „Vertrauliches finden“, damit sich Text nicht zurückrechnen lässt. Die Blöcke wirken dadurch etwas fleckiger.</li><li><b>All-in-One:</b> Kann Knippi die Anmerkungen nicht übernehmen, wird nichts unbearbeitet weitergegeben. Rückgängig trennt Farbe, Füllung und Muster.</li><li><b>Scroll-Aufnahme:</b> Return und Enter funktionieren in anderen Apps wieder, sobald die Aufnahme läuft. Wird der Bildschirm abgesteckt, bricht sie ab, statt ein anderes Display aufzunehmen.</li><li><b>Selbstauslöser:</b> Ein Abbruch kurz vor Null löst nicht mehr trotzdem aus.</li><li><b>Video:</b> Zeitanzeige läuft auch bei offenem Menü weiter. Esc während des Countdowns bleibt zuverlässig. Mauszeiger-Daten sammeln sich nicht mehr an. Neustart einer Aufnahme meldet Fehler. Fehlermeldungen beim Export sind verständlich und deutsch. Hochformat-Videos werden für „Social“ und „Web“ verkleinert. Der Aufnahme-Rahmen sitzt enger.</li><li><b>Texterkennung:</b> „Alles kopieren“ beachtet die Einstellung für Zeilenumbrüche, Meldungen sind deutsch.</li><li><b>Cloud-Freigabe:</b> Tencent-COS-Uploads sind enger signiert und kürzer gültig. Fehlerseiten von WLAN-Anmeldeseiten erscheinen nicht mehr als HTML in der Meldung. Ein http://-Ziel zeigt einen Hinweis.</li><li><b>Dateinamen:</b> Fenstertitel können keine versteckten Dateien, unsichtbare Steuerzeichen oder Platzhalter mehr in den Namen bringen.</li><li><b>Einstellungen:</b> Der Schalter „andere Apps dürfen steuern“ zeigt nach der Rückfrage sofort den richtigen Stand.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.4/Knippi-0.4.4.zip" length="5573692" type="application/octet-stream" sparkle:edSignature="b2tZ2pNM4vonZxqj4uEzgVic7yWpxhGog61qJe4YRklv3gMEYwwdPBSv0sjBkJqs4ForuFYTMnHoFqZ8JwjJDA=="/>
+        </item>
+        <item>
             <title>0.4.3</title>
             <pubDate>Sat, 21 Nov 2026 20:44:05 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Verpixelung bleibt stark:</b> Farbe oder Modus einer ausgewählten Verpixelung aus „Vertrauliches finden“ ändern macht die Blöcke nicht mehr kleiner (vorher wurde der Text teils wieder lesbar).</li><li><b>Rückgängig nach Vergrößern:</b> Im All-in-One-Editor sprangen Markierungen nach Bereich vergrößern und Rückgängig an alte Stellen, Schwärzungen lagen neben dem Inhalt.</li><li><b>Drehen im Zuschnitt:</b> Bild und Zuschnittrahmen drehen jetzt in dieselbe Richtung.</li><li><b>Scroll-Aufnahme automatisch:</b> Verliert Knippi die Seite, hört es auf zu scrollen und meldet „vorzeitig beendet“, statt ein still abgeschnittenes Bild zu liefern. Bewegt sich am Seitenende etwas (Video, Ladekreisel), endet die Aufnahme trotzdem von selbst.</li><li><b>Kein Overlay im Bild:</b> Vollbild-, Fenster- und Wiederholen-Kürzel wirken nicht mehr, solange eine Auswahl auf dem Bildschirm ist.</li><li><b>Video:</b> Doppelklick auf Stopp zeigt keine falsche Fehlermeldung mehr. Stoppt Knippi selbst (Platte voll, Freigabe entzogen), sagt die Meldung jetzt, ob schon gesichert ist. Die Kamera startet nicht mehr, wenn die Aufnahme während der Kamera-Abfrage von macOS abgebrochen wurde. Ein Absturz während des Sicherns verliert die Aufnahme nicht mehr. Der Export mit Mikrofon und Systemton hängt bei voller Platte nicht mehr endlos.</li><li><b>Vorschaubild:</b> Schließt sich nicht mehr, solange ein Cloud-Upload läuft oder fehlgeschlagen ist.</li><li><b>Cloud-Freigabe zurücksetzen:</b> Noch offene Vorschaubilder laden danach nicht mehr mit den alten Zugangsdaten hoch.</li><li><b>Kein ungeschwärztes Original mehr:</b> Ist „Automatisch sichern“ an, ersetzen jetzt auch Kopieren, Anheften und „Sichern unter“ aus dem Editor die gesicherte Datei durch die bearbeitete Fassung. Vorher blieb dabei das unbearbeitete, zum Beispiel ungeschwärzte, Original im Ordner liegen.</li><li><b>Andere Apps:</b> In der Rückfrage „Andere App will Knippi steuern“ ist „Nicht erlauben“ jetzt der Standardknopf. Wer die Steuerung in den Einstellungen selbst aus- oder einschaltet, wird später nicht noch einmal gefragt.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.2/Knippi-0.4.2.zip" length="5648918" type="application/octet-stream" sparkle:edSignature="mE6Z0ojAGVQbo5Nytc4lhkeWfFntgiCt8Yrd4d9RRWH+1KOBdZEFPDRYokvFxrHvLMBo0t45vRU9i7REJO5LCw=="/>
         </item>
-        <item>
-            <title>0.4.1</title>
-            <pubDate>Sat, 21 Nov 2026 18:11:46 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>530</sparkle:version>
-            <sparkle:shortVersionString>0.4.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Abbrechen setzt die Aktion zurück:</b> Wer „Bereich aufnehmen &amp; teilen“ (oder „&amp; anheften“, „&amp; kopieren“, „&amp; bearbeiten“) mit Esc abbrach, bekam die Aktion bei der nächsten Vollbild-, Fenster- oder Scroll-Aufnahme trotzdem, also zum Beispiel einen ungewollten Cloud-Upload.</li><li><b>Pause im Bildschirmvideo:</b> Bei stillem Bild schnitt Knippi zu viel heraus und verlor den Ton nach dem Fortsetzen. Jetzt fehlt genau die Zeit zwischen Pause und Fortsetzen.</li></ul><h3>Geändert</h3><ul><li><b>Aufnahmen, die eine andere App auslöst</b> (<code>knippi://grab/fullscreen</code> und <code>/last-area</code>, auch vom Stream Deck), landen nicht mehr automatisch in der Zwischenablage oder in der Cloud. Sie werden immer gesichert, ein Hinweis zeigt sie an, und zwei solche Befehle kurz hintereinander nimmt Knippi nicht an. So kann keine andere App über Knippi den Bildschirm mitlesen.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.1/Knippi-0.4.1.zip" length="5640227" type="application/octet-stream" sparkle:edSignature="SnoWhZKh69GkoXe6vwvIfUUM56Y1rDIWf2b9cbzEZ+disvD4TvpKlvsWBad8HwH/NoYjYR29u1zzlSaDymlCBQ=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: zJCi7PZrRJ+EitKxHFP0WYIjCvltgICTePKHGY4EqWeb8GXmLDp0K92uwPbTid412kRAuJ7liG4zeJW5RydUBQ==
-length: 8641
+edSignature: pOmb3VHnVL3RIvt5mGOtjJa+A9UNg+sJHlknPMF4m0vWElCAYmzSicZgH+J2aAAnBGukGu87U87UD9/UI6lsAA==
+length: 9744
 -->
