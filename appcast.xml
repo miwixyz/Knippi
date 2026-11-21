@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.2.0</title>
+            <pubDate>Sat, 21 Nov 2026 14:18:22 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>523</sparkle:version>
+            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Scroll-Aufnahme:</b> Nimmt eine lange Seite als ein durchgehendes Bild auf, zum Beispiel eine Webseite, eine Mail oder ein PDF. Im Menü „Scroll-Aufnahme“ oder mit option + shift + 6 einen Bereich wählen, dann „Aufnahme starten“ und selbst scrollen, oder „Automatisch“, dann scrollt Knippi bis zum Seitenende von allein. „Fertig“ beendet, Esc bricht ab.</li><li><b>Feste Kopf- und Fußleisten</b> einer Seite erscheinen im Bild nur einmal.</li><li><b>Zu schnell gescrollt:</b> Reißt der Anschluss ab, wird der Rahmen orange und Knippi zeigt „Zu schnell – etwas zurückscrollen“. Scrollst du zurück, setzt die Aufnahme dort wieder an. Knippi setzt nie an einer unsicheren Stelle an, auch nicht bei Seiten, deren Zeilen sich stark ähneln (Tabellen, Listen, Protokolle).</li><li><b>Höchstlänge:</b> Bei 30 000 Pixeln endet die Aufnahme mit dem Hinweis „Maximale Länge erreicht – der Rest der Seite fehlt“.</li></ul><h3>Hinweise</h3><ul><li>„Automatisch“ braucht die Freigabe <b>Gerätesteuerung und Datenzugriff</b> (Systemeinstellungen → Datenschutz &amp; Sicherheit). Fehlt sie, fragt macOS beim ersten Mal.</li><li>Gemessen an 400 Zeilen langen Seiten: Safari, Mail und Vorschau ohne doppelte oder fehlende Zeilen, 13 bis 24 Sekunden.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.2.0/Knippi-0.2.0.zip" length="5564422" type="application/octet-stream" sparkle:edSignature="xKy6pLrWurKG9dLyQ8BYFAT8DY5WlqeSw8vbWTdDnGX4aC2dWf9lpddrpaoqlG+GMPwI/03prx94OoR8jeMxCA=="/>
+        </item>
+        <item>
             <title>0.1.3</title>
             <pubDate>Sat, 21 Nov 2026 10:47:25 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Nach Updates suchen</b> jetzt auch direkt im Menü der Menüleiste.</li><li><b>Update-Hinweis im Menü:</b> Findet Knippi im Hintergrund eine neue Version, steht oben im Menü „Update auf … verfügbar“. Vorher öffnete sich dafür ein Fenster, das hinter anderen Programmen verschwinden konnte.</li></ul><h3>Geändert</h3><ul><li><b>Vertrauliches finden verpixelt jetzt</b> statt schwarz zu balken. Die Klötzchen sind so groß wie die Textzeile hoch ist und bekommen zusätzlich eine zufällige Helligkeit. Dadurch lässt sich der Text praktisch nicht zurückrechnen. Ruhiger als der schwarze Balken.</li><li><b>Editor:</b> Der Knopf für Hintergrund und Format (16:9, 1:1, 4:5) heißt jetzt „Hintergrund“ statt nur ein Symbol zu zeigen.</li><li><b>Letzte Farben</b> zeigen neben dem Farbcode die Farbe.</li></ul><h3>Behoben</h3><ul><li><b>Editorleiste:</b> Die Auswahl Verpixeln / Weichzeichnen / Schwarzer Balken überdeckte das Farbfeld. Der Fenstertitel des Editors ist jetzt deutsch.</li><li><b>Sichern aus dem Editor:</b> Schlägt das Speichern fehl, bleibt der Editor offen, die Bearbeitung geht nicht mehr verloren.</li><li><b>Dateinamen</b> haben jetzt in jeder Region dasselbe Datumsformat (vorher z. B. mit buddhistischer Jahreszahl, wenn der Mac so eingestellt war).</li><li><b>Farbwert HSL</b> zeigt bei Rottönen nicht mehr „360“, sondern richtig „0“.</li><li>Knippi verlangt keine Mikrofon-Berechtigung mehr (Bildschirmvideo ist noch nicht enthalten).</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.2/Knippi-0.1.2.zip" length="5530058" type="application/octet-stream" sparkle:edSignature="i/MpCueGe+eLPdgA5jEvJPTM0nq9pS046FMkjD/jggptMsuiwz/DRF05gjjlc1/eEqjiwoqmOu06IXdv/D3MAg=="/>
         </item>
-        <item>
-            <title>0.1.1</title>
-            <pubDate>Fri, 20 Nov 2026 18:27:02 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>517</sparkle:version>
-            <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Updates:</b> In 0.1.0 startete die Update-Suche nicht („Update nicht erfolgreich“). Ab 0.1.1 sucht Knippi wieder selbst nach neuen Versionen. Wer 0.1.0 installiert hat, lädt 0.1.1 einmal von Hand, danach kommen Updates automatisch.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.1.1/Knippi-0.1.1.zip" length="5524061" type="application/octet-stream" sparkle:edSignature="x3sfA+gi22xt4TsrX1DneJ4fPAc7VDVgW+KSfo6GKuZTWG1jQlvFcr504k6XA1fHRTbff/TTPtI1aqpsTVP7Bw=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: LUImRv9b9KMuNEPi8m7Gc6GNyceH0VfDw+cnF0FW2dRj56R2wa7rZ4u9io7UV5Gw36F6Hck5oMqJGvlAxcM4BQ==
-length: 5781
+edSignature: 6AZrDfrwzs0v7DzCsUrthlxAbD0kBNGqJeixd6C4FQGX4SroOOThR6KaU6yttyIqxFJRSAOGRIzO9XMRo54xAg==
+length: 6816
 -->
