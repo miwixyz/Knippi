@@ -150,6 +150,87 @@ struct FrameCompositorTests {
         )
     }
 
+    // The blur rect lives in source coordinates, so it must be applied before
+    // the zoom; otherwise zooming moves the hidden content out from under it
+    // (audit E2, 21.11.).
+    @Test("Blur stays on the hidden content while zoomed")
+    func blurFollowsContentUnderZoom() {
+        let width = 200, height = 100
+        let base = CIImage(color: .white)
+            .cropped(to: CGRect(x: 0, y: 0, width: width, height: height))
+        // Secret: 2 px black/white stripes at x 20..60, CI y 50..90
+        // (screen-normalized x 0.1..0.3, y 0.1..0.5).
+        var secret = CIImage.empty()
+        for x in stride(from: 20, to: 60, by: 4) {
+            secret = CIImage(color: .black)
+                .cropped(to: CGRect(x: x, y: 50, width: 2, height: 40))
+                .composited(over: secret)
+        }
+        let source = secret.composited(over: base)
+        let effect = RecordingEffectSegment(
+            startTime: 0,
+            endTime: 10,
+            payload: .blur(BlurEffectPayload(
+                rect: NormalizedRect(x: 0.1, y: 0.1, width: 0.2, height: 0.4),
+                radius: 10
+            ))
+        )
+        let compositor = FrameCompositor(
+            sourceSize: CGSize(width: width, height: height),
+            backgroundStyle: BackgroundStyle(enabled: false),
+            outputScale: 1.0
+        )
+        // 2x zoom centred on the secret: it now fills output x 60..140, y 10..90.
+        let result = compositor.compose(
+            frame: source,
+            zoomTransform: FrameTransform(scale: 2, translateX: 0.2, translateY: 0.3),
+            cursorPosition: nil,
+            cursorImage: nil,
+            blurEffects: [effect],
+            time: 1
+        )
+        let bytes = renderedBytes(result, width: width, height: height)
+        // Row 50 in bitmap rows (top-down) is the vertical middle of the secret.
+        let row = 50
+        let lumas = (80..<120).map { bytes[(row * width + $0) * 4 + 1] }
+        let spread = Int(lumas.max()!) - Int(lumas.min()!)
+        #expect(spread < 80, "Stripes under the blur must not be readable, spread \(spread)")
+    }
+
+    @Test("Rounded corners still mask the frame")
+    func roundedCornersMaskFrame() {
+        var style = BackgroundStyle(enabled: true)
+        style.padding = 10
+        style.cornerRadius = 20
+        style.shadowEnabled = false
+        style.colorType = .solid
+        style.solidColor = .init(red: 0, green: 0, blue: 1, alpha: 1)
+        let compositor = FrameCompositor(
+            sourceSize: CGSize(width: 100, height: 80),
+            backgroundStyle: style,
+            outputScale: 1.0
+        )
+        let out = compositor.outputSize
+        let w = Int(out.width), h = Int(out.height)
+        for _ in 0..<2 {
+            let result = compositor.compose(
+                frame: makeTestImage(width: 100, height: 80, color: .red),
+                zoomTransform: .identity,
+                cursorPosition: nil,
+                cursorImage: nil
+            )
+            let bytes = renderedBytes(result, width: w, height: h)
+            func px(_ x: Int, _ y: Int) -> (UInt8, UInt8) {
+                let i = (y * w + x) * 4
+                return (bytes[i], bytes[i + 2])
+            }
+            // Frame corner pixel is masked away (background blue shows) …
+            #expect(px(11, 11).0 < 50 && px(11, 11).1 > 200)
+            // … while the frame centre is red.
+            #expect(px(w / 2, h / 2).0 > 200 && px(w / 2, h / 2).1 < 50)
+        }
+    }
+
     @Test("Without zoom the cursor is drawn where it was", arguments: [
         CGPoint(x: 0.5, y: 0.5), CGPoint(x: 0.2, y: 0.3), CGPoint(x: 0.8, y: 0.75),
     ])

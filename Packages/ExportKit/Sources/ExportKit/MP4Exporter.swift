@@ -85,6 +85,33 @@ enum MP4Exporter {
         return destination
     }
 
+    /// Returns a file with at most one audio track: the source itself, or —
+    /// when system audio and microphone sit in separate tracks — a temporary
+    /// copy with both mixed into one (video passed through). The editor's
+    /// compositor and cut paths export through `AVAssetExportSession`, which
+    /// keeps the tracks separate, so they pre-mix here first (audit E6, 21.11.).
+    /// The caller deletes the copy when `isTemporary` is true.
+    static func sourceWithMergedAudio(_ source: URL) async throws -> (url: URL, isTemporary: Bool) {
+        let asset = AVURLAsset(url: source)
+        let audioTracks = try await asset.loadTracks(withMediaType: .audio)
+        guard audioTracks.count > 1 else { return (source, false) }
+        let mixed = FileManager.default.temporaryDirectory
+            .appendingPathComponent("knippi-premix-\(UUID().uuidString).mp4")
+        do {
+            _ = try await exportWithMergedAudio(
+                asset: asset,
+                audioTracks: audioTracks,
+                destination: mixed,
+                progress: nil,
+                status: nil
+            )
+        } catch {
+            try? FileManager.default.removeItem(at: mixed)
+            throw error
+        }
+        return (mixed, true)
+    }
+
     /// Merge multiple source audio tracks into a single AAC track using
     /// `AVAssetReaderAudioMixOutput` (which sums/mixes all supplied tracks
     /// to PCM) and re-encode through `AVAssetWriter`. Video is passed

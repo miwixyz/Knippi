@@ -17,13 +17,17 @@ public enum CameraPosition: String, CaseIterable, Sendable {
     case topRight
 }
 
-public enum CameraError: Error, LocalizedError {
+public enum CameraError: Error, LocalizedError, Equatable {
     case permissionDenied
+    /// The chosen camera is gone (unplugged) or can't be used right now (audit R8).
+    case deviceUnavailable
 
     public var errorDescription: String? {
         switch self {
         case .permissionDenied:
             return "Camera access is required. Grant permission in System Settings → Privacy & Security → Camera."
+        case .deviceUnavailable:
+            return "The selected camera isn't available."
         }
     }
 }
@@ -54,6 +58,9 @@ public final class CameraManager {
     private var captureSession: AVCaptureSession?
     private var videoOutput: AVCaptureVideoDataOutput?
     private var frameDelegate: CameraFrameDelegate?
+    /// startRunning/stopRunning block for hundreds of ms; Apple asks to keep them off the
+    /// main thread (audit R9, 21.11.).
+    private let sessionQueue = DispatchQueue(label: "dev.mwlr.knippi.camera.session")
 
     public init() {}
 
@@ -89,14 +96,15 @@ public final class CameraManager {
 
     public func start() throws {
         guard !isRunning else { return }
+        // Fail loudly: returning silently left an empty camera bubble in the recording (audit R8).
         guard let deviceID = selectedDeviceID,
-              let device = AVCaptureDevice(uniqueID: deviceID) else { return }
+              let device = AVCaptureDevice(uniqueID: deviceID) else { throw CameraError.deviceUnavailable }
 
         let session = AVCaptureSession()
         session.sessionPreset = .medium
 
         let input = try AVCaptureDeviceInput(device: device)
-        guard session.canAddInput(input) else { return }
+        guard session.canAddInput(input) else { throw CameraError.deviceUnavailable }
         session.addInput(input)
 
         let output = AVCaptureVideoDataOutput()
@@ -105,22 +113,27 @@ public final class CameraManager {
         ]
         let delegate = CameraFrameDelegate { [weak self] image in
             Task { @MainActor in
-                self?.currentFrame = image
+                // stopRunning now runs off the main thread: frames still in flight must not
+                // bring back an old picture after stop() (audit follow-up R9).
+                guard let self, self.isRunning else { return }
+                self.currentFrame = image
             }
         }
         output.setSampleBufferDelegate(delegate, queue: DispatchQueue(label: "dev.mwlr.knippi.camera"))
-        guard session.canAddOutput(output) else { return }
+        guard session.canAddOutput(output) else { throw CameraError.deviceUnavailable }
         session.addOutput(output)
 
         captureSession = session
         videoOutput = output
         frameDelegate = delegate
-        session.startRunning()
+        sessionQueue.async { session.startRunning() }
         isRunning = true
     }
 
     public func stop() {
-        captureSession?.stopRunning()
+        if let session = captureSession {
+            sessionQueue.async { session.stopRunning() }
+        }
         captureSession = nil
         videoOutput = nil
         frameDelegate = nil
@@ -131,6 +144,7 @@ public final class CameraManager {
 
 private final class CameraFrameDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
     private let onFrame: (CGImage) -> Void
+    private static let context = CIContext()
 
     init(onFrame: @escaping (CGImage) -> Void) {
         self.onFrame = onFrame
@@ -139,8 +153,8 @@ private final class CameraFrameDelegate: NSObject, AVCaptureVideoDataOutputSampl
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let ciImage = CIImage(cvImageBuffer: imageBuffer)
-        let context = CIContext()
-        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
+        // One context for all frames: creating one per frame (~30/s) is expensive (audit R9).
+        guard let cgImage = Self.context.createCGImage(ciImage, from: ciImage.extent) else { return }
         onFrame(cgImage)
     }
 }

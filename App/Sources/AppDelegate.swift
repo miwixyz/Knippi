@@ -83,6 +83,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         captureCoordinator!.ocrCoordinator = ocrCoordinator
         captureCoordinator!.recordingCoordinator = recordingCoordinator
         captureCoordinator!.shareCoordinator = shareCoordinator
+        captureCoordinator!.rebuildShareCoordinator = { [weak self] in
+            guard let self else { return nil }
+            self.refreshShareCoordinator()
+            return self.shareCoordinator
+        }
         recordingCoordinator!.desktopIconsCover = desktopIconsCover
         if FeatureFlags.screenRecording {
             recordingCoordinator!.recoverInterruptedRecording()
@@ -445,11 +450,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return try keychain.get(account: account)
         } catch KeychainError.interactionNotAllowed {
             // Keychain locked (e.g., app launched at login before user logs in).
-            // Returning nil leaves the coordinator nil; the user can re-enter
-            // Settings → Cloud Share to trigger refreshShareCoordinator().
+            // Returning nil leaves the coordinator nil; the next share attempt rebuilds it
+            // (CaptureCoordinator.availableShareCoordinator, audit P5).
             return nil
         } catch {
-            assertionFailure("Unexpected Keychain error reading '\(account)': \(error)")
+            Logger(subsystem: "dev.mwlr.knippi", category: "share")
+                .error("Keychain read failed for \(account, privacy: .public): \(String(describing: error), privacy: .public)")
             return nil
         }
     }

@@ -22,7 +22,7 @@ public enum CursorSmoothingPreset: String, Codable, CaseIterable, Sendable {
 }
 
 /// Spring physics parameters for smoothing cursor movement during playback/export.
-public struct CursorSmoothingConfig: Codable, Sendable {
+public struct CursorSmoothingConfig: Codable, Sendable, Equatable {
     /// When `false`, raw cursor positions are used without smoothing.
     public var enabled: Bool
     /// Spring stiffness coefficient. Higher = snappier response.
@@ -143,8 +143,10 @@ public struct RecordingProject: Codable, Sendable {
     ///
     /// Guaranteed to be non-negative.
     public var effectiveDuration: TimeInterval {
-        let trimmed = trimRegions.reduce(0.0) { $0 + $1.duration }
-        return max(0, videoDuration - trimmed)
+        // Derived from the merged kept ranges so overlapping cuts count once
+        // (audit E14, 21.11.).
+        TrimRegion.keptRanges(duration: videoDuration, removing: trimRegions)
+            .reduce(0.0) { $0 + $1.duration }
     }
 
     // MARK: - Codable (manual — CGSize is not Codable)

@@ -19,6 +19,9 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# Direkt aufgerufen sonst evtl. gegen den Remote upstream (Capso) (Audit S5).
+export GH_REPO="${GH_REPO:-miwixyz/Knippi}"
+
 KEEP=5
 DRY_RUN=0
 # while + shift, not for-over-"$@": inside a for loop `shift` moves the real

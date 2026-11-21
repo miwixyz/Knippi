@@ -53023,6 +53023,66 @@
           }
         }
       }
+    },
+    "Knippi can't read the Cloud Share credentials from the Keychain. Unlock the Keychain or set up Cloud Share again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knippi kann die Zugangsdaten der Cloud-Freigabe nicht aus dem Schlüsselbund lesen. Entsperre den Schlüsselbund oder richte die Cloud-Freigabe neu ein."
+          }
+        }
+      }
+    },
+    "Camera not available – recording without it" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera nicht verfügbar – Aufnahme ohne Kamera"
+          }
+        }
+      }
+    },
+    "Discard this recording?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Aufnahme verwerfen?"
+          }
+        }
+      }
+    },
+    "It hasn't been saved yet. If you close the preview, the recording is deleted." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sie ist noch nicht gesichert. Schließt du die Vorschau, wird die Aufnahme gelöscht."
+          }
+        }
+      }
+    },
+    "Keep Preview Open" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau offen lassen"
+          }
+        }
+      }
+    },
+    "Discard Recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme verwerfen"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

@@ -215,4 +215,108 @@ struct AnnotationDocumentTests {
         doc.addObjects([])
         #expect(!doc.canUndo)
     }
+
+    /// Audit A8 (21.11.): rotate + crop used to book two undo steps; undo restored the
+    /// old crop rect/size while the view kept the rotated image -> wrong cut-out.
+    /// Replacing the image now drops the history (rotate is not undoable) and sets the
+    /// crop in the same call.
+    @Test("replaceImage clears undo/redo history and applies the crop in one go")
+    @MainActor
+    func replaceImageClearsHistory() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        doc.setCropRect(CGRect(x: 10, y: 10, width: 100, height: 50))
+        let crop = CGRect(x: 5, y: 5, width: 40, height: 80)
+        doc.replaceImage(size: CGSize(width: 600, height: 800), cropRect: crop)
+        #expect(doc.imageSize == CGSize(width: 600, height: 800))
+        #expect(doc.cropRect == crop)
+        #expect(!doc.canUndo)
+        #expect(!doc.canRedo)
+        doc.undo()
+        #expect(doc.imageSize == CGSize(width: 600, height: 800))
+        #expect(doc.cropRect == crop)
+    }
+
+    @Test("Replaced image stays dirty even with an empty history")
+    @MainActor
+    func replaceImageWithoutHistoryStaysDirty() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        doc.replaceImage(size: CGSize(width: 600, height: 800), cropRect: nil)
+        #expect(!doc.canUndo)
+        #expect(doc.hasUnsavedChanges)
+    }
+
+    /// Audit A9 (21.11.): restyling the selected object booked no undo step, so Cmd-Z
+    /// right after a colour change removed the whole freshly drawn object.
+    @Test("Style change books its own undo step")
+    @MainActor
+    func styleChangeIsUndoable() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        let arrow = ArrowObject(start: .zero, end: CGPoint(x: 100, y: 100))
+        doc.addObject(arrow)
+        doc.beginStyleChange(for: arrow.id, property: "color")
+        arrow.style.color = .blue
+        doc.undo()
+        #expect(doc.objects.count == 1)
+        #expect(doc.objects.first?.style.color == .red)
+        doc.undo()
+        #expect(doc.objects.isEmpty)
+    }
+
+    @Test("Repeated changes of one property on one object coalesce (slider drag)")
+    @MainActor
+    func sliderChangesCoalesce() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        let arrow = ArrowObject(start: .zero, end: CGPoint(x: 100, y: 100))
+        doc.addObject(arrow)
+        for width in stride(from: 4.0, through: 20.0, by: 1.0) {
+            doc.beginStyleChange(for: arrow.id, property: "lineWidth")
+            arrow.style.lineWidth = width
+        }
+        doc.undo()
+        #expect(doc.objects.count == 1)
+        #expect(doc.objects.first?.style.lineWidth == 3)
+        doc.undo()
+        #expect(doc.objects.isEmpty)
+    }
+
+    @Test("A different property or object starts a new style step")
+    @MainActor
+    func styleStepsSplitOnPropertyOrObject() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        let a = ArrowObject(start: .zero, end: CGPoint(x: 100, y: 100))
+        let b = ArrowObject(start: .zero, end: CGPoint(x: 50, y: 50))
+        doc.addObject(a)
+        doc.addObject(b)
+        doc.beginStyleChange(for: b.id, property: "color")
+        b.style.color = .blue
+        doc.beginStyleChange(for: b.id, property: "lineWidth")
+        b.style.lineWidth = 9
+        doc.beginStyleChange(for: a.id, property: "lineWidth")
+        a.style.lineWidth = 9
+        doc.undo() // a width
+        #expect(doc.objects[0].style.lineWidth == 3)
+        #expect(doc.objects[1].style.lineWidth == 9)
+        doc.undo() // b width
+        #expect(doc.objects[1].style.lineWidth == 3)
+        #expect(doc.objects[1].style.color == .blue)
+        doc.undo() // b color
+        #expect(doc.objects[1].style.color == .red)
+        #expect(doc.objects.count == 2)
+    }
+
+    @Test("Another edit in between ends the coalescing")
+    @MainActor
+    func otherEditEndsCoalescing() {
+        let doc = AnnotationDocument(imageSize: CGSize(width: 800, height: 600))
+        let arrow = ArrowObject(start: .zero, end: CGPoint(x: 100, y: 100))
+        doc.addObject(arrow)
+        doc.beginStyleChange(for: arrow.id, property: "lineWidth")
+        arrow.style.lineWidth = 5
+        doc.beginDrag()
+        arrow.move(by: CGSize(width: 10, height: 0))
+        doc.beginStyleChange(for: arrow.id, property: "lineWidth")
+        arrow.style.lineWidth = 7
+        doc.undo()
+        #expect(doc.objects.first?.style.lineWidth == 5)
+    }
 }

@@ -122,6 +122,23 @@ struct QuickAccessDragFileStoreTests {
         #expect(secondURL.lastPathComponent == "Same Name 2.png")
     }
 
+    /// Audit Q7 (21.11.): one stale file that couldn't be removed made every later drag and
+    /// share fail with storageUnavailable.
+    @Test("a stale file that can't be removed doesn't block new drag files")
+    func undeletableStaleFileDoesNotBlock() throws {
+        let directory = temporaryDirectory()
+        defer { remove(directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let stale = directory.appendingPathComponent("stale.png")
+        try Data([1]).write(to: stale)
+        try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 0)], ofItemAtPath: stale.path)
+        let store = QuickAccessDragFileStore(directory: directory, fileManager: RefusingRemoveFileManager())
+
+        let url = try store.fileURL(for: try makeImage(), id: UUID())
+
+        #expect(FileManager.default.isReadableFile(atPath: url.path))
+    }
+
     @Test("prunes every stale output format while preserving active drag files")
     func prunesStaleFiles() throws {
         let directory = temporaryDirectory()
@@ -225,5 +242,12 @@ struct QuickAccessDragFileStoreTests {
 
     private enum TestError: Error {
         case imageCreationFailed
+    }
+}
+
+/// Simulates a stale file that can't be deleted (locked, changed permissions, raced away).
+private final class RefusingRemoveFileManager: FileManager, @unchecked Sendable {
+    override func removeItem(at URL: URL) throws {
+        throw CocoaError(.fileWriteNoPermission)
     }
 }

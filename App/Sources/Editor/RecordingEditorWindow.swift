@@ -41,6 +41,19 @@ final class RecordingEditorWindow: NSPanel {
         ])
     }
 
+    private var hasClosed = false
+
+    /// The red close button closes the window directly, bypassing
+    /// `EditorCoordinator.onClose`: stop playback and tear down here too
+    /// (audit E8, 21.11.).
+    override func close() {
+        guard !hasClosed else { return }
+        hasClosed = true
+        coordinator.pause()
+        super.close()
+        coordinator.closeEditor()
+    }
+
     func showCentered() {
         guard let screen = NSScreen.main else { return }
         let screenFrame = screen.visibleFrame

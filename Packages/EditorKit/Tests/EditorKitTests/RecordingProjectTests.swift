@@ -192,6 +192,17 @@ struct RecordingProjectTests {
         #expect(project.effectiveDuration == 0.0)
     }
 
+    // Overlapping cuts must not be subtracted twice (audit E14, 21.11.).
+    @Test("effectiveDuration counts overlapping trims once")
+    func effectiveDurationOverlappingTrims() {
+        let trims = [
+            TrimRegion(startTime: 1, endTime: 3),
+            TrimRegion(startTime: 2, endTime: 4),
+        ]
+        let project = makeProject(duration: 10.0, trimRegions: trims)
+        #expect(abs(project.effectiveDuration - 7.0) < 1e-9)
+    }
+
     @Test("effectiveDuration with no trims equals videoDuration")
     func effectiveDurationNoTrims() {
         let project = makeProject(duration: 120.0)

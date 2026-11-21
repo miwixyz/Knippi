@@ -38,8 +38,11 @@ mkdir -p "$HOME/Applications"
 ditto "build-dev/Build/Products/$CONFIG/Knippi.app" "$DEST"
 
 PLIST="$DEST/Contents/Info.plist"
+# Eigenes URL-Schema: sonst kann knippi:// (z. B. vom Stream Deck) die Testkopie statt der
+# echten App öffnen (Audit S6, gemessen 21.11. per lsregister).
 /usr/libexec/PlistBuddy -c 'Set CFBundleIdentifier dev.mwlr.knippi.sichttest' \
-    -c 'Set CFBundleName Knippi Sichttest' "$PLIST"
+    -c 'Set CFBundleName Knippi Sichttest' \
+    -c 'Set :CFBundleURLTypes:0:CFBundleURLSchemes:0 knippi-sichttest' "$PLIST"
 /usr/libexec/PlistBuddy -c 'Delete SUFeedURL' "$PLIST" >/dev/null 2>&1 || true
 
 codesign --force --deep --options runtime \

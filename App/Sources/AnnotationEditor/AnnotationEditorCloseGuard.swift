@@ -9,6 +9,13 @@ enum AnnotationEditorCloseGuard {
         !hasUnsavedChanges || confirmDiscard()
     }
 
+    /// Text typed into an open inline text editor that is not yet an object in the
+    /// document. Closing used to drop it without asking (audit A14, 21.11.).
+    static func hasPendingText(in root: NSView?) -> Bool {
+        guard let editor = root?.firstSubview(of: AnnotationTextEditor.self) else { return false }
+        return !editor.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     static func presentDiscardAlert(above window: NSWindow?) -> Bool {
         if suspendedAlertPresenter?.bringForwardIfVisible() == true {
             return false

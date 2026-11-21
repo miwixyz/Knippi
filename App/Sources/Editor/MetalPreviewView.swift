@@ -36,6 +36,7 @@ struct MetalPreviewView: NSViewRepresentable {
     final class Coordinator {
         var renderer: MetalPreviewRenderer?
         var videoOutput: AVPlayerItemVideoOutput?
+        weak var playerItem: AVPlayerItem?
         weak var mtkView: MTKView?
     }
 
@@ -81,6 +82,7 @@ struct MetalPreviewView: NSViewRepresentable {
         let videoOutput = AVPlayerItemVideoOutput(pixelBufferAttributes: pixelBufferAttributes)
         playerItem.add(videoOutput)
         context.coordinator.videoOutput = videoOutput
+        context.coordinator.playerItem = playerItem
 
         // Create the renderer; if Metal is unavailable, leave delegate nil (black view).
         if let renderer = MetalPreviewRenderer(player: player, videoOutput: videoOutput) {
@@ -119,5 +121,17 @@ struct MetalPreviewView: NSViewRepresentable {
         // Keep container-level rounding in sync with the slider value.
         nsView.layer?.cornerRadius = cornerRadius
         nsView.layer?.masksToBounds = true
+    }
+
+    /// Detach the video output again; otherwise every rebuilt preview leaves
+    /// one more output on the shared player item (audit E10, 21.11.).
+    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
+        if let output = coordinator.videoOutput, let item = coordinator.playerItem,
+           item.outputs.contains(where: { $0 === output }) {
+            item.remove(output)
+        }
+        coordinator.mtkView?.delegate = nil
+        coordinator.videoOutput = nil
+        coordinator.renderer = nil
     }
 }

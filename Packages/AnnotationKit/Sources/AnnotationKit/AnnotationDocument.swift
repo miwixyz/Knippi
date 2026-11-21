@@ -13,6 +13,12 @@ public final class AnnotationDocument {
 
     private var undoStack: [Snapshot] = []
     private var redoStack: [Snapshot] = []
+    /// Object + property of the style change that pushed the newest undo step; further
+    /// changes of the same pair (slider drag) join that step (audit A9, 21.11.).
+    private var openStyleChange: (id: ObjectID, property: String)?
+    /// Set once the working image was rotated/flipped. That step is not undoable, so it
+    /// must count as unsaved work on its own (audit A8, 21.11.).
+    private var hasReplacedImage = false
 
     private struct Snapshot {
         let objects: [any AnnotationObject]
@@ -34,7 +40,7 @@ public final class AnnotationDocument {
     /// destructive edits which don't leave visible objects behind — e.g. a
     /// rotate/flip via `replaceImage` — still count as unsaved work.
     public var hasUnsavedChanges: Bool {
-        !objects.isEmpty || cropRect != nil || canUndo
+        !objects.isEmpty || cropRect != nil || canUndo || hasReplacedImage
     }
 
     public init(imageSize: CGSize) {
@@ -77,10 +83,21 @@ public final class AnnotationDocument {
 
     public func selectObject(id: ObjectID?) {
         selectedObjectID = id
+        openStyleChange = nil
     }
 
     public func clearSelection() {
         selectedObjectID = nil
+        openStyleChange = nil
+    }
+
+    /// Call before restyling an object (colour, width, pattern ...). Books one undo step
+    /// per gesture: repeated calls for the same object and property without any other
+    /// edit in between (a slider drag) share the first step (audit A9, 21.11.).
+    public func beginStyleChange(for id: ObjectID, property: String) {
+        if let open = openStyleChange, open.id == id, open.property == property { return }
+        pushUndo()
+        openStyleChange = (id, property)
     }
 
     public var selectedObject: (any AnnotationObject)? {
@@ -112,14 +129,22 @@ public final class AnnotationDocument {
     }
 
     /// Called after the crop editor replaces the working image (e.g. after
-    /// rotate + commit). Updates `imageSize`, clears any stored crop rect
-    /// (coordinates are no longer meaningful), and pushes an undo snapshot.
-    /// Callers are expected to avoid calling this when `objects` is non-empty
-    /// — the annotations' coordinates would be invalidated.
-    public func replaceImage(size: CGSize) {
-        pushUndo()
+    /// rotate + commit). Updates `imageSize` and sets `cropRect` (in the new
+    /// image's coordinates) in one go. Callers are expected to avoid calling
+    /// this when `objects` is non-empty — the annotations' coordinates would
+    /// be invalidated.
+    ///
+    /// The undo/redo history is dropped on purpose: the image itself lives in
+    /// the view, not in the snapshots, so undoing would restore the old size
+    /// and crop on the rotated image and cut out the wrong region. Rotate/flip
+    /// is therefore not undoable, but never yields a wrong crop (audit A8, 21.11.).
+    public func replaceImage(size: CGSize, cropRect newCropRect: CGRect? = nil) {
+        undoStack.removeAll()
+        redoStack.removeAll()
+        openStyleChange = nil
         imageSize = size
-        cropRect = nil
+        cropRect = newCropRect
+        hasReplacedImage = true
     }
 
     /// Updates the backing image size while keeping annotation coordinates meaningful.
@@ -153,17 +178,20 @@ public final class AnnotationDocument {
     private func pushUndo() {
         undoStack.append(currentSnapshot())
         redoStack.removeAll()
+        openStyleChange = nil
     }
 
     public func undo() {
         guard let snapshot = undoStack.popLast() else { return }
         redoStack.append(currentSnapshot())
         apply(snapshot)
+        openStyleChange = nil
     }
 
     public func redo() {
         guard let snapshot = redoStack.popLast() else { return }
         undoStack.append(currentSnapshot())
         apply(snapshot)
+        openStyleChange = nil
     }
 }

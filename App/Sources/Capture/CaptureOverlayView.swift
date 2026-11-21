@@ -473,11 +473,11 @@ final class CaptureOverlayView: NSView {
             if let fixedSize = activePreset.fixedPixelSize {
                 // Fixed-size mode: draw a centered rectangle at cursor position
                 if let loc = currentMouseLocation {
-                    let fixedRect = CGRect(
-                        x: loc.x - CGFloat(fixedSize.width) / 2,
-                        y: loc.y - CGFloat(fixedSize.height) / 2,
-                        width: CGFloat(fixedSize.width),
-                        height: CGFloat(fixedSize.height)
+                    // Kept inside the screen like the All-in-One bar does (audit C5).
+                    let fixedRect = CaptureSelectionGeometry.fixedSize(
+                        CGSize(width: CGFloat(fixedSize.width), height: CGFloat(fixedSize.height)),
+                        centeredAt: loc,
+                        in: bounds
                     )
 
                     drawDimmedBackdrop(clearing: fixedRect, in: context)
@@ -970,11 +970,12 @@ final class CaptureOverlayView: NSView {
 
             // Fixed-size: no drag — capture immediately centered on cursor
             if let fixedSize = activePreset.fixedPixelSize {
-                let fixedRect = CGRect(
-                    x: loc.x - CGFloat(fixedSize.width) / 2,
-                    y: loc.y - CGFloat(fixedSize.height) / 2,
-                    width: CGFloat(fixedSize.width),
-                    height: CGFloat(fixedSize.height)
+                // Clamped to the screen: near an edge the image used to come out smaller than
+                // the chosen size while captureRect kept the full size (audit C5, 21.11.).
+                let fixedRect = CaptureSelectionGeometry.fixedSize(
+                    CGSize(width: CGFloat(fixedSize.width), height: CGFloat(fixedSize.height)),
+                    centeredAt: loc,
+                    in: bounds
                 )
                 restoreCursorIfNeeded()
                 onSelectionComplete?(fixedRect)
@@ -1016,7 +1017,12 @@ final class CaptureOverlayView: NSView {
             squareLock: squareLock
         )
         guard let ratio = resolvedRatio else {
-            return rawEnd
+            // Free selection is clamped too: dragged onto a second screen it ran past this one
+            // and the image was cropped while captureRect wasn't (audit C10, 21.11.).
+            return NSPoint(
+                x: min(max(rawEnd.x, bounds.minX), bounds.maxX),
+                y: min(max(rawEnd.y, bounds.minY), bounds.maxY)
+            )
         }
 
         let dx = rawEnd.x - dragStart.x

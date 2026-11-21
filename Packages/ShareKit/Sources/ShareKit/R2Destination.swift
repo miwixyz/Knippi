@@ -49,28 +49,5 @@ public actor R2Destination: ShareDestination {
         )
     }
 
-    public func validateConfig() async throws {
-        let testID = IDGenerator.shortID()
-        let testKey = "_knippi_test_\(testID).txt"
-        let tmpFile = FileManager.default.temporaryDirectory.appendingPathComponent(testKey)
-        try "ok".write(to: tmpFile, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(at: tmpFile) }
-
-        let publicURL = try await upload(file: tmpFile, key: testKey, contentType: "text/plain")
-
-        // Round-trip: fetch via public URL to confirm public access is enabled
-        var request = URLRequest(url: publicURL)
-        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            try? await delete(key: testKey)
-            throw ShareError.publicAccessUnreachable
-        }
-        guard String(data: data, encoding: .utf8) == "ok" else {
-            try? await delete(key: testKey)
-            throw ShareError.publicAccessUnreachable
-        }
-
-        try await delete(key: testKey)
-    }
+    // validateConfig: shared implementation in ShareDestination (ShareDestinationFactory.swift).
 }

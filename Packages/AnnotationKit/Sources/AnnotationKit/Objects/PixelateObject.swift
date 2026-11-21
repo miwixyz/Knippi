@@ -1,6 +1,7 @@
 import Foundation
 import CoreGraphics
 import CoreImage
+import os
 
 public final class PixelateObject: AnnotationObject, @unchecked Sendable {
     public let id = ObjectID()
@@ -17,6 +18,21 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
 
     /// Brightness offset range per block, in 8-bit levels (± this value).
     static let noiseAmplitude = 40
+
+    /// Last redacted image plus everything it was made from. The canvas redraws on every
+    /// mouse move; re-running pixelate/blur each time cost 8-38 ms per large region
+    /// (audit A13, 21.11.). The source is held strongly so `===` can't match a recycled address.
+    private struct RenderCache {
+        let source: CGImage
+        let rect: CGRect
+        let blockSize: CGFloat
+        let mode: RedactionMode
+        let noiseSeed: UInt64?
+        let image: CGImage
+    }
+    private let renderCache = OSAllocatedUnfairLock<RenderCache?>(initialState: nil)
+    /// One shared context: creating a CIContext per blur call is the expensive part (audit A13, 21.11.).
+    private static let ciContext = CIContext()
 
     public init(rect: CGRect, blockSize: CGFloat = 12, mode: RedactionMode = .pixelate, noiseSeed: UInt64? = nil) {
         self.rect = rect
@@ -107,6 +123,17 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
             Self.redactorOverride ?? { [noiseSeed] in
                 Self.makeRedactedImage(from: $0, blockSize: $1, mode: $2, noiseSeed: noiseSeed)
             }
+        let cached = renderCache.withLock { cache -> CGImage? in
+            guard let cache, cache.source === sourceImage, cache.rect == rect,
+                  cache.blockSize == blockSize, cache.mode == mode, cache.noiseSeed == noiseSeed
+            else { return nil }
+            return cache.image
+        }
+        if let cached {
+            draw(cached, in: cropRect, context: ctx)
+            return
+        }
+
         guard let cropped = sourceImage.cropping(to: cropRect),
               let redacted = redactor(cropped, blockSize, mode)
         else {
@@ -119,6 +146,12 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
             return
         }
 
+        // Failures are never cached, so they keep failing closed and reporting.
+        let entry = RenderCache(
+            source: sourceImage, rect: rect, blockSize: blockSize, mode: mode,
+            noiseSeed: noiseSeed, image: redacted
+        )
+        renderCache.withLock { $0 = entry }
         draw(redacted, in: cropRect, context: ctx)
     }
 
@@ -232,7 +265,7 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         filter?.setValue(ciImage.clampedToExtent(), forKey: kCIInputImageKey)
         filter?.setValue(radius, forKey: kCIInputRadiusKey)
         guard let outputImage = filter?.outputImage?.cropped(to: ciImage.extent) else { return nil }
-        return CIContext().createCGImage(outputImage, from: ciImage.extent)
+        return ciContext.createCGImage(outputImage, from: ciImage.extent)
     }
 
     public func move(by delta: CGSize) {

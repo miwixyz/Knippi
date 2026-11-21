@@ -205,6 +205,61 @@ struct RedactionObjectTests {
         #expect(sampleRGBA(rendered, x: 7, y: 5) == RGBA(r: 255, g: 255, b: 255, a: 255))
         #expect(sampleRGBA(rendered, x: 4, y: 12) == RGBA(r: 255, g: 255, b: 255, a: 255))
     }
+
+    /// Audit A13 (21.11.): every canvas draw re-ran pixelate/blur (measured 8 ms / 38 ms per
+    /// 2000x800 region). The result is now cached per object until something it depends on changes.
+    @Test("Redaction result is cached until rect, block size, mode, seed or source change")
+    func redactionIsCached() throws {
+        let source = try makeTestImage(width: 32, height: 32, color: CGColor(red: 1, green: 0, blue: 0, alpha: 1))
+        let other = try makeTestImage(width: 32, height: 32, color: CGColor(red: 0, green: 1, blue: 0, alpha: 1))
+        let counter = CallCounter()
+        PixelateObject.redactorOverride = { image, _, _ in counter.count += 1; return image }
+        defer { PixelateObject.redactorOverride = nil }
+        let context = try #require(makeBitmapContext(width: 32, height: 32))
+        let redaction = PixelateObject(rect: CGRect(x: 4, y: 4, width: 16, height: 16), blockSize: 8, mode: .pixelate)
+
+        redaction.renderWithSource(in: context, sourceImage: source)
+        redaction.renderWithSource(in: context, sourceImage: source)
+        #expect(counter.count == 1)
+
+        redaction.move(by: CGSize(width: 2, height: 0))
+        redaction.renderWithSource(in: context, sourceImage: source)
+        #expect(counter.count == 2)
+
+        redaction.blockSize = 10
+        redaction.renderWithSource(in: context, sourceImage: source)
+        #expect(counter.count == 3)
+
+        redaction.mode = .blur
+        redaction.renderWithSource(in: context, sourceImage: source)
+        #expect(counter.count == 4)
+
+        redaction.noiseSeed = 7
+        redaction.renderWithSource(in: context, sourceImage: source)
+        #expect(counter.count == 5)
+
+        redaction.renderWithSource(in: context, sourceImage: other)
+        #expect(counter.count == 6)
+        redaction.renderWithSource(in: context, sourceImage: other)
+        #expect(counter.count == 6)
+    }
+
+    @Test("A failed redaction is not cached and keeps failing closed")
+    func failedRedactionIsNotCached() throws {
+        let source = try makeTestImage(width: 16, height: 16, color: CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+        let counter = CallCounter()
+        PixelateObject.redactorOverride = { _, _, _ in counter.count += 1; return nil }
+        defer { PixelateObject.redactorOverride = nil }
+        let context = try #require(makeBitmapContext(width: 16, height: 16))
+        let redaction = PixelateObject(rect: CGRect(x: 4, y: 4, width: 8, height: 8), mode: .pixelate)
+        redaction.renderWithSource(in: context, sourceImage: source)
+        redaction.renderWithSource(in: context, sourceImage: source)
+        #expect(counter.count == 2)
+    }
+}
+
+private final class CallCounter: @unchecked Sendable {
+    var count = 0
 }
 
 private struct RGBA: Equatable {

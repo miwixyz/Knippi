@@ -281,8 +281,11 @@ public enum ScreenCaptureManager {
         config.captureResolution = .best
         config.showsCursor = showsCursor
         config.sourceRect = rect
-        config.width = Int(rect.width) * 2
-        config.height = Int(rect.height) * 2
+        // Display scale, not a fixed ×2: a 1× monitor got an upscaled, blurry image and a 3×
+        // one an undersampled image (audit C4, 21.11.).
+        let output = Self.outputPixelSize(for: rect, scale: CGFloat(filter.pointPixelScale))
+        config.width = Int(output.width)
+        config.height = Int(output.height)
 
         let image = try await SCScreenshotManager.captureImage(
             contentFilter: filter,
@@ -299,6 +302,13 @@ public enum ScreenCaptureManager {
 }
 
 // MARK: - Errors
+
+extension ScreenCaptureManager {
+    /// Pixel size of an area capture: the point rect times the display's scale, rounded.
+    public static func outputPixelSize(for rect: CGRect, scale: CGFloat) -> CGSize {
+        CGSize(width: (rect.width * scale).rounded(), height: (rect.height * scale).rounded())
+    }
+}
 
 public enum CaptureError: Error, LocalizedError {
     case noDisplayFound

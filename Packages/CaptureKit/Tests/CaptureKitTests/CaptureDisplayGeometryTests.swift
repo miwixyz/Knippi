@@ -98,3 +98,16 @@ struct CaptureDisplayGeometryTests {
         #expect(rect == CGRect(x: 0, y: 10, width: 80, height: 80))
     }
 }
+
+/// Audit C4 (21.11.): area captures used a fixed ×2 instead of the display's scale, so a
+/// 1× monitor got an upscaled, blurry picture and a 3× one was undersampled.
+@Suite("Area capture output size")
+struct AreaCaptureOutputSizeTests {
+    @Test("Output pixels follow the display scale")
+    func followsDisplayScale() {
+        let rect = CGRect(x: 0, y: 0, width: 300.4, height: 200.6)
+        #expect(ScreenCaptureManager.outputPixelSize(for: rect, scale: 1) == CGSize(width: 300, height: 201))
+        #expect(ScreenCaptureManager.outputPixelSize(for: rect, scale: 2) == CGSize(width: 601, height: 401))
+        #expect(ScreenCaptureManager.outputPixelSize(for: rect, scale: 3) == CGSize(width: 901, height: 602))
+    }
+}

@@ -15,6 +15,7 @@ final class SelfTimerHUD {
     private var borderPanel: NSPanel?
     private let viewModel = SelfTimerViewModel()
     private var keyMonitor: Any?
+    private var escapeHotKey: ScrollCaptureEscapeHotKey?
     private var positionPersist: ((CGPoint) -> Void)?
     private var onCancel: (() -> Void)?
     private var playTickSound: Bool = false
@@ -168,6 +169,8 @@ final class SelfTimerHUD {
             NSEvent.removeMonitor(mon)
             keyMonitor = nil
         }
+        escapeHotKey?.unregister()
+        escapeHotKey = nil
         panel?.orderOut(nil)
         panel = nil
         borderPanel?.orderOut(nil)
@@ -185,6 +188,8 @@ final class SelfTimerHUD {
             NSEvent.removeMonitor(mon)
             keyMonitor = nil
         }
+        escapeHotKey?.unregister()
+        escapeHotKey = nil
         let border = borderPanel
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.14
@@ -207,6 +212,8 @@ final class SelfTimerHUD {
             NSEvent.removeMonitor(mon)
             keyMonitor = nil
         }
+        escapeHotKey?.unregister()
+        escapeHotKey = nil
         panel?.orderOut(nil)
         panel = nil
         borderPanel?.orderOut(nil)
@@ -223,6 +230,10 @@ final class SelfTimerHUD {
             }
             return event
         }
+        // The HUD never becomes key (the target app keeps focus, so its window stays active in
+        // the shot), so the local monitor misses Esc. A system-wide hot key catches it, as in
+        // the scrolling capture (audit C9, 21.11.).
+        escapeHotKey = ScrollCaptureEscapeHotKey { [weak self] in self?.cancelByUser() }
     }
 
     /// Default placement: top-center of `screen`, 80pt below the menu bar /

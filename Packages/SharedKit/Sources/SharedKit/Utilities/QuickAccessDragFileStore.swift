@@ -102,12 +102,14 @@ public final class QuickAccessDragFileStore {
             let standardizedURL = fileURL.standardizedFileURL
             guard !preservedURLs.contains(standardizedURL) else { continue }
 
-            let values = try fileURL.resourceValues(forKeys: [.contentModificationDateKey, .isRegularFileKey])
-            guard values.isRegularFile == true,
+            // One file that can't be read or removed (locked, permissions, already gone) is
+            // skipped; it must not block every later drag and share (audit Q7, 21.11.).
+            guard let values = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey, .isRegularFileKey]),
+                  values.isRegularFile == true,
                   let modificationDate = values.contentModificationDate,
                   modificationDate < cutoff else { continue }
 
-            try fileManager.removeItem(at: fileURL)
+            guard (try? fileManager.removeItem(at: fileURL)) != nil else { continue }
             removed.append(fileURL)
         }
 
@@ -139,9 +141,10 @@ public final class QuickAccessDragFileStore {
     private func prepareStorage() throws {
         do {
             try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
-            _ = try pruneStaleFiles()
         } catch {
             throw QuickAccessDragFileStoreError.storageUnavailable
         }
+        // Tidying up is best effort: a failure here must not stop the new file (audit Q7).
+        _ = try? pruneStaleFiles()
     }
 }

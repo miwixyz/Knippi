@@ -73,6 +73,11 @@ if [ "${PUBLISH}" = "1" ]; then
     git fetch -q origin main || fail "git fetch origin main fehlgeschlagen"
     [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] \
         || fail "HEAD ist nicht gleich origin/main. Erst pushen, dann releasen."
+    # git push und die Tag-Prüfung hängen an origin, gh an GH_REPO: beide müssen dasselbe Repo sein (Audit S10).
+    case "$(git remote get-url origin)" in
+        *github.com[:/]"${REPO}".git|*github.com[:/]"${REPO}") ;;
+        *) fail "origin zeigt nicht auf ${REPO}" ;;
+    esac
 fi
 
 VERSION="$(awk -F'"' '/MARKETING_VERSION:/ { print $2; exit }' project.yml)"
@@ -335,11 +340,17 @@ awk -v v="[${VERSION}]" '
 ' CHANGELOG.md > "${DIST}/notes.md"
 [ -s "${DIST}/notes.md" ] || fail "Keine Release-Notizen für ${VERSION} aus dem CHANGELOG gelesen"
 
+# Tests und Notarisierung dauern Minuten: hat sich main inzwischen bewegt, scheitert sonst
+# erst der Appcast-Push nach dem Release (Audit S3).
+git fetch -q origin main || fail "git fetch origin main fehlgeschlagen"
+[ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] \
+    || fail "origin/main hat sich während des Laufs bewegt – nichts veröffentlicht. ZU TUN: appcast.xml zurücksetzen, git pull --rebase, neu releasen"
+
 git tag -a "${TAG}" -m "${APP} ${VERSION}"
 RESUME_HINT="Tag ${TAG} lokal angelegt. ZU TUN vor dem Neuanlauf: git tag -d ${TAG}; appcast.xml zurücksetzen"
 git push origin "${TAG}" || fail "Tag ${TAG} nicht gepusht"
 RESUME_HINT="Tag ${TAG} gepusht, Release fehlt. ZU TUN: gh release create ${TAG} ${ZIP} ${DECK_PKG} --title \"${APP} ${VERSION}\" --notes-file ${DIST}/notes.md, danach appcast.xml committen + pushen"
-gh release create "${TAG}" "${ZIP}" "${DECK_PKG}" --title "${APP} ${VERSION}" --notes-file "${DIST}/notes.md" \
+gh release create "${TAG}" "${ZIP}" "${DECK_PKG}" --verify-tag --title "${APP} ${VERSION}" --notes-file "${DIST}/notes.md" \
     || fail "GitHub-Release ${TAG} nicht angelegt"
 RESUME_HINT="Release ${TAG} online, Appcast noch nicht. ZU TUN: git add appcast.xml && git commit -m \"Appcast für ${TAG}\" && git push origin main"
 
@@ -356,7 +367,7 @@ if git diff --cached --quiet -- appcast.xml; then
     echo "  ℹ️  Appcast unverändert"
 else
     git commit -q -m "Appcast für ${TAG}"
-    git push -q origin main || fail "Appcast committet, Push fehlgeschlagen. ZU TUN: git push origin main"
+    git push -q origin main || fail "Appcast committet, Push fehlgeschlagen. ZU TUN: git pull --rebase origin main && git push origin main"
     echo "  ✓ appcast.xml committet und gepusht"
 fi
 RESUME_HINT=""

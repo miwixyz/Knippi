@@ -29,6 +29,12 @@ public final class FrameCompositor: Sendable {
     /// nearest even integer so the result can be fed directly into a video encoder.
     public let outputSize: CGSize
 
+    /// Rounded-corner mask, rendered once: size, padding and radius never
+    /// change for an instance (audit E9, 21.11.). `CIImage` is immutable;
+    /// `nonisolated(unsafe)` is only needed on older SDKs (Xcode 16.4 on CI)
+    /// that don't mark it `Sendable` yet; newer SDKs warn that it's redundant.
+    nonisolated(unsafe) private let roundedMask: CIImage?
+
     // MARK: - Init
 
     /// - Parameters:
@@ -45,6 +51,24 @@ public final class FrameCompositor: Sendable {
             backgroundStyle: backgroundStyle,
             outputScale: outputScale
         )
+        self.roundedMask = Self.makeRoundedMask(
+            sourceSize: sourceSize,
+            backgroundStyle: backgroundStyle,
+            outputScale: outputScale
+        )
+    }
+
+    private static func makeRoundedMask(
+        sourceSize: CGSize,
+        backgroundStyle: BackgroundStyle,
+        outputScale: CGFloat
+    ) -> CIImage? {
+        guard backgroundStyle.enabled else { return nil }
+        let padding = CGFloat(backgroundStyle.padding) * outputScale
+        let frameRect = CGRect(origin: CGPoint(x: padding, y: padding), size: sourceSize)
+        let radius = CGFloat(backgroundStyle.clampedCornerRadius(for: frameRect.size)) * outputScale
+        guard radius > 0 else { return nil }
+        return makeRoundedRectMask(rect: frameRect, radius: radius)
     }
 
     // MARK: - Public API
@@ -52,11 +76,12 @@ public final class FrameCompositor: Sendable {
     /// Composites one video frame and returns the resulting `CIImage`.
     ///
     /// The pipeline is:
-    /// 1. Apply zoom transform (scale + translate) and crop back to source viewport.
-    /// 2. Composite the cursor image at the given normalized position (if provided).
-    /// 3. Optionally apply rounded corners.
-    /// 4. Optionally add a drop shadow.
-    /// 5. Composite the frame onto the background canvas.
+    /// 1. Apply blur effects in source coordinates.
+    /// 2. Apply zoom transform (scale + translate) and crop back to source viewport.
+    /// 3. Composite the cursor image at the given normalized position (if provided).
+    /// 4. Optionally apply rounded corners.
+    /// 5. Optionally add a drop shadow.
+    /// 6. Composite the frame onto the background canvas.
     ///
     /// - Parameters:
     ///   - frame: Raw video frame.  Its `extent` should match `sourceSize`.
@@ -77,11 +102,13 @@ public final class FrameCompositor: Sendable {
         blurEffects: [RecordingEffectSegment] = [],
         time: TimeInterval = 0
     ) -> CIImage {
-        // 1. Zoom
-        var result = applyZoom(to: frame, transform: zoomTransform)
+        // 1. Blur effects — in source coordinates, before the zoom, so the
+        // hidden content stays hidden when zoomed or following the cursor
+        // (audit E2, 21.11.).
+        var result = applyBlurEffects(blurEffects, at: time, to: frame)
 
-        // 2. Blur effects
-        result = applyBlurEffects(blurEffects, at: time, to: result)
+        // 2. Zoom
+        result = applyZoom(to: result, transform: zoomTransform)
 
         // 3. Cursor overlay — also passed the zoom transform so the cursor
         // lands on the zoomed content, not the original unzoomed position.
@@ -251,18 +278,10 @@ public final class FrameCompositor: Sendable {
     /// Applies rounded corners to the frame by using `CIRoundedRectangleGenerator`
     /// as a mask via `CIBlendWithMask`.
     private func applyRoundedCorners(to frame: CIImage, frameRect: CGRect) -> CIImage {
-        let clampedRadius = backgroundStyle.clampedCornerRadius(for: frameRect.size)
-        let radius = CGFloat(clampedRadius) * scale
-        guard radius > 0 else {
-            // No rounding — just translate the frame to its canvas position.
-            return frame.transformed(by: CGAffineTransform(translationX: frameRect.origin.x, y: frameRect.origin.y))
-        }
-
         // Translate the frame to its position on the canvas.
         let positioned = frame.transformed(by: CGAffineTransform(translationX: frameRect.origin.x, y: frameRect.origin.y))
-
-        // Build the rounded-rect mask.
-        let mask = makeRoundedRectMask(rect: frameRect, radius: radius)
+        // No rounding (radius 0) → no mask was built in init.
+        guard let mask = roundedMask else { return positioned }
 
         // CIBlendWithMask: composites `inputImage` over `inputBackgroundImage` using `inputMaskImage`.
         // We want: `positioned` where mask is white, transparent elsewhere.
@@ -284,7 +303,7 @@ public final class FrameCompositor: Sendable {
     /// produce classic 90° circular arcs, so preview and export used to
     /// disagree at the same radius value. Draw the mask with a custom
     /// Bezier path instead so both paths converge.
-    private func makeRoundedRectMask(rect: CGRect, radius: CGFloat) -> CIImage {
+    private static func makeRoundedRectMask(rect: CGRect, radius: CGFloat) -> CIImage {
         let w = Int(rect.width.rounded())
         let h = Int(rect.height.rounded())
         guard w > 0, h > 0 else { return CIImage.empty() }

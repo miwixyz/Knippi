@@ -34,7 +34,13 @@ final class EditorCoordinator {
     /// Set by the owner (RecordingCoordinator) to tear down the window.
     var onClose: (() -> Void)?
 
+    /// Guards against a second `onClose` when the window's own close path and
+    /// an explicit `closeEditor()` both fire (audit E8, 21.11.).
+    @ObservationIgnored private var didClose = false
+
     func closeEditor() {
+        guard !didClose else { return }
+        didClose = true
         onClose?()
     }
 
@@ -371,18 +377,21 @@ final class EditorCoordinator {
 
     /// Cursor timeline — always loaded if telemetry data exists.
     /// Used by zoom follow-cursor AND cursor smoothing.
-    private var _cursorTimeline: SmoothedCursorTimeline?
-    private var _cursorTimelineBuilt = false
+    @ObservationIgnored private var _cursorTimeline: SmoothedCursorTimeline?
+    /// The smoothing config the cached timeline was built with; a change of the
+    /// smoothing switch or preset rebuilds it (audit E5, 21.11.).
+    @ObservationIgnored private var _cursorTimelineConfig: CursorSmoothingConfig?
 
     var cursorTimeline: SmoothedCursorTimeline? {
-        if !_cursorTimelineBuilt {
-            _cursorTimelineBuilt = true
+        // Use smoothing config if enabled, otherwise raw positions
+        let config = project.cursorSmoothing.enabled
+            ? project.cursorSmoothing
+            : CursorSmoothingConfig(enabled: false)
+        if _cursorTimelineConfig != config {
+            _cursorTimelineConfig = config
+            _cursorTimeline = nil
             if let url = project.cursorTelemetryURL,
                let data = try? CursorTelemetry.load(from: url) {
-                // Use smoothing config if enabled, otherwise raw positions
-                let config = project.cursorSmoothing.enabled
-                    ? project.cursorSmoothing
-                    : CursorSmoothingConfig(enabled: false)
                 let smoother = CursorSmoother(telemetry: data, config: config)
                 _cursorTimeline = smoother.buildSmoothedTimeline(fps: 60, duration: project.videoDuration)
             }
@@ -537,13 +546,15 @@ final class EditorCoordinator {
         }
 
         if hasCompositingEffects {
-            let rendered = try await exportWithCompositor(quality: quality, destination: destination)
             if !project.trimRegions.isEmpty {
                 let cutDestination = destination
-                let uncutDestination = rendered.deletingLastPathComponent()
+                // Render the uncut intermediate straight into the temporary
+                // directory, never into the user's (possibly iCloud) folder
+                // (audit E13, 21.11.).
+                let uncutDestination = FileManager.default.temporaryDirectory
                     .appendingPathComponent("\(UUID().uuidString)-uncut.mp4")
-                try FileManager.default.moveItem(at: rendered, to: uncutDestination)
                 defer { try? FileManager.default.removeItem(at: uncutDestination) }
+                _ = try await exportWithCompositor(quality: quality, destination: uncutDestination)
                 return try await CutExporter.exportMP4(
                     source: uncutDestination,
                     trimRegions: project.trimRegions,
@@ -560,7 +571,7 @@ final class EditorCoordinator {
                     }
                 }
             }
-            return rendered
+            return try await exportWithCompositor(quality: quality, destination: destination)
         } else {
             if !project.trimRegions.isEmpty {
                 return try await CutExporter.exportMP4(

@@ -52,6 +52,26 @@ final class CaptureCoordinator {
     var ocrCoordinator: OCRCoordinator?
     var recordingCoordinator: RecordingCoordinator?
     var shareCoordinator: ShareCoordinator?
+    /// Rebuilds the share coordinator from settings + Keychain. Used when Cloud Share is set up
+    /// but the coordinator is nil, e.g. the Keychain was locked at launch: before, sharing then
+    /// stayed dead with "not configured" until the next launch (audit P5, 21.11.).
+    var rebuildShareCoordinator: (() -> ShareCoordinator?)?
+
+    /// The share coordinator, rebuilt once if Cloud Share is configured but it is missing.
+    private func availableShareCoordinator() -> ShareCoordinator? {
+        if shareCoordinator == nil, settings.isCloudShareConfigured {
+            shareCoordinator = rebuildShareCoordinator?()
+        }
+        return shareCoordinator
+    }
+
+    /// Cloud Share is configured, but its credentials can't be read right now.
+    private func showCloudCredentialsUnreadable() {
+        Self.postNotification(
+            title: String(localized: "Cloud share failed"),
+            body: String(localized: "Knippi can't read the Cloud Share credentials from the Keychain. Unlock the Keychain or set up Cloud Share again.")
+        )
+    }
 
     /// Post-capture action override. When set, ignores Settings toggles.
     private(set) var pendingAction: PostCaptureAction = .default
@@ -452,7 +472,14 @@ final class CaptureCoordinator {
         // Gate: Cloud Share not configured → ask AppDelegate (via notification) to
         // open Preferences → Cloud Share tab. We avoid `NSApp.delegate as? AppDelegate`
         // because the cast fails under SwiftUI's @NSApplicationDelegateAdaptor proxying.
-        guard shareCoordinator != nil else {
+        guard availableShareCoordinator() != nil else {
+            if settings.isCloudShareConfigured {
+                // Locked Keychain or an incomplete setup: say why and open the settings to fix it.
+                logDiagnostic("Cloud Share shortcut blocked: credentials unreadable")
+                showCloudCredentialsUnreadable()
+                NotificationCenter.default.post(name: .openScreenshotSettings, object: PreferencesTab.cloudShare)
+                return
+            }
             logDiagnostic("Cloud Share shortcut blocked: coordinator not configured")
             NotificationCenter.default.post(
                 name: .openScreenshotSettings,
@@ -1889,8 +1916,11 @@ final class CaptureCoordinator {
         case .share:
             // Skip Quick Access, then upload in background.
             logDiagnostic("Cloud Share capture completed mode=\(outputResult.mode) displayID=\(outputResult.displayID)")
-            if let coord = shareCoordinator {
+            if let coord = availableShareCoordinator() {
                 Task { await self.performShareAfterCapture(result: outputResult, coord: coord) }
+            } else if settings.isCloudShareConfigured {
+                logDiagnostic("Cloud Share capture completed but credentials are unreadable")
+                showCloudCredentialsUnreadable()
             } else {
                 logDiagnostic("Cloud Share capture completed but coordinator is nil")
                 Self.postNotification(

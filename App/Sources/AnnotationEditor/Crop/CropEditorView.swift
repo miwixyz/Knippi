@@ -47,7 +47,34 @@ struct CropEditorView: View {
     @State private var didTransformImage: Bool = false
     @FocusState private var focusedOutputField: OutputField?
 
-    private enum OutputField { case width, height }
+    enum OutputField { case width, height }
+
+    /// Largest accepted output side in pixels (audit A7, 21.11.).
+    static let maxOutputSide = 16384
+
+    /// Output size for the width/height drafts. With a locked ratio the `driving` field
+    /// wins and the other side follows the crop's aspect; the result is capped at
+    /// `maxOutputSide` per side, keeping its ratio (audit A7, 21.11.).
+    static func outputSize(
+        width: Int?, height: Int?, cropSize: CGSize, aspectLocked: Bool, driving: OutputField
+    ) -> (width: Int, height: Int) {
+        var w = Double(max(1, width ?? Int(cropSize.width.rounded())))
+        var h = Double(max(1, height ?? Int(cropSize.height.rounded())))
+        if aspectLocked, cropSize.width > 0, cropSize.height > 0 {
+            let ratio = Double(cropSize.width / cropSize.height)
+            switch driving {
+            case .width: h = w / ratio
+            case .height: w = h * ratio
+            }
+        }
+        let longest = max(w, h)
+        if longest > Double(maxOutputSide) {
+            let scale = Double(maxOutputSide) / longest
+            w *= scale
+            h *= scale
+        }
+        return (max(1, Int(w.rounded())), max(1, Int(h.rounded())))
+    }
 
     init(
         sourceImage: CGImage,
@@ -153,6 +180,9 @@ struct CropEditorView: View {
                 .onChange(of: cropRect) { _, _ in
                     if !resizeOutputEnabled {
                         syncOutputDraftsToCrop()
+                    } else if outputAspectLocked {
+                        // Keep the output undistorted when the crop changes (audit A7, 21.11.).
+                        commitOutputDraft(for: .width)
                     }
                 }
             }
@@ -330,7 +360,12 @@ struct CropEditorView: View {
               height > 0 else {
             return nil
         }
-        return CGSize(width: width, height: height)
+        // A draft typed but not yet committed still gets the ratio lock and the cap (audit A7, 21.11.).
+        let size = Self.outputSize(
+            width: width, height: height, cropSize: cropRect.size,
+            aspectLocked: outputAspectLocked, driving: focusedOutputField ?? .width
+        )
+        return CGSize(width: size.width, height: size.height)
     }
 
     private func syncOutputDraftsToCrop() {
@@ -339,30 +374,22 @@ struct CropEditorView: View {
     }
 
     private func commitOutputDraft(for field: OutputField) {
-        let rawWidth = max(1, Int(outputWidthDraft) ?? max(1, Int(cropRect.width.rounded())))
-        let rawHeight = max(1, Int(outputHeightDraft) ?? max(1, Int(cropRect.height.rounded())))
-
-        guard outputAspectLocked, cropRect.width > 0, cropRect.height > 0 else {
-            outputWidthDraft = "\(rawWidth)"
-            outputHeightDraft = "\(rawHeight)"
-            return
-        }
-
-        let ratio = cropRect.width / cropRect.height
-        switch field {
-        case .width:
-            outputWidthDraft = "\(rawWidth)"
-            outputHeightDraft = "\(max(1, Int((CGFloat(rawWidth) / ratio).rounded())))"
-        case .height:
-            outputHeightDraft = "\(rawHeight)"
-            outputWidthDraft = "\(max(1, Int((CGFloat(rawHeight) * ratio).rounded())))"
-        }
+        let size = Self.outputSize(
+            width: Int(outputWidthDraft), height: Int(outputHeightDraft), cropSize: cropRect.size,
+            aspectLocked: outputAspectLocked, driving: field
+        )
+        outputWidthDraft = "\(size.width)"
+        outputHeightDraft = "\(size.height)"
     }
 
     private func rotateCCW() {
         guard let newImage = ImageTransforms.rotate90CCW(displayImage) else { return }
         let oldSize = imageSize
         displayImage = newImage
+        if resizeOutputEnabled {
+            // The output turns with the picture (audit A7, 21.11.).
+            (outputWidthDraft, outputHeightDraft) = (outputHeightDraft, outputWidthDraft)
+        }
         cropRect = RectTransforms.rotate90CCW(cropRect, in: oldSize)
         didTransformImage = true
         selectedCustom = nil

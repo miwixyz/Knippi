@@ -195,7 +195,7 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
     /// never prompt. Esc never reaches this; see `AnnotationEscapePolicy`.
     func requestClose() {
         guard AnnotationEditorCloseGuard.shouldClose(
-            hasUnsavedChanges: document.hasUnsavedChanges,
+            hasUnsavedChanges: hasUnsavedWork,
             confirmDiscard: confirmDiscard
         ) else { return }
         close()
@@ -203,9 +203,14 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         AnnotationEditorCloseGuard.shouldClose(
-            hasUnsavedChanges: document.hasUnsavedChanges,
+            hasUnsavedChanges: hasUnsavedWork,
             confirmDiscard: confirmDiscard
         )
+    }
+
+    /// Includes text still open in the inline text editor (audit A14, 21.11.).
+    private var hasUnsavedWork: Bool {
+        document.hasUnsavedChanges || AnnotationEditorCloseGuard.hasPendingText(in: contentView)
     }
 
     func windowWillClose(_ notification: Notification) {

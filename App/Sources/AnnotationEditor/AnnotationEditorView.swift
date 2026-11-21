@@ -116,6 +116,10 @@ struct AnnotationEditorView: View {
     /// Cached text line bounding boxes for smart highlighter snapping.
     @State private var textRegions: [CGRect] = []
     @State private var sensitiveSuggestions = SensitiveSuggestionsModel()
+    /// Leaving crop mode rebuilds the canvas and fires its onAppear again; the one-time
+    /// work (sensitive-data scan, text recognition, slider init) must not repeat, or
+    /// the scan doubles redactions and brings back dismissed suggestions (audit A15, 21.11.).
+    @State private var didRunInitialAppear = false
 
     private struct DragRenderCache {
         let renderedImage: CGImage
@@ -444,15 +448,15 @@ struct AnnotationEditorView: View {
                 if beautifySettings.isEnabled { reloadBeautifyBackgroundPreview() }
             }
             .onChange(of: currentTool, handleToolChange)
-            .onChange(of: currentColor) { _, _ in updateSelectedStyle() }
+            .onChange(of: currentColor) { _, _ in updateSelectedStyle("color") }
             .onChange(of: lineWidth, handleLineWidthChange)
             .onChange(of: strokePattern, handleStrokePatternChange)
-            .onChange(of: arrowHead) { _, _ in updateSelectedStyle() }
-            .onChange(of: filled) { _, _ in updateSelectedStyle() }
-            .onChange(of: textFillEnabled) { _, _ in updateSelectedStyle() }
-            .onChange(of: textOutlineEnabled) { _, _ in updateSelectedStyle() }
-            .onChange(of: textStrokeEnabled) { _, _ in updateSelectedStyle() }
-            .onChange(of: redactionMode) { _, _ in updateSelectedStyle() }
+            .onChange(of: arrowHead) { _, _ in updateSelectedStyle("arrowHead") }
+            .onChange(of: filled) { _, _ in updateSelectedStyle("filled") }
+            .onChange(of: textFillEnabled) { _, _ in updateSelectedStyle("textFill") }
+            .onChange(of: textOutlineEnabled) { _, _ in updateSelectedStyle("textOutline") }
+            .onChange(of: textStrokeEnabled) { _, _ in updateSelectedStyle("textStroke") }
+            .onChange(of: redactionMode) { _, _ in updateSelectedStyle("redactionMode") }
             .onChange(of: geo.size, handleCanvasSizeChange)
             .onChange(of: CGSize(width: previewContentWidth, height: previewContentHeight)) { _, _ in
                 handlePreviewContentSizeChange()
@@ -611,8 +615,12 @@ struct AnnotationEditorView: View {
     private func commitCrop(newImage: CGImage?, newRect: CGRect?, newOutputSize: CGSize?) {
         if let newImage {
             sourceImage = newImage
-            document.replaceImage(size: CGSize(width: newImage.width, height: newImage.height))
-            document.setCropRect(newRect)
+            // One call, history dropped: undo must never pair the old crop with the
+            // rotated image (audit A8, 21.11.).
+            document.replaceImage(size: CGSize(width: newImage.width, height: newImage.height), cropRect: newRect)
+            // Boxes from before the rotate/flip point at the wrong places (audit A15, 21.11.).
+            textRegions = []
+            recognizeTextRegions()
         } else {
             document.setCropRect(newRect)
         }
@@ -674,15 +682,23 @@ struct AnnotationEditorView: View {
     private func handleCanvasAppear(size: CGSize) {
         canvasAreaSize = size
         fitToWindow(availableSize: size)
+        guard !didRunInitialAppear else { return }
+        didRunInitialAppear = true
         lineWidth = savedWidth(for: currentTool)
         strokePattern = savedStrokePattern
         if findsSensitiveDataOnOpen, !sensitiveSuggestions.isShowing {
             findSensitiveData()
         }
+        recognizeTextRegions()
+    }
+
+    /// Text line boxes for highlighter snapping, in `sourceImage` coordinates.
+    private func recognizeTextRegions() {
+        let image = sourceImage
         Task {
             if let regions = try? await OCRProcessFallback.recognize(
-                image: sourceImage, level: .fast, detectURLs: false
-            ) {
+                image: image, level: .fast, detectURLs: false
+            ), image === sourceImage {
                 textRegions = regions.map(\.boundingBox)
             }
         }
@@ -730,13 +746,13 @@ struct AnnotationEditorView: View {
     }
 
     private func handleLineWidthChange(oldValue: CGFloat, newValue: CGFloat) {
-        updateSelectedStyle()
+        updateSelectedStyle("lineWidth")
         persistWidth(newValue, for: currentTool)
     }
 
     private func handleStrokePatternChange(oldValue: StrokePattern, newValue: StrokePattern) {
         savedStrokePattern = newValue
-        updateSelectedStyle()
+        updateSelectedStyle("pattern")
     }
 
     /// The canvas area changed (window resized, background panel opened or closed):
@@ -819,9 +835,11 @@ struct AnnotationEditorView: View {
         isZoomFitted = false
     }
 
-    /// Update the selected object's style when color/lineWidth/filled changes
-    private func updateSelectedStyle() {
+    /// Update the selected object's style when color/lineWidth/filled changes.
+    /// `property` names the control, so a slider drag books one undo step (audit A9, 21.11.).
+    private func updateSelectedStyle(_ property: String) {
         if let obj = document.selectedObject {
+            document.beginStyleChange(for: obj.id, property: property)
             if let pixelate = obj as? PixelateObject {
                 // The slider only means "block size" while the pixelate tool is active;
                 // otherwise it is the line width (audit A1).

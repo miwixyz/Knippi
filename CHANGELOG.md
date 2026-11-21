@@ -2,6 +2,40 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.4.3] — 2026-11-21
+
+### Behoben
+
+- **Video-Export stürzte ab**, wenn sich während der Aufnahme lange nichts bewegte (Bildrate unter
+  1 Bild pro Sekunde). Jetzt exportiert Knippi mit fester Bildrate.
+- **Video nicht mehr länger als die Aufnahme:** Bei wenig Bewegung hängte der Export mit
+  Hintergrund oder Effekt hinten Sekunden Standbild an (gemessen 8,6 statt 12,5 Sekunden).
+- **Mikrofon im Export:** Mit Hintergrund, Effekt, Mauszeiger oder Schnitt landeten Systemton und
+  Mikrofon in zwei getrennten Spuren, viele Player spielten nur eine davon. Jetzt ist es eine Spur.
+- **Weichzeichnen im Video bleibt beim Zoom über dem Inhalt**, statt ihn beim Heranzoomen
+  freizugeben.
+- **Video-Editor:** Glättung und Stil des Mauszeigers wirken jetzt sofort. Schließen mit dem roten
+  Knopf stoppt die Wiedergabe. Die angezeigte Dauer stimmt auch bei überlappenden Schnitten. Die
+  Zwischendatei beim Export mit Schnitten liegt im temporären Ordner statt im Zielordner.
+- **Bild-Editor:** Farbe, Größe und Modus lassen sich rückgängig machen (Schieberegler als ein
+  Schritt). Drehen und Spiegeln lassen sich nicht mehr rückgängig machen, dafür entsteht nie mehr
+  ein falscher Ausschnitt. „Ausgabe skalieren“ bleibt beim Ändern des Zuschnitts und beim Drehen im
+  Seitenverhältnis und ist auf 16384 Pixel begrenzt. Ein noch offener Text geht beim Schließen
+  nicht mehr ohne Rückfrage verloren. Verpixeln ruckelt beim Zeichnen nicht mehr. Nach dem
+  Zuschneiden sucht „Vertrauliches finden“ nicht noch einmal (keine doppelten Verpixelungen).
+- **All-in-One:** Farbe ändern macht eine Verpixelung nicht mehr schwächer, Stiländerungen sind
+  rückgängig zu machen.
+- **Aufnahme:** Selbstauslöser, „Wiederholen“ und Sofort-Texterkennung nehmen auf 1×- und
+  3×-Bildschirmen in der richtigen Auflösung auf. Feste Größen und freie Auswahl bleiben im
+  Bildschirm. Esc bricht den Selbstauslöser jetzt zuverlässig ab.
+- **Video und Kamera:** Ein zweites Aufnahme-Kürzel lässt keine verwaiste Leiste mehr zurück. Eine
+  abgesteckte Kamera wird gemeldet, statt eine leere Kamerablase mitzufilmen. Die Kamera bremst die
+  Oberfläche nicht mehr. Schließen der Vorschau nach fehlgeschlagenem Sichern fragt nach.
+- **Cloud-Freigabe:** Waren die Zugangsdaten beim Start nicht lesbar (Schlüsselbund gesperrt),
+  versucht Knippi es beim nächsten Teilen erneut und sagt sonst, dass es am Schlüsselbund liegt.
+  Eine einzelne nicht löschbare alte Datei blockiert Ziehen und Teilen nicht mehr. Die Testdatei
+  der Einrichtung wird auch bei Netzfehlern wieder entfernt.
+
 ## [0.4.2] — 2026-11-21
 
 ### Behoben

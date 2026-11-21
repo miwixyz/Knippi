@@ -29,9 +29,23 @@ public struct SendableCIImage: @unchecked Sendable {
 /// Exports a recording with visual effects baked in.
 ///
 /// Uses `AVMutableVideoComposition` with a CIFilter handler for per-frame
-/// compositing via `FrameCompositor`. Audio is passed through automatically
-/// by `AVAssetExportSession`.
+/// compositing via `FrameCompositor`. Audio is passed through by
+/// `AVAssetExportSession`, after separate system/mic tracks were pre-mixed.
 public enum CompositorExporter {
+
+    /// Output frame duration for the effects composition.
+    ///
+    /// The recorder writes only changed frames, so a quiet screen can report a
+    /// nominal rate below 1 fps; `CMTimeScale(0.25)` truncates to 0 and the
+    /// resulting 1/0 duration makes AVFoundation raise "video composition must
+    /// have a positive frameDuration" — a crash. Cursor and zoom animate
+    /// independently of the source frames, so render at 30–60 fps regardless
+    /// (audit E4, 21.11.).
+    static func frameDuration(forNominalFrameRate nominal: Float) -> CMTime {
+        // Clamp as Float before converting so huge values can't trap in Int32().
+        let fps = nominal.isFinite ? min(60, max(30, nominal.rounded())) : 30
+        return CMTime(value: 1, timescale: CMTimeScale(fps))
+    }
 
     public static func export(
         source: URL,
@@ -51,7 +65,11 @@ public enum CompositorExporter {
         let cursorImage = cursorImage.image
         status?(ExportStatus(stage: .preparing, fractionCompleted: 0))
 
-        let asset = AVURLAsset(url: source)
+        // One mixed audio track instead of separate system/mic tracks (audit E6, 21.11.).
+        let mixedSource = try await MP4Exporter.sourceWithMergedAudio(source)
+        defer { if mixedSource.isTemporary { try? FileManager.default.removeItem(at: mixedSource.url) } }
+
+        let asset = AVURLAsset(url: mixedSource.url)
         let videoTracks = try await asset.loadTracks(withMediaType: .video)
         guard let videoTrack = videoTracks.first else {
             throw ExportError.frameExtractionFailed
@@ -59,7 +77,7 @@ public enum CompositorExporter {
 
         let naturalSize = try await videoTrack.load(.naturalSize)
         let nominalFPS = try await videoTrack.load(.nominalFrameRate)
-        let fps = nominalFPS > 0 ? nominalFPS : 30.0
+        let frameDuration = Self.frameDuration(forNominalFrameRate: nominalFPS)
 
         let compositor = FrameCompositor(
             sourceSize: naturalSize,
@@ -73,7 +91,7 @@ public enum CompositorExporter {
         // Build the video composition with per-frame CIFilter handler
         let videoComposition = AVMutableVideoComposition()
         videoComposition.renderSize = outSize
-        videoComposition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(fps))
+        videoComposition.frameDuration = frameDuration
 
         // Use the customVideoCompositorClass approach is complex; instead use
         // the simpler CIFilter handler. But we must create it properly.
@@ -122,7 +140,7 @@ public enum CompositorExporter {
         // Override renderSize and frameDuration on the composition returned by
         // the convenience initializer (it defaults to naturalSize)
         filterComposition.renderSize = outSize
-        filterComposition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(fps))
+        filterComposition.frameDuration = frameDuration
 
         // Export preset
         let presetName = switch quality {
@@ -144,6 +162,10 @@ public enum CompositorExporter {
         let duration = try await asset.load(.duration).seconds
         let effectiveEnd = sortedTrims.filter { $0.endTime >= duration - 0.01 }.map(\.startTime).min() ?? duration
 
+        // Always pin the range to the source: with a video composition AVFoundation stretches a
+        // sparse recording's last frame (measured 21.11.: 8.56 s → 12.52 s), which later
+        // cuts then measured against.
+        session.timeRange = CMTimeRange(start: .zero, duration: CMTime(seconds: duration, preferredTimescale: 600))
         if applyTrimRegions && (effectiveStart > 0.01 || effectiveEnd < duration - 0.01) {
             let cmStart = CMTime(seconds: effectiveStart, preferredTimescale: 600)
             let cmDuration = CMTime(seconds: effectiveEnd - effectiveStart, preferredTimescale: 600)

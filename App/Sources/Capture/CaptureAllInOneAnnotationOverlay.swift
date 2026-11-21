@@ -399,7 +399,7 @@ final class AllInOneAnnotationSession: ObservableObject {
         } else {
             lineWidth = value
             persistWidth(value, for: currentTool)
-            updateSelectedStyle()
+            updateSelectedStyle("lineWidth")
         }
     }
 
@@ -454,11 +454,17 @@ final class AllInOneAnnotationSession: ObservableObject {
         onRequestToolbarLayout?()
     }
 
-    func updateSelectedStyle() {
+    /// `property` groups repeated changes (slider drags) into one undo step (audit A9).
+    func updateSelectedStyle(_ property: String = "style") {
         if let obj = document.selectedObject {
+            document.beginStyleChange(for: obj.id, property: property)
             if let pixelate = obj as? PixelateObject {
-                pixelate.blockSize = lineWidth
-                pixelate.mode = redactionMode
+                // Never weaken a secure redaction; the slider is the block size only with the
+                // pixelate tool active (audit A1, same as the editor).
+                pixelate.restyle(
+                    blockSize: currentTool == .pixelate ? lineWidth : pixelate.blockSize,
+                    mode: redactionMode
+                )
                 pixelate.style = currentStyle
             } else if let counter = obj as? CounterObject {
                 counter.radius = lineWidth

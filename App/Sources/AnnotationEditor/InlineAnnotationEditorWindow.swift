@@ -95,7 +95,7 @@ final class InlineAnnotationEditorWindow: NSPanel, NSWindowDelegate {
     /// never prompt. Esc never reaches this; see `AnnotationEscapePolicy`.
     func requestClose() {
         guard AnnotationEditorCloseGuard.shouldClose(
-            hasUnsavedChanges: document.hasUnsavedChanges,
+            hasUnsavedChanges: hasUnsavedWork,
             confirmDiscard: confirmDiscard
         ) else { return }
         close()
@@ -103,9 +103,14 @@ final class InlineAnnotationEditorWindow: NSPanel, NSWindowDelegate {
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         AnnotationEditorCloseGuard.shouldClose(
-            hasUnsavedChanges: document.hasUnsavedChanges,
+            hasUnsavedChanges: hasUnsavedWork,
             confirmDiscard: confirmDiscard
         )
+    }
+
+    /// Includes text still open in the inline text editor (audit A14, 21.11.).
+    private var hasUnsavedWork: Bool {
+        document.hasUnsavedChanges || AnnotationEditorCloseGuard.hasPendingText(in: contentView)
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -270,14 +275,14 @@ private struct InlineAnnotationEditorView: View {
         .background(Color.clear)
         .onAppear(perform: handleAppear)
         .onChange(of: currentTool, handleToolChange)
-        .onChange(of: currentColor) { _, _ in updateSelectedStyle() }
+        .onChange(of: currentColor) { _, _ in updateSelectedStyle("color") }
         .onChange(of: lineWidth, handleLineWidthChange)
         .onChange(of: strokePattern, handleStrokePatternChange)
-        .onChange(of: filled) { _, _ in updateSelectedStyle() }
-        .onChange(of: textFillEnabled) { _, _ in updateSelectedStyle() }
-        .onChange(of: textOutlineEnabled) { _, _ in updateSelectedStyle() }
-        .onChange(of: textStrokeEnabled) { _, _ in updateSelectedStyle() }
-        .onChange(of: redactionMode) { _, _ in updateSelectedStyle() }
+        .onChange(of: filled) { _, _ in updateSelectedStyle("filled") }
+        .onChange(of: textFillEnabled) { _, _ in updateSelectedStyle("textFill") }
+        .onChange(of: textOutlineEnabled) { _, _ in updateSelectedStyle("textOutline") }
+        .onChange(of: textStrokeEnabled) { _, _ in updateSelectedStyle("textStroke") }
+        .onChange(of: redactionMode) { _, _ in updateSelectedStyle("redactionMode") }
         .annotationToolShortcuts(currentTool: $currentTool, isEnabled: !isEditingText)
     }
 
@@ -387,13 +392,13 @@ private struct InlineAnnotationEditorView: View {
     }
 
     private func handleLineWidthChange(oldValue: CGFloat, newValue: CGFloat) {
-        updateSelectedStyle()
+        updateSelectedStyle("lineWidth")
         persistWidth(newValue, for: currentTool)
     }
 
     private func handleStrokePatternChange(oldValue: StrokePattern, newValue: StrokePattern) {
         savedStrokePattern = newValue
-        updateSelectedStyle()
+        updateSelectedStyle("pattern")
     }
 
     /// Trackpad pinch. `locInView` is in the canvas's flipped, top-left coords.
@@ -570,8 +575,10 @@ private struct InlineAnnotationEditorView: View {
         }
     }
 
-    private func updateSelectedStyle() {
+    /// `property` names the control, so a slider drag books one undo step (audit A9, 21.11.).
+    private func updateSelectedStyle(_ property: String) {
         if let obj = document.selectedObject {
+            document.beginStyleChange(for: obj.id, property: property)
             if let pixelate = obj as? PixelateObject {
                 // The slider only means "block size" while the pixelate tool is active;
                 // otherwise it is the line width (audit A1).

@@ -29,11 +29,17 @@ public enum CutExporter {
         }
 
         status?(ExportStatus(stage: .trimming, fractionCompleted: 0.08))
+        // Pre-mix system audio + mic into one track; the export session would
+        // otherwise keep them separate (audit E6, 21.11.).
+        let mixedSource = try await MP4Exporter.sourceWithMergedAudio(source)
+        defer { if mixedSource.isTemporary { try? FileManager.default.removeItem(at: mixedSource.url) } }
+        let cutAsset = AVURLAsset(url: mixedSource.url)
+
         let composition = AVMutableComposition()
         var cursor = CMTime.zero
 
-        let videoTracks = try await asset.loadTracks(withMediaType: .video)
-        let audioTracks = try await asset.loadTracks(withMediaType: .audio)
+        let videoTracks = try await cutAsset.loadTracks(withMediaType: .video)
+        let audioTracks = try await cutAsset.loadTracks(withMediaType: .audio)
 
         if let sourceVideo = videoTracks.first,
            let videoTrack = composition.addMutableTrack(

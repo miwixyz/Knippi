@@ -32,7 +32,14 @@ public extension ShareDestination {
 
         var request = URLRequest(url: publicURL)
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        let (data, response) = try await URLSession.shared.data(for: request)
+        // A failed request (DNS, timeout, TLS) must still remove the test file (audit Q9).
+        let data: Data, response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            try? await delete(key: testKey)
+            throw ShareError.publicAccessUnreachable
+        }
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             try? await delete(key: testKey)
             throw ShareError.publicAccessUnreachable

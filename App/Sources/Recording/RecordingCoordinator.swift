@@ -118,6 +118,9 @@ final class RecordingCoordinator {
         guard !isRecordingActive else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
             guard let self else { return }
+            // A toolbar from an earlier selection must go first: it stayed orphaned (no way to
+            // close it) and its Esc tap swallowed the first Esc of the new selection (audit R5).
+            self.dismissToolbarUI()
             if self.showRememberedRecordingArea() {
                 return
             }
@@ -475,7 +478,9 @@ final class RecordingCoordinator {
                         self.cameraPiPWindow?.close()
                         self.cameraPiPWindow = nil
                         self.cameraManager.stop()
-                        if error is CameraError {
+                        if case CameraError.deviceUnavailable = error {
+                            self.showCameraUnavailableToast()
+                        } else if error is CameraError {
                             self.showCameraPermissionDeniedAlert()
                         }
                         return false
@@ -708,8 +713,14 @@ final class RecordingCoordinator {
         // Start the camera if it is not already running from the toolbar
         // preview (permission was requested when it was switched on there).
         if cameraEnabled && cameraPiPWindow == nil {
-            try? cameraManager.start()
-            showCameraPiP(restorationState: restoredCameraPiPState)
+            // No empty camera bubble in the video: without a camera, record without it and say so
+            // (audit R8, 21.11.).
+            do {
+                try cameraManager.start()
+                showCameraPiP(restorationState: restoredCameraPiPState)
+            } catch {
+                showCameraUnavailableToast()
+            }
         }
 
         if settings.hideDesktopIconsWhileRecording {
@@ -1221,6 +1232,19 @@ final class RecordingCoordinator {
             // Closing mid-export would orphan the temp file with no UI to
             // recover from. Block until the save finishes.
             guard !state.isSaving else { return }
+            // Still unsaved (the save failed): closing would quietly leave the recording in a
+            // temp folder. Ask first (audit R7, 21.11.).
+            if FileManager.default.fileExists(atPath: tempURL.path) {
+                let alert = NSAlert()
+                alert.alertStyle = .warning
+                alert.messageText = String(localized: "Discard this recording?")
+                alert.informativeText = String(localized: "It hasn't been saved yet. If you close the preview, the recording is deleted.")
+                alert.addButton(withTitle: String(localized: "Keep Preview Open"))
+                alert.addButton(withTitle: String(localized: "Discard Recording"))
+                guard alert.runModal() == .alertSecondButtonReturn else { return }
+                InterruptedRecording.clear(ifMarking: tempURL)
+                try? FileManager.default.removeItem(at: tempURL)
+            }
             self?.recordingPreviewWindow?.close()
             self?.recordingPreviewWindow = nil
         }
@@ -1230,6 +1254,13 @@ final class RecordingCoordinator {
     }
 
     private var savedToast: ToastWindow?
+
+    /// The chosen camera is gone (unplugged) – the recording runs without the speaker view.
+    private func showCameraUnavailableToast() {
+        savedToast?.close()
+        savedToast = ToastWindow(message: String(localized: "Camera not available – recording without it"))
+        savedToast?.show(autoDismissAfter: 3)
+    }
 
     private func showRecordingSavedToast(_ url: URL) {
         savedToast?.close()
