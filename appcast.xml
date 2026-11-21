@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.4.2</title>
+            <pubDate>Sat, 21 Nov 2026 19:04:36 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>532</sparkle:version>
+            <sparkle:shortVersionString>0.4.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Verpixelung bleibt stark:</b> Farbe oder Modus einer ausgewählten Verpixelung aus „Vertrauliches finden“ ändern macht die Blöcke nicht mehr kleiner (vorher wurde der Text teils wieder lesbar).</li><li><b>Rückgängig nach Vergrößern:</b> Im All-in-One-Editor sprangen Markierungen nach Bereich vergrößern und Rückgängig an alte Stellen, Schwärzungen lagen neben dem Inhalt.</li><li><b>Drehen im Zuschnitt:</b> Bild und Zuschnittrahmen drehen jetzt in dieselbe Richtung.</li><li><b>Scroll-Aufnahme automatisch:</b> Verliert Knippi die Seite, hört es auf zu scrollen und meldet „vorzeitig beendet“, statt ein still abgeschnittenes Bild zu liefern. Bewegt sich am Seitenende etwas (Video, Ladekreisel), endet die Aufnahme trotzdem von selbst.</li><li><b>Kein Overlay im Bild:</b> Vollbild-, Fenster- und Wiederholen-Kürzel wirken nicht mehr, solange eine Auswahl auf dem Bildschirm ist.</li><li><b>Video:</b> Doppelklick auf Stopp zeigt keine falsche Fehlermeldung mehr. Stoppt Knippi selbst (Platte voll, Freigabe entzogen), sagt die Meldung jetzt, ob schon gesichert ist. Die Kamera startet nicht mehr, wenn die Aufnahme während der Kamera-Abfrage von macOS abgebrochen wurde. Ein Absturz während des Sicherns verliert die Aufnahme nicht mehr. Der Export mit Mikrofon und Systemton hängt bei voller Platte nicht mehr endlos.</li><li><b>Vorschaubild:</b> Schließt sich nicht mehr, solange ein Cloud-Upload läuft oder fehlgeschlagen ist.</li><li><b>Cloud-Freigabe zurücksetzen:</b> Noch offene Vorschaubilder laden danach nicht mehr mit den alten Zugangsdaten hoch.</li><li><b>Kein ungeschwärztes Original mehr:</b> Ist „Automatisch sichern“ an, ersetzen jetzt auch Kopieren, Anheften und „Sichern unter“ aus dem Editor die gesicherte Datei durch die bearbeitete Fassung. Vorher blieb dabei das unbearbeitete, zum Beispiel ungeschwärzte, Original im Ordner liegen.</li><li><b>Andere Apps:</b> In der Rückfrage „Andere App will Knippi steuern“ ist „Nicht erlauben“ jetzt der Standardknopf. Wer die Steuerung in den Einstellungen selbst aus- oder einschaltet, wird später nicht noch einmal gefragt.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.2/Knippi-0.4.2.zip" length="5648918" type="application/octet-stream" sparkle:edSignature="mE6Z0ojAGVQbo5Nytc4lhkeWfFntgiCt8Yrd4d9RRWH+1KOBdZEFPDRYokvFxrHvLMBo0t45vRU9i7REJO5LCw=="/>
+        </item>
+        <item>
             <title>0.4.1</title>
             <pubDate>Sat, 21 Nov 2026 18:11:46 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream Deck:</b> Plugin <code>Knippi.streamDeckPlugin</code> mit zehn Tasten (Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe, Selbstauslöser, Video Bereich, Video Vollbild), einem Regler für Stream Deck + und fertigen Profilen für Stream Deck +, Neo und Stream Deck (15 Tasten). Tastenbilder im Glas-Stil der App-Familie.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.0/Knippi-0.4.0.zip" length="5637342" type="application/octet-stream" sparkle:edSignature="pQbtc/0Y5+tH3MqiIJ757kCJiARh2oZW4DX84/uD5HbJDr/SUkbUpKp6qwDX2yP12ntu/ohVq1k+zYlxnar/AA=="/>
         </item>
-        <item>
-            <title>0.3.0</title>
-            <pubDate>Sat, 21 Nov 2026 16:23:20 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>526</sparkle:version>
-            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Bildschirmvideo und GIF:</b> Im Menü „Bereich aufzeichnen“ (option + shift + 5) oder „Ganzen Bildschirm aufzeichnen“. In der Leiste wählst du Video oder GIF, Systemaudio und wahlweise das Mikrofon. Pausieren ist möglich, die Pause fehlt im fertigen Video.</li><li><b>Sprecherbild:</b> Über das Kamera-Symbol in der Leiste blendest du dein Kamerabild ein, in Kreis-, Quadrat-, Quer- oder Hochformat und drei Größen. Vor dem Start ziehst du es an seinen Platz. Während der Aufnahme weicht es der Maus sanft aus und kehrt danach zurück; mit gedrückter command-Taste lässt es sich auch während der Aufnahme greifen. Die Einstellungen bleiben offen, bis du daneben klickst.</li><li><b>Automatisch gesichert:</b> Nach dem Stoppen landet das Video sofort im Sicherungsordner.</li></ul><h3>Hinweise</h3><ul><li>Mikrofon und Kamera fragt macOS erst, wenn du sie zum ersten Mal einschaltest.</li><li>Lange GIFs werden zuerst ruckeliger (bis 10 Bilder pro Sekunde), dann kleiner, damit der Speicher nicht überläuft (gemessen: 150 Bilder in voller Größe brauchten 3,6 GB).</li><li>Bricht eine Aufnahme ab (Freigabe entzogen, Datei nicht schreibbar), sagt Knippi es und sichert, was bis dahin aufgenommen war.</li></ul><h3>Behoben</h3><ul><li><b>Speicher nach der Aufnahme:</b> Knippi hielt das zuletzt aufgenommene Bild dauerhaft im Speicher, auch nachdem das Vorschaubild geschlossen war. Bei einer langen Scroll-Aufnahme waren das rund 180 MB (gemessen: 229 MB statt etwa 50 MB im Ruhezustand). Jetzt gibt Knippi das Bild frei, sobald es nirgends mehr angezeigt wird.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.3.0/Knippi-0.3.0.zip" length="5636828" type="application/octet-stream" sparkle:edSignature="LS3VdENdZLSaOVPe6k0yhXjWwJ0mBzD96Z+1BUTamIhfMP3Z1KWVzLiHGfcjoZ1OkZ295SP7qXmiuHAjAgZNCQ=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: bSLjOgkrvLUlyTI3H3LuO70ew2xlxP2/eUfSK/by1OwX6XEiViZE5aLxuGFq46BuAaTXWMAMoZtMvxfCB01TCw==
-length: 5836
+edSignature: rpiFen1/QjYjqXrhzEcrZ27Egg1WVwIBR2a7S+aUPACuBBLfv90wU/od1SducJ7YwYU1heh4t1yvq55AGjieDA==
+length: 6399
 -->
