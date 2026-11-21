@@ -49,7 +49,6 @@ final class CaptureCoordinator {
             || scrollCaptureOverlay != nil
     }
 
-    var lastCaptureResult: CaptureResult?
     var ocrCoordinator: OCRCoordinator?
     var recordingCoordinator: RecordingCoordinator?
     var shareCoordinator: ShareCoordinator?
@@ -1817,7 +1816,7 @@ final class CaptureCoordinator {
         return context.makeImage()
     }
 
-    private func handleCaptureResult(_ capturedResult: CaptureResult) {
+    func handleCaptureResult(_ capturedResult: CaptureResult) {
         if let deadline = automatedCaptureDeadline, Date() < deadline {
             Self.postNotification(
                 title: String(localized: "Screenshot taken by another app"),
@@ -1833,7 +1832,6 @@ final class CaptureCoordinator {
             : pendingAction
         pendingAction = .default
         let outputResult = beautifiedResultIfNeeded(timestampedResultIfNeeded(result), action: action)
-        lastCaptureResult = result
 
         if settings.playShutterSound, action.playsShutterSound {
             Self.shutterSound?.stop()

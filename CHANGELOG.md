@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [Unveröffentlicht]
+
+### Behoben
+
+- **Speicher nach der Aufnahme:** Knippi hielt das zuletzt aufgenommene Bild dauerhaft im
+  Speicher, auch nachdem das Vorschaubild geschlossen war. Bei einer langen Scroll-Aufnahme
+  waren das rund 180 MB (gemessen: 229 MB statt etwa 50 MB im Ruhezustand). Jetzt gibt Knippi
+  das Bild frei, sobald es nirgends mehr angezeigt wird.
+
 ## [0.2.0] — 2026-11-21
 
 ### Neu
