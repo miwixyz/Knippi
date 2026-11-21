@@ -279,7 +279,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .captureArea:
             captureCoordinator.captureArea()
         case .captureFullscreen:
-            captureCoordinator.markNextCaptureAsAutomated()
+            guard captureCoordinator.markNextCaptureAsAutomated() else {
+                return logAutomationURL("Ignored request: automated captures too close together")
+            }
             captureCoordinator.captureFullscreen()
         case .captureWindow:
             captureCoordinator.captureWindow()
@@ -294,7 +296,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .captureSelfTimer:
             captureCoordinator.captureAreaWithSelfTimer()
         case .captureLastArea:
-            captureCoordinator.markNextCaptureAsAutomated()
+            guard captureCoordinator.markNextCaptureAsAutomated() else {
+                return logAutomationURL("Ignored request: automated captures too close together")
+            }
             captureCoordinator.replayLastCapture()
         case .captureAreaToClipboard:
             captureCoordinator.captureAreaToClipboard()

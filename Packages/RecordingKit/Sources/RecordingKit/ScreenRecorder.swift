@@ -267,6 +267,9 @@ public final class ScreenRecorder {
         }
 
         self.stream = captureStream; self.streamOutput = output
+        // Pauses are measured on the stream's own clock, the one its buffers are stamped
+        // with (audit R1). Host clock only as fallback.
+        writer.clock = captureStream.synchronizationClock ?? CMClockGetHostTimeClock()
         return RecordingStreamSetup(dimensions: target.dimensions, sourceSize: target.sourceSize)
     }
 
@@ -446,12 +449,23 @@ enum RecordingVideoGeometry {
 }
 
 enum RecordingWriterTiming {
-    /// Time to cut out after a pause: from the last frame before it to the
-    /// first frame after it, less one frame so timestamps keep increasing.
-    static func pauseGap(lastBefore: CMTime, firstAfter: CMTime, frame: CMTime) -> CMTime {
-        let gap = CMTimeSubtract(CMTimeSubtract(firstAfter, lastBefore), frame)
+    /// Time to cut out for a pause: the clock time between pause and resume. Measured on
+    /// the stream's synchronization clock (the clock its buffers are stamped with), not
+    /// between video frames: on a still screen SCK sends only idle frames, and a frame-based cut
+    /// also removed the still part before the pause and made audio run backwards (audit R1).
+    static func pauseLength(pausedAt: CMTime, resumedAt: CMTime) -> CMTime {
+        let gap = CMTimeSubtract(resumedAt, pausedAt)
         return CMTimeCompare(gap, .zero) > 0 ? gap : .zero
     }
+
+    /// A buffer stamped before the latest resume belongs to the pause (delivered late)
+    /// and must not be written: shifted by the full pause it would land before data
+    /// that is already in the file.
+    static func isFromPause(_ pts: CMTime, resumedAt: CMTime?) -> Bool {
+        guard let resumedAt else { return false }
+        return CMTimeCompare(pts, resumedAt) < 0
+    }
+
 }
 
 // MARK: - RecordingWriter
@@ -544,17 +558,31 @@ private final class RecordingWriter: @unchecked Sendable {
         sessionStarted = false; active = false; _written = false
     }
 
-    func activate() { lock.lock(); active = true; lock.unlock() }
+    func activate() {
+        lock.lock(); defer { lock.unlock() }
+        if let pausedAt {
+            let resumed = now
+            pauseOffset = CMTimeAdd(pauseOffset, RecordingWriterTiming.pauseLength(pausedAt: pausedAt, resumedAt: resumed))
+            resumedAt = resumed
+            self.pausedAt = nil
+        }
+        active = true
+    }
     func deactivate() { lock.lock(); active = false; lock.unlock() }
 
     // Pause: the stream keeps its own clock, so without shifting, a pause
     // ends up in the file as a frozen frame and silence of the same length.
     private var pauseOffset = CMTime.zero
-    private var lastVideoPTS: CMTime?
-    private var resumePending = false
+    private var pausedAt: CMTime?
+    private var resumedAt: CMTime?
+    /// Clock the stream stamps its buffers with (set when the stream is created).
+    var clock: CMClock = CMClockGetHostTimeClock()
+    private var now: CMTime { CMClockGetTime(clock) }
 
     func pause() {
-        lock.lock(); active = false; resumePending = sessionStarted; lock.unlock()
+        lock.lock(); defer { lock.unlock() }
+        active = false
+        if sessionStarted, pausedAt == nil { pausedAt = now }
     }
 
     private func retimed(_ buf: CMSampleBuffer, by offset: CMTime) -> CMSampleBuffer? {
@@ -587,19 +615,9 @@ private final class RecordingWriter: @unchecked Sendable {
             }
         }
 
-        let rawPTS = CMSampleBufferGetPresentationTimeStamp(buf)
-        if resumePending, let last = lastVideoPTS {
-            let frame = CMSampleBufferGetDuration(buf)
-            pauseOffset = CMTimeAdd(pauseOffset, RecordingWriterTiming.pauseGap(
-                lastBefore: last, firstAfter: rawPTS,
-                frame: frame.isValid && frame.seconds > 0 ? frame : CMTime(value: 1, timescale: 60)
-            ))
-        }
-        resumePending = false
-
-        guard let vi = videoInput, vi.isReadyForMoreMediaData,
+        guard !RecordingWriterTiming.isFromPause(CMSampleBufferGetPresentationTimeStamp(buf), resumedAt: resumedAt),
+              let vi = videoInput, vi.isReadyForMoreMediaData,
               let shifted = retimed(buf, by: pauseOffset) else { return }
-        lastVideoPTS = rawPTS
         if !vi.append(shifted) {
             knippiLog("Video append FAILED: \(String(describing: w.error))")
         } else {
@@ -612,7 +630,9 @@ private final class RecordingWriter: @unchecked Sendable {
 
     func appendSystemAudio(_ buf: CMSampleBuffer) {
         lock.lock(); defer { lock.unlock() }
-        guard active, sessionStarted, !resumePending else { return }
+        guard active, sessionStarted,
+              !RecordingWriterTiming.isFromPause(CMSampleBufferGetPresentationTimeStamp(buf), resumedAt: resumedAt)
+        else { return }
         guard let w = assetWriter, w.status == .writing else { return }
         guard let ai = sysAudioInput, ai.isReadyForMoreMediaData else { return }
         guard let converted = createCleanAudioBuffer(buf, label: "sys") else { return }
@@ -623,7 +643,9 @@ private final class RecordingWriter: @unchecked Sendable {
 
     func appendMicAudio(_ buf: CMSampleBuffer) {
         lock.lock(); defer { lock.unlock() }
-        guard active, sessionStarted, !resumePending else { return }
+        guard active, sessionStarted,
+              !RecordingWriterTiming.isFromPause(CMSampleBufferGetPresentationTimeStamp(buf), resumedAt: resumedAt)
+        else { return }
         guard let w = assetWriter, w.status == .writing else { return }
         guard let ai = micAudioInput, ai.isReadyForMoreMediaData else { return }
         guard let converted = createCleanAudioBuffer(buf, label: "mic") else { return }
@@ -720,7 +742,7 @@ private final class RecordingWriter: @unchecked Sendable {
         lock.lock(); defer { lock.unlock() }
         assetWriter = nil; videoInput = nil; sysAudioInput = nil; micAudioInput = nil
         sessionStarted = false; active = false; _written = false
-        pauseOffset = .zero; lastVideoPTS = nil; resumePending = false
+        pauseOffset = .zero; pausedAt = nil; resumedAt = nil
         sysAudioLogCount = 0; micAudioLogCount = 0; audioFormatLogged = false
     }
 }

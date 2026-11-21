@@ -46,6 +46,7 @@ Mit dem Plugin `Knippi.streamDeckPlugin` (liegt jedem Release bei) löst du Knip
 - **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild. In der Stream-Deck-App unter „Knippi“ auf eine Taste ziehen.
 - **Regler (Stream Deck +):** Drehen wählt die Aufnahmeart, Drücken oder Tippen nimmt auf. In den Einstellungen des Reglers wählst du Screenshots oder Video.
 - **Fertige Profile** für Stream Deck +, Neo und Stream Deck (15 Tasten) werden mitinstalliert. Umschalten in der Stream-Deck-App beim jeweiligen Gerät.
+- Vollbild und „Letzten Bereich wiederholen“ werden ohne Auswahl aufgenommen, immer gesichert und mit Hinweis angezeigt, aber nicht automatisch kopiert oder hochgeladen.
 - Die Tasten nutzen Knippis Automations-Befehle. Beim ersten Druck fragt Knippi, ob andere Apps steuern dürfen (später: Einstellungen → Allgemein → Automatisierung). Hast du das abgelehnt oder fehlt Knippi, zeigt die Taste ein Warnzeichen.
 
 ## Datenschutz

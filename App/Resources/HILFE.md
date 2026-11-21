@@ -105,6 +105,8 @@ Mit dem Plugin `Knippi.streamDeckPlugin` aus dem Release auf GitHub löst du Kni
 - **Regler (Stream Deck +):** Drehen wählt die Aufnahmeart, Drücken oder Tippen nimmt auf. In den Einstellungen des Reglers wählst du Screenshots oder Video.
 - **Fertige Profile** für Stream Deck +, Neo und Stream Deck (15 Tasten) kommen mit. Umschalten in der Stream-Deck-App beim jeweiligen Gerät.
 
+Vollbild und „Letzten Bereich wiederholen“ vom Stream Deck (oder aus einer anderen App) nimmt Knippi ohne Auswahl auf. Diese Aufnahmen werden immer gesichert und mit einem Hinweis angezeigt, kommen aber nicht automatisch in die Zwischenablage oder in die Cloud. Kopieren geht über das Vorschaubild.
+
 Beim ersten Tastendruck fragt Knippi, ob andere Apps Aufnahmen starten dürfen. Später änderst du das unter Einstellungen → Allgemein → Automatisierung. Hast du abgelehnt, zeigt die Taste ein Warnzeichen.
 
 ## Updates

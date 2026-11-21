@@ -54,14 +54,29 @@ struct RecordingStateTests {
 struct RecordingPauseTests {
     private func t(_ seconds: Double) -> CMTime { CMTime(seconds: seconds, preferredTimescale: 600) }
 
-    @Test("A pause is cut out, leaving one frame between the parts")
-    func pauseIsCutOut() {
-        let gap = RecordingWriterTiming.pauseGap(lastBefore: t(10), firstAfter: t(70), frame: t(1.0 / 30))
-        #expect(abs(gap.seconds - (60 - 1.0 / 30)) < 0.001)
+    @Test("The cut is exactly the time between pause and resume")
+    func pauseLengthIsTheClockTime() {
+        #expect(RecordingWriterTiming.pauseLength(pausedAt: t(30), resumedAt: t(40)) == t(10))
+        #expect(RecordingWriterTiming.pauseLength(pausedAt: t(30), resumedAt: t(29)) == .zero)
     }
 
-    @Test("No gap when frames are already back to back")
-    func noNegativeGap() {
-        #expect(RecordingWriterTiming.pauseGap(lastBefore: t(10), firstAfter: t(10.01), frame: t(1.0 / 30)) == .zero)
+    /// Audit R1 (21.11.): on a still screen SCK sends only idle frames, so the old cut
+    /// (last changed frame → next changed frame) also removed the still part before the
+    /// pause and made audio timestamps run backwards.
+    @Test("Still screen: video and audio stay in line after a pause")
+    func stillScreenKeepsVideoAndAudioInLine() {
+        let offset = RecordingWriterTiming.pauseLength(pausedAt: t(30), resumedAt: t(40))
+        // Last changed frame at 10 s, next one at 45 s; audio written up to 30 s.
+        let nextFrame = CMTimeSubtract(t(45), offset)
+        let nextAudio = CMTimeSubtract(t(40.5), offset)
+        #expect(nextFrame == t(35))
+        #expect(CMTimeCompare(nextAudio, t(30)) > 0)
+    }
+
+    @Test("Buffers stamped inside the pause are dropped, later ones kept")
+    func buffersFromThePauseAreDropped() {
+        #expect(RecordingWriterTiming.isFromPause(t(39.9), resumedAt: t(40)))
+        #expect(!RecordingWriterTiming.isFromPause(t(40), resumedAt: t(40)))
+        #expect(!RecordingWriterTiming.isFromPause(t(12), resumedAt: nil))
     }
 }

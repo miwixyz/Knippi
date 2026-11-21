@@ -33,6 +33,26 @@ final class CaptureSelectionActionTests: XCTestCase {
         }
     }
 
+    /// Audit C1 (21.11.): Esc in an area selection kept the chosen action, so the next
+    /// full-screen, window or scrolling capture was shared/pinned/copied by surprise.
+    func testCancelledSelectionDropsThePendingAction() throws {
+        let actions: [CaptureCoordinator.PostCaptureAction] = [.clipboard, .annotate, .pin, .share]
+
+        for action in actions {
+            let suiteName = "CaptureSelectionActionTests.\(UUID().uuidString)"
+            let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+            defer { defaults.removePersistentDomain(forName: suiteName) }
+            let coordinator = CaptureCoordinator(settings: AppSettings(defaults: defaults))
+            coordinator.shareCoordinator = ShareCoordinator(destination: UnusedShareDestination())
+
+            start(action, on: coordinator)
+            XCTAssertEqual(coordinator.pendingAction, action)
+
+            coordinator.handleSelectionCancelled()
+            XCTAssertEqual(coordinator.pendingAction, .default, "Esc must drop \(action)")
+        }
+    }
+
     private func start(_ action: CaptureCoordinator.PostCaptureAction, on coordinator: CaptureCoordinator) {
         switch action {
         case .default: coordinator.captureArea()

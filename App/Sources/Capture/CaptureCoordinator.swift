@@ -498,6 +498,7 @@ final class CaptureCoordinator {
     }
 
     func captureFullscreen() {
+        pendingAction = .default
         rememberSourceApplication()
         // Capture the display the user is currently looking at (the one
         // containing the mouse cursor), not unconditionally the primary.
@@ -548,6 +549,7 @@ final class CaptureCoordinator {
     func captureScrolling() {
         guard !isCaptureSelectionActive else { return }
         isSelectionFlowStarting = true
+        pendingAction = .default
         rememberSourceApplication()
         // Freeze first (preserves open dropdowns), then select area on the
         // frozen backdrop. After selection, dismiss the freeze layer and run
@@ -578,6 +580,7 @@ final class CaptureCoordinator {
     }
 
     func captureWindow() {
+        pendingAction = .default
         isSelectionFlowStarting = true
         pendingSourceApplication = nil
         // Enumerate windows first (async, no focus change), then freeze the
@@ -620,9 +623,21 @@ final class CaptureCoordinator {
     /// that completes before it expires posts a notification; a failed or
     /// skipped capture just lets it lapse.
     private var automatedCaptureDeadline: Date?
+    private var lastAutomatedCaptureAt: Date?
+    /// Minimum gap between two silent captures another app triggers (audit P2b).
+    static let automatedCaptureMinimumInterval: TimeInterval = 2
 
-    func markNextCaptureAsAutomated() {
-        automatedCaptureDeadline = Date().addingTimeInterval(10)
+    /// Returns false (and marks nothing) when another automated capture ran less than
+    /// `automatedCaptureMinimumInterval` ago, so a looping caller can't fire captures back to back.
+    @discardableResult
+    func markNextCaptureAsAutomated(now: Date = Date()) -> Bool {
+        if let last = lastAutomatedCaptureAt,
+           now.timeIntervalSince(last) < Self.automatedCaptureMinimumInterval {
+            return false
+        }
+        lastAutomatedCaptureAt = now
+        automatedCaptureDeadline = now.addingTimeInterval(10)
+        return true
     }
 
     func replayLastCapture() {
@@ -696,8 +711,7 @@ final class CaptureCoordinator {
                 self?.performMultiWindowCapture(windowIDs: windowIDs)
             }
             overlay.onCancelled = { [weak self] in
-                self?.pendingSourceApplication = nil
-                self?.dismissOverlay()
+                self?.handleSelectionCancelled()
             }
             overlay.activate(mode: mode)
             overlayWindows.append(overlay)
@@ -744,8 +758,7 @@ final class CaptureCoordinator {
                 self?.performMultiWindowCapture(windowIDs: windowIDs)
             }
             overlay.onCancelled = { [weak self] in
-                self?.pendingSourceApplication = nil
-                self?.dismissOverlay()
+                self?.handleSelectionCancelled()
             }
             overlay.activate(mode: .area)
             overlayWindows.append(overlay)
@@ -1049,8 +1062,7 @@ final class CaptureCoordinator {
                 self?.performMultiWindowCapture(windowIDs: windowIDs)
             }
             overlay.onCancelled = { [weak self] in
-                self?.pendingSourceApplication = nil
-                self?.dismissOverlay()
+                self?.handleSelectionCancelled()
             }
             overlay.setFrozenBackground(frozenImage)
             overlay.activate(mode: mode)
@@ -1364,6 +1376,15 @@ final class CaptureCoordinator {
 
         let ciCtx = CIContext(options: nil)
         return ciCtx.createCGImage(ci, from: CGRect(origin: .zero, size: targetSize))
+    }
+
+    /// Esc or right-click in a selection overlay. Drops the chosen post-capture action too:
+    /// otherwise the next full-screen, window or scrolling capture would still be
+    /// shared, pinned or copied (audit C1, 21.11.).
+    func handleSelectionCancelled() {
+        pendingSourceApplication = nil
+        pendingAction = .default
+        dismissOverlay()
     }
 
     private func dismissOverlay(notifyingCaptureEnd: Bool = true) {
@@ -1817,10 +1838,20 @@ final class CaptureCoordinator {
     }
 
     func handleCaptureResult(_ capturedResult: CaptureResult) {
-        if let deadline = automatedCaptureDeadline, Date() < deadline {
+        // Another app triggered this capture with no on-screen step. Tell the user visibly
+        // (the notification alone is dropped without notification permission) and keep the
+        // image off the clipboard and out of the cloud: the calling app could otherwise read
+        // the screen through Knippi without its own screen-recording permission (audit P2b).
+        let automated = automatedCaptureDeadline.map { Date() < $0 } ?? false
+        if automated {
             Self.postNotification(
                 title: String(localized: "Screenshot taken by another app"),
                 body: String(localized: "Another app used Knippi to capture your screen.")
+            )
+            showToast(
+                String(localized: "Screenshot taken by another app"),
+                icon: "exclamationmark.triangle",
+                iconColor: .systemYellow
             )
         }
         automatedCaptureDeadline = nil
@@ -1868,9 +1899,9 @@ final class CaptureCoordinator {
                 )
             }
         case .default where settings.afterCaptureMode == .silent:
-            let shouldAutoUpload = settings.cloudShareAutoUploadEnabled && shareCoordinator != nil
-            let saveResult = applySilentPostCaptureActions(outputResult, entryID: entryID)
-            if case .success = saveResult {
+            let shouldAutoUpload = !automated && settings.cloudShareAutoUploadEnabled && shareCoordinator != nil
+            let saveResult = applySilentPostCaptureActions(outputResult, entryID: entryID, automated: automated)
+            if case .success = saveResult, !automated {
                 showToast(String(localized: "Saved"))
             }
             if shouldAutoUpload, let coord = shareCoordinator {
@@ -1879,8 +1910,8 @@ final class CaptureCoordinator {
                 }
             }
         case .default:
-            let shouldAutoUpload = settings.cloudShareAutoUploadEnabled && shareCoordinator != nil
-            let savedFileURL = applyDefaultPostCaptureActions(outputResult, entryID: entryID)
+            let shouldAutoUpload = !automated && settings.cloudShareAutoUploadEnabled && shareCoordinator != nil
+            let savedFileURL = applyDefaultPostCaptureActions(outputResult, entryID: entryID, automated: automated)
             if settings.screenshotShowPreview {
                 showQuickAccess(
                     for: outputResult,
@@ -2391,9 +2422,13 @@ final class CaptureCoordinator {
     func applyDefaultPostCaptureActions(
         _ result: CaptureResult,
         entryID: UUID,
+        automated: Bool = false,
         pasteboard: NSPasteboard = .general
     ) -> URL? {
-        if settings.screenshotAutoCopy,
+        // Automated captures (another app via knippi://) never go to the clipboard and are
+        // always saved, so the image is neither readable by that app nor lost (audit P2b).
+        let autoCopy = settings.screenshotAutoCopy && !automated
+        if autoCopy,
            settings.screenshotClipboardContent == .image {
             copyScreenshotToClipboard(
                 result,
@@ -2401,15 +2436,15 @@ final class CaptureCoordinator {
                 pasteboard: pasteboard
             )
         }
-        let savedFileURL = settings.screenshotAutoSave
+        let savedFileURL = settings.screenshotAutoSave || automated
             ? saveCaptureAndReportFailure(
                 result,
-                alreadyCopied: settings.screenshotAutoCopy && settings.screenshotClipboardContent == .image,
+                alreadyCopied: autoCopy && settings.screenshotClipboardContent == .image,
                 entryID: entryID,
                 pasteboard: pasteboard
             )
             : nil
-        if settings.screenshotAutoCopy,
+        if autoCopy,
            settings.screenshotClipboardContent == .filePath {
             copyScreenshotToClipboard(
                 result,
@@ -2454,10 +2489,11 @@ final class CaptureCoordinator {
     func applySilentPostCaptureActions(
         _ result: CaptureResult,
         entryID: UUID,
+        automated: Bool = false,
         pasteboard: NSPasteboard = .general
     ) -> Result<URL, ScreenshotSaveError> {
         var copied = false
-        if settings.screenshotClipboardContent == .image {
+        if !automated, settings.screenshotClipboardContent == .image {
             copied = copyScreenshotToClipboard(result, entryID: entryID, pasteboard: pasteboard)
         }
         let saveResult = writeScreenshot(
@@ -2466,7 +2502,7 @@ final class CaptureCoordinator {
             sourceWindowTitle: result.windowName,
             date: result.timestamp
         )
-        if settings.screenshotClipboardContent == .filePath {
+        if !automated, settings.screenshotClipboardContent == .filePath {
             copied = copyScreenshotToClipboard(
                 result,
                 entryID: entryID,
@@ -2740,6 +2776,7 @@ final class CaptureCoordinator {
 
     /// Reports a failed capture visibly instead of only logging it.
     private func handleCaptureFailure(_ error: Error, context: String) {
+        pendingAction = .default
         switch CaptureErrorPresentation.forError(error) {
         case .permissionMissing:
             Self.captureLogger.error("\(context, privacy: .public) failed: permission missing")

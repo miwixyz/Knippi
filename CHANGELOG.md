@@ -2,6 +2,23 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.4.1] — 2026-11-21
+
+### Behoben
+
+- **Abbrechen setzt die Aktion zurück:** Wer „Bereich aufnehmen & teilen“ (oder „& anheften“,
+  „& kopieren“, „& bearbeiten“) mit Esc abbrach, bekam die Aktion bei der nächsten Vollbild-,
+  Fenster- oder Scroll-Aufnahme trotzdem, also zum Beispiel einen ungewollten Cloud-Upload.
+- **Pause im Bildschirmvideo:** Bei stillem Bild schnitt Knippi zu viel heraus und verlor den Ton
+  nach dem Fortsetzen. Jetzt fehlt genau die Zeit zwischen Pause und Fortsetzen.
+
+### Geändert
+
+- **Aufnahmen, die eine andere App auslöst** (`knippi://grab/fullscreen` und `/last-area`, auch
+  vom Stream Deck), landen nicht mehr automatisch in der Zwischenablage oder in der Cloud. Sie
+  werden immer gesichert, ein Hinweis zeigt sie an, und zwei solche Befehle kurz hintereinander
+  nimmt Knippi nicht an. So kann keine andere App über Knippi den Bildschirm mitlesen.
+
 ## [0.4.0] — 2026-11-21
 
 ### Neu

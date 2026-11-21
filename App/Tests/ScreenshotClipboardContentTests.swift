@@ -265,6 +265,59 @@ final class ScreenshotClipboardContentTests: XCTestCase {
         XCTAssertNotNil(pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff))
     }
 
+    /// Audit P2b (21.11.): a capture another app triggers via knippi:// must not land on the
+    /// clipboard, where that app could read it without its own screen-recording permission.
+    /// It is saved instead, so nothing is lost.
+    func testAutomatedCaptureIsSavedButNotCopied() throws {
+        let settings = makeSettings()
+        settings.screenshotAutoCopy = true
+        settings.screenshotAutoSave = false
+        settings.screenshotClipboardContent = .image
+        settings.screenshotOutputFormat = .png
+        let exportRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("knippi-automated-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: exportRoot) }
+        settings.setExportLocation(exportRoot)
+        let coordinator = CaptureCoordinator(settings: settings)
+        let pasteboard = makePasteboard()
+
+        let savedURL = coordinator.applyDefaultPostCaptureActions(
+            try makeCaptureResult(), entryID: UUID(), automated: true, pasteboard: pasteboard
+        )
+
+        XCTAssertNil(pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff))
+        XCTAssertNil(pasteboard.string(forType: .string))
+        let url = try XCTUnwrap(savedURL)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
+    }
+
+    func testAutomatedCaptureInSilentModeIsNotCopied() throws {
+        let settings = makeSettings()
+        settings.screenshotOutputFormat = .png
+        let exportRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("knippi-automated-silent-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: exportRoot) }
+        settings.setExportLocation(exportRoot)
+        let coordinator = CaptureCoordinator(settings: settings)
+        let pasteboard = makePasteboard()
+
+        let result = coordinator.applySilentPostCaptureActions(
+            try makeCaptureResult(), entryID: UUID(), automated: true, pasteboard: pasteboard
+        )
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: try result.get().path))
+        XCTAssertNil(pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff))
+    }
+
+    func testAutomatedCapturesAreThrottled() {
+        let coordinator = CaptureCoordinator(settings: makeSettings())
+        let start = Date(timeIntervalSince1970: 1_000)
+
+        XCTAssertTrue(coordinator.markNextCaptureAsAutomated(now: start))
+        XCTAssertFalse(coordinator.markNextCaptureAsAutomated(now: start.addingTimeInterval(1)))
+        XCTAssertTrue(coordinator.markNextCaptureAsAutomated(now: start.addingTimeInterval(2.5)))
+    }
+
     private func makeSettings() -> AppSettings {
         let suite = "ScreenshotClipboardContentTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
