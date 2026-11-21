@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.4.1</title>
+            <pubDate>Sat, 21 Nov 2026 18:11:46 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>530</sparkle:version>
+            <sparkle:shortVersionString>0.4.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Abbrechen setzt die Aktion zurück:</b> Wer „Bereich aufnehmen &amp; teilen“ (oder „&amp; anheften“, „&amp; kopieren“, „&amp; bearbeiten“) mit Esc abbrach, bekam die Aktion bei der nächsten Vollbild-, Fenster- oder Scroll-Aufnahme trotzdem, also zum Beispiel einen ungewollten Cloud-Upload.</li><li><b>Pause im Bildschirmvideo:</b> Bei stillem Bild schnitt Knippi zu viel heraus und verlor den Ton nach dem Fortsetzen. Jetzt fehlt genau die Zeit zwischen Pause und Fortsetzen.</li></ul><h3>Geändert</h3><ul><li><b>Aufnahmen, die eine andere App auslöst</b> (<code>knippi://grab/fullscreen</code> und <code>/last-area</code>, auch vom Stream Deck), landen nicht mehr automatisch in der Zwischenablage oder in der Cloud. Sie werden immer gesichert, ein Hinweis zeigt sie an, und zwei solche Befehle kurz hintereinander nimmt Knippi nicht an. So kann keine andere App über Knippi den Bildschirm mitlesen.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.1/Knippi-0.4.1.zip" length="5640227" type="application/octet-stream" sparkle:edSignature="SnoWhZKh69GkoXe6vwvIfUUM56Y1rDIWf2b9cbzEZ+disvD4TvpKlvsWBad8HwH/NoYjYR29u1zzlSaDymlCBQ=="/>
+        </item>
+        <item>
             <title>0.4.0</title>
             <pubDate>Sat, 21 Nov 2026 17:14:24 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Bildschirmvideo und GIF:</b> Im Menü „Bereich aufzeichnen“ (option + shift + 5) oder „Ganzen Bildschirm aufzeichnen“. In der Leiste wählst du Video oder GIF, Systemaudio und wahlweise das Mikrofon. Pausieren ist möglich, die Pause fehlt im fertigen Video.</li><li><b>Sprecherbild:</b> Über das Kamera-Symbol in der Leiste blendest du dein Kamerabild ein, in Kreis-, Quadrat-, Quer- oder Hochformat und drei Größen. Vor dem Start ziehst du es an seinen Platz. Während der Aufnahme weicht es der Maus sanft aus und kehrt danach zurück; mit gedrückter command-Taste lässt es sich auch während der Aufnahme greifen. Die Einstellungen bleiben offen, bis du daneben klickst.</li><li><b>Automatisch gesichert:</b> Nach dem Stoppen landet das Video sofort im Sicherungsordner.</li></ul><h3>Hinweise</h3><ul><li>Mikrofon und Kamera fragt macOS erst, wenn du sie zum ersten Mal einschaltest.</li><li>Lange GIFs werden zuerst ruckeliger (bis 10 Bilder pro Sekunde), dann kleiner, damit der Speicher nicht überläuft (gemessen: 150 Bilder in voller Größe brauchten 3,6 GB).</li><li>Bricht eine Aufnahme ab (Freigabe entzogen, Datei nicht schreibbar), sagt Knippi es und sichert, was bis dahin aufgenommen war.</li></ul><h3>Behoben</h3><ul><li><b>Speicher nach der Aufnahme:</b> Knippi hielt das zuletzt aufgenommene Bild dauerhaft im Speicher, auch nachdem das Vorschaubild geschlossen war. Bei einer langen Scroll-Aufnahme waren das rund 180 MB (gemessen: 229 MB statt etwa 50 MB im Ruhezustand). Jetzt gibt Knippi das Bild frei, sobald es nirgends mehr angezeigt wird.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.3.0/Knippi-0.3.0.zip" length="5636828" type="application/octet-stream" sparkle:edSignature="LS3VdENdZLSaOVPe6k0yhXjWwJ0mBzD96Z+1BUTamIhfMP3Z1KWVzLiHGfcjoZ1OkZ295SP7qXmiuHAjAgZNCQ=="/>
         </item>
-        <item>
-            <title>0.2.0</title>
-            <pubDate>Sat, 21 Nov 2026 14:18:22 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>523</sparkle:version>
-            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Scroll-Aufnahme:</b> Nimmt eine lange Seite als ein durchgehendes Bild auf, zum Beispiel eine Webseite, eine Mail oder ein PDF. Im Menü „Scroll-Aufnahme“ oder mit option + shift + 6 einen Bereich wählen, dann „Aufnahme starten“ und selbst scrollen, oder „Automatisch“, dann scrollt Knippi bis zum Seitenende von allein. „Fertig“ beendet, Esc bricht ab.</li><li><b>Feste Kopf- und Fußleisten</b> einer Seite erscheinen im Bild nur einmal.</li><li><b>Zu schnell gescrollt:</b> Reißt der Anschluss ab, wird der Rahmen orange und Knippi zeigt „Zu schnell – etwas zurückscrollen“. Scrollst du zurück, setzt die Aufnahme dort wieder an. Knippi setzt nie an einer unsicheren Stelle an, auch nicht bei Seiten, deren Zeilen sich stark ähneln (Tabellen, Listen, Protokolle).</li><li><b>Höchstlänge:</b> Bei 30 000 Pixeln endet die Aufnahme mit dem Hinweis „Maximale Länge erreicht – der Rest der Seite fehlt“.</li></ul><h3>Hinweise</h3><ul><li>„Automatisch“ braucht die Freigabe <b>Gerätesteuerung und Datenzugriff</b> (Systemeinstellungen → Datenschutz &amp; Sicherheit). Fehlt sie, fragt macOS beim ersten Mal.</li><li>Gemessen an 400 Zeilen langen Seiten: Safari, Mail und Vorschau ohne doppelte oder fehlende Zeilen, 13 bis 24 Sekunden.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.2.0/Knippi-0.2.0.zip" length="5564422" type="application/octet-stream" sparkle:edSignature="xKy6pLrWurKG9dLyQ8BYFAT8DY5WlqeSw8vbWTdDnGX4aC2dWf9lpddrpaoqlG+GMPwI/03prx94OoR8jeMxCA=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: jcLptLWUHnZ0Hu1voMGSm5PylpTwzfNFA4mr5GHSCJIcsZ+A9PKxIUezuu8WYYBGgDnjQKVqOghHdA/R1LyDCQ==
-length: 6186
+edSignature: bSLjOgkrvLUlyTI3H3LuO70ew2xlxP2/eUfSK/by1OwX6XEiViZE5aLxuGFq46BuAaTXWMAMoZtMvxfCB01TCw==
+length: 5836
 -->
