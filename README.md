@@ -42,7 +42,7 @@ Knippi aktualisiert sich über [Sparkle](https://sparkle-project.org) und sucht 
 
 ## Stream Deck
 
-Mit dem Plugin `Knippi.streamDeckPlugin` (liegt jedem Release bei) löst du Knippi über Elgatos Stream Deck aus. Datei laden und doppelklicken, Stream Deck installiert sie.
+Mit dem Plugin `Knippi.streamDeckPlugin` (liegt jedem Release bei, Menü „Stream-Deck-Plugin laden …“ öffnet den Download) löst du Knippi über Elgatos Stream Deck aus. Datei laden und doppelklicken, Stream Deck installiert sie.
 
 - **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild, Screenshot-Verlauf. In der Stream-Deck-App unter „Knippi“ auf eine Taste ziehen.
 - **Regler (Stream Deck +):** Drehen wählt die Aufnahmeart, Drücken oder Tippen nimmt auf. In den Einstellungen des Reglers wählst du Screenshots oder Video.

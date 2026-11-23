@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.5.3] — 2026-11-23
+
+### Neu
+
+- **Stream-Deck-Plugin aus dem Menü laden:** Im Menü der Menüleiste öffnet „Stream-Deck-Plugin laden …“
+  den Download des Plugins aus dem neuesten Release im Browser. Du musst die GitHub-Seite nicht suchen.
+  Datei doppelklicken, die Stream-Deck-App installiert sie. Knippi selbst lädt dabei nichts herunter.
+
 ## [0.5.2] — 2026-11-23
 
 ### Neu

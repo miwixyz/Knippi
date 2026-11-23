@@ -102,7 +102,7 @@ Im Schnellzugriff öffnet „Teilen“ das Teilen-Menü von macOS: AirDrop, Nach
 
 ## Stream Deck
 
-Mit dem Plugin `Knippi.streamDeckPlugin` aus dem Release auf GitHub löst du Knippi über ein Elgato Stream Deck aus. Datei doppelklicken, Stream Deck installiert sie.
+Mit dem Plugin `Knippi.streamDeckPlugin` löst du Knippi über ein Elgato Stream Deck aus. Du lädst es aus dem Menü der Menüleiste: „Stream-Deck-Plugin laden …“ öffnet den Download im Browser. Datei doppelklicken, Stream Deck installiert sie.
 
 - **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild, Screenshot-Verlauf. In der Stream-Deck-App aus der Kategorie „Knippi“ auf eine Taste ziehen.
 - **Regler (Stream Deck +):** Drehen wählt die Aufnahmeart, Drücken oder Tippen nimmt auf. In den Einstellungen des Reglers wählst du Screenshots oder Video.

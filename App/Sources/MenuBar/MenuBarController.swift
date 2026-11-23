@@ -168,6 +168,7 @@ final class MenuBarController: NSObject {
 
         menu.addItem(menuItem(String(localized: "Preferences..."), action: #selector(openPreferences), key: ",", modifiers: [.command]))
         menu.addItem(menuItem(String(localized: "Knippi Help"), action: #selector(openHelp), key: "?", modifiers: [.command]))
+        menu.addItem(menuItem(String(localized: "Get Stream Deck Plugin…"), action: #selector(getStreamDeckPlugin)))
         menu.addItem(menuItem(String(localized: "About Knippi"), action: #selector(openAbout)))
         if updateManager != nil {
             menu.addItem(menuItem(String(localized: "Check for Updates…"), action: #selector(checkForUpdates)))
@@ -338,6 +339,14 @@ final class MenuBarController: NSObject {
     /// Opens the screenshot history (menu, shortcut and `knippi://grab/history`).
     func showHistory() {
         historyWindow.show()
+    }
+
+    /// The plugin is a separate file on the GitHub release page, not part of the app. The browser
+    /// downloads it (Knippi itself sends nothing), a double click installs it in the Stream Deck app.
+    static let streamDeckPluginURL = URL(string: "https://github.com/miwixyz/Knippi/releases/latest/download/Knippi.streamDeckPlugin")!
+
+    @objc private func getStreamDeckPlugin() {
+        NSWorkspace.shared.open(Self.streamDeckPluginURL)
     }
 
     @objc private func openHelp() {
