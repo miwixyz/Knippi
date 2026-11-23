@@ -11,11 +11,17 @@ struct HistoryView: View {
     private let columns = [GridItem(.adaptive(minimum: 170), spacing: FamilyTheme.Space.m)]
 
     var body: some View {
-        VStack(spacing: FamilyTheme.Space.m) {
-            searchField
-            if store.autoSaveIsOff && !store.items.isEmpty { autoSaveNotice }
-            content
-            footer
+        Group {
+            if store.isOn {
+                VStack(spacing: FamilyTheme.Space.m) {
+                    searchField
+                    if store.autoSaveIsOff && !store.items.isEmpty { autoSaveNotice }
+                    content
+                    footer
+                }
+            } else {
+                offState
+            }
         }
         .padding(FamilyTheme.Space.l)
         .frame(minWidth: 540, minHeight: 440)
@@ -80,18 +86,57 @@ struct HistoryView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: FamilyTheme.Space.m) {
                     ForEach(store.matches) { item in
-                        HistoryCell(item: item, isSelected: selection == item.url, onOpen: { store.open(item) })
+                        HistoryCell(
+                            item: item,
+                            isSelected: selection == item.url,
+                            onOpen: { store.open(item) })
                             .onTapGesture(count: 2) { store.open(item) }
-                            .onTapGesture { selection = item.url }
+                            .onTapGesture {
+                                selection = item.url
+                                store.copy(item)
+                            }
+                            .onDrag { NSItemProvider(contentsOf: item.url) ?? NSItemProvider() }
                             .contextMenu {
+                                Button(String(localized: "Copy")) { store.copy(item) }
                                 Button(String(localized: "Open")) { store.open(item) }
+                                Button(String(localized: "Open in Editor")) { store.openInEditor(item) }
                                 Button(String(localized: "Show in Finder")) { store.reveal(item) }
+                                Divider()
+                                Button(String(localized: "Move to Trash")) { trash(item) }
                             }
                     }
                 }
                 .padding(2)
             }
+            .focusable()
+            .onKeyPress(keys: [.delete, .deleteForward]) { _ in
+                guard let selection, let item = store.matches.first(where: { $0.url == selection }) else { return .ignored }
+                trash(item)
+                return .handled
+            }
         }
+    }
+
+    private func trash(_ item: HistoryScanner.Item) {
+        if selection == item.url { selection = nil }
+        store.moveToTrash(item)
+    }
+
+    private var offState: some View {
+        VStack(spacing: FamilyTheme.Space.m) {
+            Text("History is off.")
+                .font(FamilyTheme.font(.headline))
+                .foregroundStyle(FamilyTheme.textPrimary)
+            Text(String(localized: "When on, Knippi reads the text in your last \(HistoryStore.defaultKeepCount) saved screenshots and keeps it in a search index on this Mac. You can change the number or delete the index in Settings."))
+                .font(FamilyTheme.font(.body))
+                .foregroundStyle(FamilyTheme.textSecondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 420)
+            Button(String(localized: "Turn On History")) { store.enableHistory() }
+                .buttonStyle(.familyGlass)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(FamilyTheme.Space.xl)
     }
 
     private func emptyState(_ message: String, offerAutoSave: Bool) -> some View {
@@ -111,7 +156,10 @@ struct HistoryView: View {
 
     private var footer: some View {
         HStack(spacing: FamilyTheme.Space.s) {
-            if store.isIndexing {
+            if let notice = store.notice {
+                Text(notice.text)
+                    .foregroundStyle(notice.isError ? FamilyTheme.danger : FamilyTheme.textPrimary)
+            } else if store.isIndexing {
                 ProgressView().controlSize(.small)
                 Text("Reading text…")
             } else if !store.items.isEmpty {

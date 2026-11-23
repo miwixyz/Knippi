@@ -127,6 +127,32 @@ struct ScreenshotSettingsView: View {
                 }
             }
 
+            SettingGroup(title: "Screenshot History") {
+                SettingCard {
+                    SettingRow(
+                        label: "Keep History",
+                        sublabel: "Recent screenshots from the export folder, searchable by the text in them. Off by default."
+                    ) {
+                        Picker("", selection: $viewModel.historyKeepCount) {
+                            Text("Off").tag(0)
+                            ForEach(AppSettings.historyKeepChoices, id: \.self) { count in
+                                Text("\(count)").tag(count)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .fixedSize(horizontal: true, vertical: false)
+                    }
+                    SettingRow(
+                        label: "Search Index",
+                        sublabel: "The text Knippi read is kept unencrypted on this Mac, readable only by you, and may end up in backups. Deleting it removes that text; it is read again when you next open the history.",
+                        showDivider: true
+                    ) {
+                        Button("Delete Index") { viewModel.deleteHistoryIndex() }
+                    }
+                }
+            }
+
             SettingGroup(title: "Timestamp") {
                 SettingCard {
                     SettingRow(label: "Add Timestamp", sublabel: "Draw the capture time onto screenshots") {

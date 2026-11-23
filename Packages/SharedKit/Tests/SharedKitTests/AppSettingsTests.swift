@@ -875,4 +875,25 @@ struct AppSettingsTests {
         let settings = AppSettings(defaults: defaults)
         #expect(settings.squareCenterLockShortcut == .default)
     }
+
+    @Test("History is off by default, keeps only known counts, and persists")
+    func historyKeepCountPersists() {
+        let suite = "test.historyKeepCount"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+
+        let first = AppSettings(defaults: defaults)
+        #expect(first.historyKeepCount == 0)
+
+        first.historyKeepCount = 50
+        #expect(AppSettings(defaults: defaults).historyKeepCount == 50)
+
+        first.historyKeepCount = 77                      // not a choice: treated as off
+        #expect(AppSettings(defaults: defaults).historyKeepCount == 0)
+
+        defaults.set(25, forKey: "historyKeepCount")
+        #expect(AppSettings(defaults: defaults).historyKeepCount == 25)
+        defaults.set(-3, forKey: "historyKeepCount")
+        #expect(AppSettings(defaults: defaults).historyKeepCount == 0)
+    }
 }

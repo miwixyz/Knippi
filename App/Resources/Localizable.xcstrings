@@ -53363,6 +53363,136 @@
           }
         }
       }
+    },
+    "History is off." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Verlauf ist aus."
+          }
+        }
+      }
+    },
+    "When on, Knippi reads the text in your last %lld saved screenshots and keeps it in a search index on this Mac. You can change the number or delete the index in Settings." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn er an ist, liest Knippi den Text in deinen letzten %lld gespeicherten Screenshots und legt ihn als Suchindex auf diesem Mac ab. Anzahl ändern oder Index löschen kannst du in den Einstellungen."
+          }
+        }
+      }
+    },
+    "Turn On History" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlauf einschalten"
+          }
+        }
+      }
+    },
+    "Copied" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiert"
+          }
+        }
+      }
+    },
+    "Couldn't copy the screenshot." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Screenshot konnte nicht kopiert werden."
+          }
+        }
+      }
+    },
+    "Couldn't move the screenshot to the Trash." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Screenshot konnte nicht in den Papierkorb gelegt werden."
+          }
+        }
+      }
+    },
+    "Open in Editor" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Im Editor öffnen"
+          }
+        }
+      }
+    },
+    "Move to Trash" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In den Papierkorb legen"
+          }
+        }
+      }
+    },
+    "Keep History" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlauf behalten"
+          }
+        }
+      }
+    },
+    "Recent screenshots from the export folder, searchable by the text in them. Off by default." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzte Screenshots aus dem Exportordner, durchsuchbar nach dem Text darin. Ab Werk aus."
+          }
+        }
+      }
+    },
+    "Search Index" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suchindex"
+          }
+        }
+      }
+    },
+    "The text Knippi read is kept unencrypted on this Mac, readable only by you, and may end up in backups. Deleting it removes that text; it is read again when you next open the history." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der gelesene Text liegt unverschlüsselt auf diesem Mac, nur für dich lesbar, und kann in Backups landen. Löschen entfernt ihn; beim nächsten Öffnen des Verlaufs wird er neu gelesen."
+          }
+        }
+      }
+    },
+    "Delete Index" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Index löschen"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

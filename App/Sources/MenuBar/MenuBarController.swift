@@ -29,7 +29,9 @@ final class MenuBarController: NSObject {
         self.desktopIconsCover = desktopIconsCover
         self.onShowPreferences = onShowPreferences
         self.updateManager = updateManager
-        self.historyWindow = HistoryWindow(store: HistoryStore(settings: settings))
+        self.historyWindow = HistoryWindow(store: HistoryStore(
+            settings: settings,
+            openInEditor: { [captureCoordinator] url in _ = captureCoordinator.openImageFiles([url]) }))
         super.init()
         applyVisibility()
         NotificationCenter.default.addObserver(

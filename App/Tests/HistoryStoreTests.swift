@@ -41,13 +41,27 @@ final class HistoryStoreTests: XCTestCase {
             [.modificationDate: Date().addingTimeInterval(-age)], ofItemAtPath: url.path)
     }
 
-    private func makeStore(autoSave: Bool = false, texts: [String: String] = [:]) -> (HistoryStore, SearchIndex, AppSettings) {
+    private var pasteboard: NSPasteboard!
+    private var trashed: [URL] = []
+    private var trashFails = false
+    private var editorOpened: [URL] = []
+
+    private func makeStore(autoSave: Bool = false, keep: Int = 50, texts: [String: String] = [:]) -> (HistoryStore, SearchIndex, AppSettings) {
         let defaults = UserDefaults(suiteName: suite)!
         let settings = AppSettings(defaults: defaults)
         settings.setExportLocation(root.appendingPathComponent("shots"))
         settings.screenshotAutoSave = autoSave
+        settings.historyKeepCount = keep
         let index = SearchIndex(fileURL: indexFile, recognizer: { url in texts[url.lastPathComponent] ?? "" })
-        return (HistoryStore(settings: settings, index: index), index, settings)
+        pasteboard = NSPasteboard(name: NSPasteboard.Name("knippi.history.tests.\(UUID().uuidString)"))
+        let store = HistoryStore(
+            settings: settings, index: index, pasteboard: pasteboard,
+            trash: { [unowned self] url in
+                if trashFails { throw CocoaError(.fileWriteNoPermission) }
+                trashed.append(url)
+            },
+            openInEditor: { [unowned self] url in editorOpened.append(url) })
+        return (store, index, settings)
     }
 
     /// Waits until the condition holds, at most `seconds`.
@@ -126,6 +140,138 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(after, 0)
     }
 
+    // MARK: Off by default, switching, deleting
+
+    private func waitForIndexCount(_ index: SearchIndex, _ target: Int) async -> Int {
+        var count = await index.count
+        for _ in 0..<80 where count != target {
+            try? await Task.sleep(for: .milliseconds(50))
+            count = await index.count
+        }
+        return count
+    }
+
+    func testOffByDefaultReadsAndKeepsNothing() async throws {
+        try png("a.png", age: 30)
+        let (store, index, _) = makeStore(keep: 0, texts: ["a.png": "geheim"])
+        store.activate()
+        try? await Task.sleep(for: .milliseconds(500))
+        XCTAssertFalse(store.isOn)
+        XCTAssertTrue(store.items.isEmpty)
+        let count = await index.count
+        XCTAssertEqual(count, 0)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: indexFile.path))
+        store.deactivate()
+    }
+
+    func testTurningOnInTheWindowStartsReading() async throws {
+        try png("a.png", age: 30)
+        let (store, _, settings) = makeStore(keep: 0, texts: ["a.png": "x"])
+        store.activate()                              // window open, history off
+        store.enableHistory()
+        await wait { store.items.count == 1 }
+        store.deactivate()
+        XCTAssertTrue(store.isOn)
+        XCTAssertEqual(settings.historyKeepCount, HistoryStore.defaultKeepCount)
+        XCTAssertEqual(store.items.count, 1)
+    }
+
+    func testKeepCountLimitsTheList() async throws {
+        for n in 0..<30 { try png("s\(n).png", age: Double(n + 1)) }
+        let (store, _, _) = makeStore(keep: 25)
+        store.activate()
+        await wait { store.items.count == 25 }
+        store.deactivate()
+        XCTAssertEqual(store.items.count, 25)
+    }
+
+    func testSwitchingOffDeletesTheStoredText() async throws {
+        try png("a.png", age: 30)
+        let (store, index, settings) = makeStore(texts: ["a.png": "Kontonummer"])
+        store.activate()
+        await wait { store.items.count == 1 }
+        let before = await waitForIndexCount(index, 1)
+        XCTAssertEqual(before, 1)
+
+        settings.historyKeepCount = 0
+        NotificationCenter.default.post(name: .historySettingsChanged, object: nil)
+        let after = await waitForIndexCount(index, 0)
+        XCTAssertEqual(after, 0)
+        XCTAssertTrue(store.items.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: indexFile.path))
+        store.deactivate()
+    }
+
+    func testDeleteIndexRequestRemovesTheText() async throws {
+        try png("a.png", age: 30)
+        let (store, index, _) = makeStore(texts: ["a.png": "x"])
+        store.activate()
+        _ = await waitForIndexCount(index, 1)
+        store.deactivate()                             // no re-reading after the delete
+        NotificationCenter.default.post(name: .historyIndexDeleteRequested, object: nil)
+        let count = await waitForIndexCount(index, 0)
+        XCTAssertEqual(count, 0)
+    }
+
+    // MARK: Actions
+
+    func testCopyPutsTheImageOnTheClipboard() async throws {
+        try png("a.png", age: 30)
+        let (store, _, _) = makeStore()
+        store.activate()
+        await wait { store.items.count == 1 }
+        store.copy(store.items[0])
+        store.deactivate()
+        XCTAssertEqual(store.notice, HistoryStore.Notice(text: String(localized: "Copied"), isError: false))
+        XCTAssertNotNil(NSImage(pasteboard: pasteboard))
+    }
+
+    func testCopyOfAMissingFileSaysSo() async throws {
+        let (store, _, _) = makeStore()
+        let ghost = HistoryScanner.Item(url: root.appendingPathComponent("weg.png"), modified: Date())
+        store.copy(ghost)
+        XCTAssertEqual(store.notice?.isError, true)
+        XCTAssertNil(NSImage(pasteboard: pasteboard))
+    }
+
+    func testTrashRemovesTheItemAndItsText() async throws {
+        try png("a.png", age: 30)
+        try png("b.png", age: 20)
+        let (store, index, _) = makeStore(texts: ["a.png": "eins", "b.png": "zwei"])
+        store.activate()
+        await wait { store.items.count == 2 }
+        _ = await waitForIndexCount(index, 2)
+        let target = try XCTUnwrap(store.items.first { $0.url.lastPathComponent == "a.png" })
+        store.deactivate()
+        store.moveToTrash(target)
+        XCTAssertEqual(trashed, [target.url])
+        XCTAssertEqual(store.items.map(\.url.lastPathComponent), ["b.png"])
+        let count = await waitForIndexCount(index, 1)
+        XCTAssertEqual(count, 1)
+    }
+
+    func testFailedTrashKeepsTheItemAndReportsIt() async throws {
+        try png("a.png", age: 30)
+        let (store, _, _) = makeStore()
+        store.activate()
+        await wait { store.items.count == 1 }
+        store.deactivate()
+        trashFails = true
+        store.moveToTrash(store.items[0])
+        XCTAssertEqual(store.items.count, 1)
+        XCTAssertEqual(store.notice?.isError, true)
+    }
+
+    func testOpenInEditorHandsTheFileOver() async throws {
+        try png("a.png", age: 30)
+        let (store, _, _) = makeStore()
+        store.activate()
+        await wait { store.items.count == 1 }
+        store.deactivate()
+        store.openInEditor(store.items[0])
+        XCTAssertEqual(editorOpened, [store.items[0].url])
+    }
+
     /// Renders the window content to a PNG when KNIPPI_SNAPSHOT_DIR is set (for a visual check).
     func testRenderSnapshotsForVisualCheck() async throws {
         guard let dir = ProcessInfo.processInfo.environment["KNIPPI_SNAPSHOT_DIR"] else { return }
@@ -133,10 +279,11 @@ final class HistoryStoreTests: XCTestCase {
         try png("a.png", age: 60)
         try png("b.png", age: 600)
         try png("2026-11/c.png", age: 3600)
-        for (name, autoSave, query) in [("history-grid-autosave-off", false, ""),
+        for (name, autoSave, query) in [("history-off", false, "__off__"),
+                                        ("history-grid-autosave-off", false, ""),
                                         ("history-search", true, "rechnung"),
                                         ("history-empty-autosave-off", false, "__empty__")] {
-            let (store, _, _) = makeStore(autoSave: autoSave,
+            let (store, _, _) = makeStore(autoSave: autoSave, keep: query == "__off__" ? 0 : 50,
                                           texts: ["a.png": "Rechnung 4711", "b.png": "Fahrplan", "c.png": "Quittung"])
             if query == "__empty__" {
                 let defaults = UserDefaults(suiteName: suite)!
@@ -144,9 +291,9 @@ final class HistoryStoreTests: XCTestCase {
                 try FileManager.default.createDirectory(at: root.appendingPathComponent("leer"), withIntermediateDirectories: true)
             }
             store.activate()
-            await wait { store.items.count == 3 && !store.isIndexing }
+            if query != "__off__" { await wait { store.items.count == 3 && !store.isIndexing } }
             try? await Task.sleep(for: .milliseconds(800))
-            if query != "__empty__" { store.query = query; try? await Task.sleep(for: .milliseconds(500)) }
+            if query != "__empty__" && query != "__off__" { store.query = query; try? await Task.sleep(for: .milliseconds(500)) }
             let host = NSHostingView(rootView: HistoryView(store: store))
             host.frame = NSRect(x: 0, y: 0, width: 640, height: 520)
             let window = NSWindow(contentRect: host.frame, styleMask: [.titled], backing: .buffered, defer: false)

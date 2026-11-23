@@ -567,6 +567,23 @@ public final class AppSettings: @unchecked Sendable {
         set { defaults.set(newValue, forKey: "screenshotAutoSave") }
     }
 
+    // MARK: History
+
+    /// The numbers the history can keep. 0 (off) is the default and is not listed.
+    public static let historyKeepChoices = [25, 50, 100]
+
+    /// How many recent screenshots the history shows and indexes. 0 = off (default):
+    /// nothing is scanned, no text is read, no index is kept.
+    public var historyKeepCount: Int {
+        get {
+            let value = defaults.integer(forKey: "historyKeepCount")
+            return Self.historyKeepChoices.contains(value) ? value : 0
+        }
+        set {
+            defaults.set(Self.historyKeepChoices.contains(newValue) ? newValue : 0, forKey: "historyKeepCount")
+        }
+    }
+
     public var screenshotMonthlyFolders: Bool {
         get { defaults.object(forKey: "screenshotMonthlyFolders") as? Bool ?? false }
         set { defaults.set(newValue, forKey: "screenshotMonthlyFolders") }

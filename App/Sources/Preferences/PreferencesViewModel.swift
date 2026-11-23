@@ -153,6 +153,24 @@ final class PreferencesViewModel {
             }
         }
     }
+    var historyKeepCount: Int {
+        get {
+            access(keyPath: \.historyKeepCount)
+            return settings.historyKeepCount
+        }
+        set {
+            withMutation(keyPath: \.historyKeepCount) {
+                settings.historyKeepCount = newValue
+            }
+            NotificationCenter.default.post(name: .historySettingsChanged, object: nil)
+        }
+    }
+
+    /// Removes the text Knippi read from screenshots (see `HistoryStore`).
+    func deleteHistoryIndex() {
+        NotificationCenter.default.post(name: .historyIndexDeleteRequested, object: nil)
+    }
+
     var screenshotAutoSave: Bool {
         get {
             access(keyPath: \.screenshotAutoSave)

@@ -13,6 +13,11 @@ public enum HistoryScanner {
         public let url: URL
         public let modified: Date
         public var id: URL { url }
+
+        public init(url: URL, modified: Date) {
+            self.url = url
+            self.modified = modified
+        }
     }
 
     /// At most `limit` image files under `folder`, the most recently changed first.
