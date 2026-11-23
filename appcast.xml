@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.5.4</title>
+            <pubDate>Mon, 23 Nov 2026 17:50:37 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>549</sparkle:version>
+            <sparkle:shortVersionString>0.5.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Knippi-Bildschirmfotos werden als Bildschirmfoto gekennzeichnet.</b> Bisher setzte Knippi das Spotlight-Merkmal „Bildschirmfoto“ (<code>kMDItemIsScreenCapture</code>) nicht, anders als macOS und andere Aufnahme-Programme. Deshalb sah keine App, die Bildschirmfotos daran erkennt, die Aufnahmen von Knippi: Gnotchis Bildschirmfoto-Ablage zeigte sie nicht, und sie fehlten in Spotlight unter der Art „Bildschirmfoto“. Jetzt tragen neu gesicherte Aufnahmen das Merkmal, auch nachdem der Editor sie ersetzt hat (der Austausch löscht Merkmale der alten Datei). Bereits gesicherte ältere Aufnahmen bleiben unmarkiert. Gemessen: Spotlight meldet eine so gesicherte Datei nach rund 6 Sekunden.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.4/Knippi-0.5.4.zip" length="5671675" type="application/octet-stream" sparkle:edSignature="W5Xf7cPudVdjbVdPWChpUscWt/WhNYTpYk8qR3ZWbaboeiFmWa3CVVXuAz9qSy+X1VqHFoEUAcrdpFLWiPonAw=="/>
+        </item>
+        <item>
             <title>0.5.3</title>
             <pubDate>Mon, 23 Nov 2026 15:06:12 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Verlauf: Mehrfachauswahl.</b> Shift- oder command-Klick wählt mehrere Aufnahmen, command + A alle. Kopieren, Teilen und Papierkorb gelten dann für die ganze Auswahl.</li><li><b>Verlauf: Schnellansicht.</b> Die Leertaste zeigt die Aufnahme groß, die Pfeiltasten blättern durch die Liste.</li><li><b>Verlauf: Return kopiert den neuesten Treffer</b> der Suche.</li><li><b>Verlauf: Rückgängig.</b> command + Z (oder „Papierkorb rückgängig“ im Menü mit den drei Punkten) holt die zuletzt weggelegten Aufnahmen aus dem Papierkorb zurück. Eine Datei, die inzwischen wieder unter dem alten Namen liegt, wird nie überschrieben.</li><li><b>Verlauf: „Teilen …“</b> im Rechtsklick-Menü, mit dem Teilen-Menü von macOS.</li></ul><h3>Hinweise</h3><ul><li>Ideen dazu stammen aus dem Open-Source-Programm Tendedero (MIT, Alejandro Buján); der Code ist neu geschrieben.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.2/Knippi-0.5.2.zip" length="5667330" type="application/octet-stream" sparkle:edSignature="2S0FP6SaryKs4TJWbaGBXnzlILw6IFZEhh/YToBjrYzCN3Es/f0ISFZthmAzbStPaQLEN/iGOoxisEhSfCjCBA=="/>
         </item>
-        <item>
-            <title>0.5.1</title>
-            <pubDate>Mon, 23 Nov 2026 12:53:58 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>543</sparkle:version>
-            <sparkle:shortVersionString>0.5.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Tastenkürzel für den Screenshot-Verlauf:</b> option + shift + H öffnet ihn, ändern kannst du es unter Einstellungen → Tastenkürzel → „Screenshot-Verlauf“. Auch im Menü steht das Kürzel jetzt hinter „Screenshot-Verlauf …“.</li><li><b>Stream-Deck-Taste „Screenshot-Verlauf“:</b> Das Plugin hat eine neue Taste, die den Verlauf öffnet. Sie steht in der Aktionsliste der Stream-Deck-App unter „Knippi“; in die mitgelieferten Profile ist sie nicht eingebaut. Der Befehl dahinter ist <code>knippi://grab/history</code>.</li><li><b>Verlauf-Fenster:</b> Neben dem Suchfeld gibt es ein Menü mit „Index löschen“ und „Verlauf ausschalten“, damit du beides nicht in den Einstellungen suchen musst.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.1/Knippi-0.5.1.zip" length="5654812" type="application/octet-stream" sparkle:edSignature="XjoebLogq+WUVYkXBLktPK/g6nH2oB57Gl7FscBgLwRxkAdbMDTp6J7mjYZ8iH6YtiqEc7A/y6mpzVsxZmYLBA=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: BUMcAUpiuFAU5kVRn4bwM7FwqGgVlRTf/ibWxfPxSMQ+SQ8fFo8Vkz8ZQwr3URNfg00oxb6BiU0LLQgYipSfBQ==
-length: 4873
+edSignature: 97GwWE8Vt4rv5qhZhCMBHEt0X/i1UqcnPAK4Vmmrj/w1KhwznvWd8nna5tGRTBzLP5Af1o55z9aaAiI7WBTgDQ==
+length: 4847
 -->
