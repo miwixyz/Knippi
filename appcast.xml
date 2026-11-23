@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.5.2</title>
+            <pubDate>Mon, 23 Nov 2026 14:26:46 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>545</sparkle:version>
+            <sparkle:shortVersionString>0.5.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Verlauf: Mehrfachauswahl.</b> Shift- oder command-Klick wählt mehrere Aufnahmen, command + A alle. Kopieren, Teilen und Papierkorb gelten dann für die ganze Auswahl.</li><li><b>Verlauf: Schnellansicht.</b> Die Leertaste zeigt die Aufnahme groß, die Pfeiltasten blättern durch die Liste.</li><li><b>Verlauf: Return kopiert den neuesten Treffer</b> der Suche.</li><li><b>Verlauf: Rückgängig.</b> command + Z (oder „Papierkorb rückgängig“ im Menü mit den drei Punkten) holt die zuletzt weggelegten Aufnahmen aus dem Papierkorb zurück. Eine Datei, die inzwischen wieder unter dem alten Namen liegt, wird nie überschrieben.</li><li><b>Verlauf: „Teilen …“</b> im Rechtsklick-Menü, mit dem Teilen-Menü von macOS.</li></ul><h3>Hinweise</h3><ul><li>Ideen dazu stammen aus dem Open-Source-Programm Tendedero (MIT, Alejandro Buján); der Code ist neu geschrieben.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.2/Knippi-0.5.2.zip" length="5667330" type="application/octet-stream" sparkle:edSignature="2S0FP6SaryKs4TJWbaGBXnzlILw6IFZEhh/YToBjrYzCN3Es/f0ISFZthmAzbStPaQLEN/iGOoxisEhSfCjCBA=="/>
+        </item>
+        <item>
             <title>0.5.1</title>
             <pubDate>Mon, 23 Nov 2026 12:53:58 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Screenshot-Verlauf mit Textsuche:</b> Menüleiste → „Screenshot-Verlauf …“ zeigt die letzten Aufnahmen aus deinem Sicherungsordner, auch aus Monatsordnern. Im Suchfeld findest du eine Aufnahme über den Text im Bild; Groß- und Kleinschreibung und Akzente spielen keine Rolle. Klick kopiert das Bild, Doppelklick öffnet es, Ziehen schickt eine Kopie in eine andere App, Entf legt es in den Papierkorb. Im Rechtsklick-Menü stehen außerdem „Im Editor öffnen“ und „Im Finder zeigen“.</li><li><b>Ab Werk aus:</b> Einstellungen → Bildschirmfotos → „Screenshot-Verlauf“. Du wählst 25, 50 oder 100 Aufnahmen. Ist der Verlauf aus, liest Knippi nichts und legt keinen Index an. Beim Ausschalten wird der gelesene Text gelöscht, „Index löschen“ tut das auch bei eingeschaltetem Verlauf.</li></ul><h3>Hinweise</h3><ul><li>Der Verlauf zeigt nur Aufnahmen im Sicherungsordner. Ist „Automatisch sichern“ aus, landen neue Aufnahmen dort nicht; das Verlauf-Fenster bietet an, es einzuschalten.</li><li>Knippi liest den Text nur, solange das Verlauf-Fenster offen ist. Gemessen an 100 Bildern: etwa 25 Sekunden beim ersten Mal, dabei kurzzeitig bis zu 650 MB Arbeitsspeicher. Danach kostet das Öffnen praktisch nichts.</li><li>Der gelesene Text liegt unverschlüsselt im Ordner „Application Support“, nur für dein Benutzerkonto lesbar, und kann in Backups landen.</li><li>Ersetzt der Editor ein gesichertes Original (etwa nach dem Verpixeln), vergisst der Index den alten Text sofort. Ein Bild, das du in den Papierkorb legst, verschwindet auch aus dem Index.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.0/Knippi-0.5.0.zip" length="5651745" type="application/octet-stream" sparkle:edSignature="K3hUrp7hgjKSGXptv5wQ/rFPNMdvuJsfWXfwLH5cVxhLdtZtQ55O3OuvQW4QnCGdQ03UfFn97V43/qghmLq1Aw=="/>
         </item>
-        <item>
-            <title>0.4.4</title>
-            <pubDate>Sat, 21 Nov 2026 21:19:02 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>536</sparkle:version>
-            <sparkle:shortVersionString>0.4.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Bild-Editor:</b> Ein Klick zum Auswählen legt keinen leeren Rückgängig-Schritt mehr an. Eine Stilvorlage ist ein einziger Rückgängig-Schritt. Höchstens 100 Rückgängig-Schritte. Esc beim Schreiben übernimmt erst den Text. Überfahren des Zieh-Symbols verpixelt die Vorschläge von „Vertrauliches finden“ nicht mehr vorzeitig. Kann Knippi das Bild nicht exportieren oder skalieren, sagt es das.</li><li><b>Verpixeln von Hand</b> bekommt dasselbe Zufallsrauschen wie „Vertrauliches finden“, damit sich Text nicht zurückrechnen lässt. Die Blöcke wirken dadurch etwas fleckiger.</li><li><b>All-in-One:</b> Kann Knippi die Anmerkungen nicht übernehmen, wird nichts unbearbeitet weitergegeben. Rückgängig trennt Farbe, Füllung und Muster.</li><li><b>Scroll-Aufnahme:</b> Return und Enter funktionieren in anderen Apps wieder, sobald die Aufnahme läuft. Wird der Bildschirm abgesteckt, bricht sie ab, statt ein anderes Display aufzunehmen.</li><li><b>Selbstauslöser:</b> Ein Abbruch kurz vor Null löst nicht mehr trotzdem aus.</li><li><b>Video:</b> Zeitanzeige läuft auch bei offenem Menü weiter. Esc während des Countdowns bleibt zuverlässig. Mauszeiger-Daten sammeln sich nicht mehr an. Neustart einer Aufnahme meldet Fehler. Fehlermeldungen beim Export sind verständlich und deutsch. Hochformat-Videos werden für „Social“ und „Web“ verkleinert. Der Aufnahme-Rahmen sitzt enger.</li><li><b>Texterkennung:</b> „Alles kopieren“ beachtet die Einstellung für Zeilenumbrüche, Meldungen sind deutsch.</li><li><b>Cloud-Freigabe:</b> Tencent-COS-Uploads sind enger signiert und kürzer gültig. Fehlerseiten von WLAN-Anmeldeseiten erscheinen nicht mehr als HTML in der Meldung. Ein http://-Ziel zeigt einen Hinweis.</li><li><b>Dateinamen:</b> Fenstertitel können keine versteckten Dateien, unsichtbare Steuerzeichen oder Platzhalter mehr in den Namen bringen.</li><li><b>Einstellungen:</b> Der Schalter „andere Apps dürfen steuern“ zeigt nach der Rückfrage sofort den richtigen Stand.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.4/Knippi-0.4.4.zip" length="5573692" type="application/octet-stream" sparkle:edSignature="b2tZ2pNM4vonZxqj4uEzgVic7yWpxhGog61qJe4YRklv3gMEYwwdPBSv0sjBkJqs4ForuFYTMnHoFqZ8JwjJDA=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: eOMqOIjRCXlQNxonS5W3qCQxtQcQmnJXObCIQ+TwtSmniwZS9dNi5XExHLszRb1SjAL2kTEp5W/IjtysPgYpAA==
-length: 7299
+edSignature: oDFstYd7HFCDd+vArX7QZH/AnMEYeJyOvW6g4ePUKQ9tfCrxIIho2cJfQ+4lJRuWW7Fmfha8eXkfmwCFwNfCAA==
+length: 6146
 -->
