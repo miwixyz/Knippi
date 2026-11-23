@@ -53223,6 +53223,146 @@
           }
         }
       }
+    },
+    "Screenshot History…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot-Verlauf …"
+          }
+        }
+      }
+    },
+    "Screenshot History" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot-Verlauf"
+          }
+        }
+      }
+    },
+    "Search text in screenshots" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text in Screenshots suchen"
+          }
+        }
+      }
+    },
+    "Clear search" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suche löschen"
+          }
+        }
+      }
+    },
+    "Auto save is off, so new screenshots are not kept in the folder and will not appear here." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch sichern ist aus: Neue Screenshots bleiben nicht im Ordner und erscheinen hier nicht."
+          }
+        }
+      }
+    },
+    "Turn On Auto Save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch sichern einschalten"
+          }
+        }
+      }
+    },
+    "History shows the screenshots saved in your export folder. Auto save is off, so none are kept." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Verlauf zeigt die Screenshots aus deinem Exportordner. Automatisch sichern ist aus, deshalb bleibt keiner erhalten."
+          }
+        }
+      }
+    },
+    "No saved screenshots yet." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine gespeicherten Screenshots."
+          }
+        }
+      }
+    },
+    "No screenshot contains that text." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Screenshot enthält diesen Text."
+          }
+        }
+      }
+    },
+    "Reading text…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text wird gelesen …"
+          }
+        }
+      }
+    },
+    "Show in Finder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Im Finder zeigen"
+          }
+        }
+      }
+    },
+    "Double-click to open" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doppelklick zum Öffnen"
+          }
+        }
+      }
+    },
+    "%lld of %lld screenshots" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld von %2$lld Screenshots"
+          }
+        }
+      }
+    },
+    "Screenshot, %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot, %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

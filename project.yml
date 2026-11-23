@@ -104,6 +104,7 @@ targets:
       - target: Knippi
       - package: SharedKit
       - package: AnnotationKit
+      - package: OCRKit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.mwlr.knippi.tests

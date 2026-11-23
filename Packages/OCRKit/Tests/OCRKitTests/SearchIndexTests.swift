@@ -398,3 +398,18 @@ struct SearchIndexGeometryTests {
         #expect(FileManager.default.fileExists(atPath: other.path))
     }
 }
+
+@Suite("Search index, pending")
+struct SearchIndexPendingTests {
+    @Test func pendingCountFollowsWhatWasRead() async throws {
+        let folder = try makeFolder()
+        let a = try touch(folder, "a.png"), b = try touch(folder, "b.png"), c = try touch(folder, "c.txt")
+        let index = SearchIndex(fileURL: folder.appendingPathComponent("idx.json"),
+                                recognizer: Reader(["a.png": "x", "b.png": "y"]).recognizer)
+        #expect(await index.pendingCount([a, b, c]) == 2)     // the text file is not an image
+        await index.update([a])
+        #expect(await index.pendingCount([a, b, c]) == 1)
+        await index.update([a, b])
+        #expect(await index.pendingCount([a, b, c]) == 0)
+    }
+}

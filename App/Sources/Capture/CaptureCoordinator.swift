@@ -2655,6 +2655,7 @@ final class CaptureCoordinator {
         case nil:
             return nil
         case .success(let url):
+            NotificationCenter.default.post(name: .screenshotFileReplaced, object: url)
             showToast(String(localized: "Original in the folder replaced"))
             return SavedScreenshotFile(url: url)
         case .failure(let failure):

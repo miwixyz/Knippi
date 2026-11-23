@@ -19,6 +19,7 @@ final class MenuBarController: NSObject {
     private let onShowPreferences: () -> Void
     private let updateManager: UpdateManager?
     private let helpWindow = HelpWindow()
+    private let historyWindow: HistoryWindow
 
     init(settings: AppSettings, captureCoordinator: CaptureCoordinator, recordingCoordinator: RecordingCoordinator, ocrCoordinator: OCRCoordinator, desktopIconsCover: DesktopIconsCover, updateManager: UpdateManager? = nil, onShowPreferences: @escaping () -> Void) {
         self.settings = settings
@@ -28,6 +29,7 @@ final class MenuBarController: NSObject {
         self.desktopIconsCover = desktopIconsCover
         self.onShowPreferences = onShowPreferences
         self.updateManager = updateManager
+        self.historyWindow = HistoryWindow(store: HistoryStore(settings: settings))
         super.init()
         applyVisibility()
         NotificationCenter.default.addObserver(
@@ -126,6 +128,7 @@ final class MenuBarController: NSObject {
         let openImageFile = menuItem(String(localized: "Open Image..."), action: #selector(openImageFile), key: "o", modifiers: [.command])
         openImageFile.toolTip = String(localized: "Open an image file in Annotate")
         menu.addItem(openImageFile)
+        menu.addItem(menuItem(String(localized: "Screenshot History…"), action: #selector(openHistory)))
 
         menu.addItem(.separator())
 
@@ -322,6 +325,10 @@ final class MenuBarController: NSObject {
 
     @objc private func checkForUpdates() {
         updateManager?.checkForUpdatesInteractively()
+    }
+
+    @objc private func openHistory() {
+        historyWindow.show()
     }
 
     @objc private func openHelp() {

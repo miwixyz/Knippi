@@ -117,7 +117,13 @@ public actor SearchIndex {
 
     public var count: Int { entries.count }
 
+    /// How many of these files still have to be read (new or changed).
+    public func pendingCount(_ urls: [URL]) -> Int {
+        urls.filter { Self.isImage($0) && !isCurrent($0) }.count
+    }
+
     /// Whether this file is in the index with its current modification date.
+
     public func isCurrent(_ url: URL) -> Bool {
         guard let modified = Self.modificationDate(url) else { return false }
         return entries[url.path]?.modified == modified
