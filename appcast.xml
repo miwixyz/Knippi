@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.5.3</title>
+            <pubDate>Mon, 23 Nov 2026 15:06:12 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>547</sparkle:version>
+            <sparkle:shortVersionString>0.5.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream-Deck-Plugin aus dem Menü laden:</b> Im Menü der Menüleiste öffnet „Stream-Deck-Plugin laden …“ den Download des Plugins aus dem neuesten Release im Browser. Du musst die GitHub-Seite nicht suchen. Datei doppelklicken, die Stream-Deck-App installiert sie. Knippi selbst lädt dabei nichts herunter.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.3/Knippi-0.5.3.zip" length="5667836" type="application/octet-stream" sparkle:edSignature="RRwI4Ue8nEKjjV+M7/5YcM+3wcoFMq+EFRxLjX9FZuoSj5n/g94nYpwVa76hv/jyTO6chQpxWOw2ZJtVqvBCCQ=="/>
+        </item>
+        <item>
             <title>0.5.2</title>
             <pubDate>Mon, 23 Nov 2026 14:26:46 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Tastenkürzel für den Screenshot-Verlauf:</b> option + shift + H öffnet ihn, ändern kannst du es unter Einstellungen → Tastenkürzel → „Screenshot-Verlauf“. Auch im Menü steht das Kürzel jetzt hinter „Screenshot-Verlauf …“.</li><li><b>Stream-Deck-Taste „Screenshot-Verlauf“:</b> Das Plugin hat eine neue Taste, die den Verlauf öffnet. Sie steht in der Aktionsliste der Stream-Deck-App unter „Knippi“; in die mitgelieferten Profile ist sie nicht eingebaut. Der Befehl dahinter ist <code>knippi://grab/history</code>.</li><li><b>Verlauf-Fenster:</b> Neben dem Suchfeld gibt es ein Menü mit „Index löschen“ und „Verlauf ausschalten“, damit du beides nicht in den Einstellungen suchen musst.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.1/Knippi-0.5.1.zip" length="5654812" type="application/octet-stream" sparkle:edSignature="XjoebLogq+WUVYkXBLktPK/g6nH2oB57Gl7FscBgLwRxkAdbMDTp6J7mjYZ8iH6YtiqEc7A/y6mpzVsxZmYLBA=="/>
         </item>
-        <item>
-            <title>0.5.0</title>
-            <pubDate>Mon, 23 Nov 2026 12:27:12 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>541</sparkle:version>
-            <sparkle:shortVersionString>0.5.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Screenshot-Verlauf mit Textsuche:</b> Menüleiste → „Screenshot-Verlauf …“ zeigt die letzten Aufnahmen aus deinem Sicherungsordner, auch aus Monatsordnern. Im Suchfeld findest du eine Aufnahme über den Text im Bild; Groß- und Kleinschreibung und Akzente spielen keine Rolle. Klick kopiert das Bild, Doppelklick öffnet es, Ziehen schickt eine Kopie in eine andere App, Entf legt es in den Papierkorb. Im Rechtsklick-Menü stehen außerdem „Im Editor öffnen“ und „Im Finder zeigen“.</li><li><b>Ab Werk aus:</b> Einstellungen → Bildschirmfotos → „Screenshot-Verlauf“. Du wählst 25, 50 oder 100 Aufnahmen. Ist der Verlauf aus, liest Knippi nichts und legt keinen Index an. Beim Ausschalten wird der gelesene Text gelöscht, „Index löschen“ tut das auch bei eingeschaltetem Verlauf.</li></ul><h3>Hinweise</h3><ul><li>Der Verlauf zeigt nur Aufnahmen im Sicherungsordner. Ist „Automatisch sichern“ aus, landen neue Aufnahmen dort nicht; das Verlauf-Fenster bietet an, es einzuschalten.</li><li>Knippi liest den Text nur, solange das Verlauf-Fenster offen ist. Gemessen an 100 Bildern: etwa 25 Sekunden beim ersten Mal, dabei kurzzeitig bis zu 650 MB Arbeitsspeicher. Danach kostet das Öffnen praktisch nichts.</li><li>Der gelesene Text liegt unverschlüsselt im Ordner „Application Support“, nur für dein Benutzerkonto lesbar, und kann in Backups landen.</li><li>Ersetzt der Editor ein gesichertes Original (etwa nach dem Verpixeln), vergisst der Index den alten Text sofort. Ein Bild, das du in den Papierkorb legst, verschwindet auch aus dem Index.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.0/Knippi-0.5.0.zip" length="5651745" type="application/octet-stream" sparkle:edSignature="K3hUrp7hgjKSGXptv5wQ/rFPNMdvuJsfWXfwLH5cVxhLdtZtQ55O3OuvQW4QnCGdQ03UfFn97V43/qghmLq1Aw=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: oDFstYd7HFCDd+vArX7QZH/AnMEYeJyOvW6g4ePUKQ9tfCrxIIho2cJfQ+4lJRuWW7Fmfha8eXkfmwCFwNfCAA==
-length: 6146
+edSignature: BUMcAUpiuFAU5kVRn4bwM7FwqGgVlRTf/ibWxfPxSMQ+SQ8fFo8Vkz8ZQwr3URNfg00oxb6BiU0LLQgYipSfBQ==
+length: 4873
 -->
