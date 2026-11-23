@@ -131,6 +131,7 @@ public enum ScreenshotSaver {
         case .replace(let url):
             do {
                 try replaceWriter(data, url)
+                ScreenCaptureMarker.mark(url)   // an atomic rewrite drops the attribute with the old file
                 return .success(url)
             } catch {
                 return .failure(ScreenshotReplaceFailure(reason: "\(url.path): \(error)"))
@@ -153,6 +154,7 @@ public enum ScreenshotSaver {
         case .replace(let target):
             do {
                 try replaceWriter(data, target)
+                ScreenCaptureMarker.mark(target)
                 return .success(ScreenshotSaveOutcome(url: target, replacedOriginal: true))
             } catch {
                 replaceError = "\(target.path): \(error)"
@@ -183,6 +185,7 @@ public enum ScreenshotSaver {
             let target = FileNaming.availableFileURL(for: url)
             do {
                 try data.write(to: target, options: .withoutOverwriting)
+                ScreenCaptureMarker.mark(target)
                 return .success(target)
             } catch CocoaError.fileWriteFileExists {
                 continue

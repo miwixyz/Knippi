@@ -2,6 +2,22 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.5.4] — 2026-11-23
+
+### Behoben
+
+- **Knippi-Bildschirmfotos werden als Bildschirmfoto gekennzeichnet.** Bisher setzte Knippi das Spotlight-Merkmal
+  „Bildschirmfoto“ (`kMDItemIsScreenCapture`) nicht, anders als macOS und andere Aufnahme-Programme. Deshalb sah
+  keine App, die Bildschirmfotos daran erkennt, die Aufnahmen von Knippi: Gnotchis Bildschirmfoto-Ablage zeigte sie nicht,
+  und sie fehlten in Spotlight unter der Art „Bildschirmfoto“. Jetzt tragen neu gesicherte Aufnahmen das Merkmal, auch nachdem
+  der Editor sie ersetzt hat (der Austausch löscht Merkmale der alten Datei). Bereits gesicherte ältere Aufnahmen bleiben
+  unmarkiert. Gemessen: Spotlight meldet eine so gesicherte Datei nach rund 6 Sekunden.
+
+### Intern
+
+- `ScreenCaptureMarker` (SharedKit): setzt das Merkmal byte-genau wie macOS (42-Byte-Liste, an einem echten Bildschirmfoto gelesen).
+  Ein Fehlschlag macht das Sichern nie ungültig, wird aber protokolliert. 9 neue Tests.
+
 ## [0.5.3] — 2026-11-23
 
 ### Neu
