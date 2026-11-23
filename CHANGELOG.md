@@ -2,6 +2,38 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.5.0] — 2026-11-23
+
+### Neu
+
+- **Screenshot-Verlauf mit Textsuche:** Menüleiste → „Screenshot-Verlauf …“ zeigt die letzten
+  Aufnahmen aus deinem Sicherungsordner, auch aus Monatsordnern. Im Suchfeld findest du eine
+  Aufnahme über den Text im Bild; Groß- und Kleinschreibung und Akzente spielen keine Rolle. Klick
+  kopiert das Bild, Doppelklick öffnet es, Ziehen schickt eine Kopie in eine andere App, Entf legt
+  es in den Papierkorb. Im Rechtsklick-Menü stehen außerdem „Im Editor öffnen“ und „Im Finder
+  zeigen“.
+- **Ab Werk aus:** Einstellungen → Bildschirmfotos → „Screenshot-Verlauf“. Du wählst 25, 50 oder
+  100 Aufnahmen. Ist der Verlauf aus, liest Knippi nichts und legt keinen Index an. Beim
+  Ausschalten wird der gelesene Text gelöscht, „Index löschen“ tut das auch bei eingeschaltetem
+  Verlauf.
+
+### Hinweise
+
+- Der Verlauf zeigt nur Aufnahmen im Sicherungsordner. Ist „Automatisch sichern“ aus, landen neue
+  Aufnahmen dort nicht; das Verlauf-Fenster bietet an, es einzuschalten.
+- Knippi liest den Text nur, solange das Verlauf-Fenster offen ist. Gemessen an 100 Bildern: etwa
+  25 Sekunden beim ersten Mal, dabei kurzzeitig bis zu 650 MB Arbeitsspeicher. Danach kostet das
+  Öffnen praktisch nichts.
+- Der gelesene Text liegt unverschlüsselt im Ordner „Application Support“, nur für dein
+  Benutzerkonto lesbar, und kann in Backups landen.
+- Ersetzt der Editor ein gesichertes Original (etwa nach dem Verpixeln), vergisst der Index den
+  alten Text sofort. Ein Bild, das du in den Papierkorb legst, verschwindet auch aus dem Index.
+
+### Intern
+
+- Suchindex und Ordner-Leser im Paket OCRKit. Sehr hohe Aufnahmen (Scroll-Aufnahme) werden für die
+  Texterkennung in Streifen gelesen, sonst wäre der Text zu klein geworden (gefunden im Audit).
+
 ## [0.4.4] — 2026-11-21
 
 ### Behoben

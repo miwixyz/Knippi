@@ -111,13 +111,21 @@ Vollbild und „Letzten Bereich wiederholen“ vom Stream Deck (oder aus einer a
 
 Beim ersten Tastendruck fragt Knippi, ob andere Apps Aufnahmen starten dürfen. Später änderst du das unter Einstellungen → Allgemein → Automatisierung. Hast du abgelehnt, zeigt die Taste ein Warnzeichen.
 
+## Verlauf und Suche
+
+Menüleiste → „Screenshot-Verlauf …“ zeigt die letzten Aufnahmen aus deinem Sicherungsordner als Raster. Ab Werk ist der Verlauf aus; im Fenster schaltest du ihn mit „Verlauf einschalten“ ein, die Anzahl (25, 50 oder 100) stellst du unter Einstellungen → Bildschirmfotos → „Screenshot-Verlauf“ ein.
+
+Im Suchfeld findest du eine Aufnahme über den Text im Bild. Groß- und Kleinschreibung und Akzente spielen keine Rolle. Klick kopiert das Bild, Doppelklick öffnet es, Ziehen schickt eine Kopie in eine andere App, Entf legt es in den Papierkorb. Rechtsklick bietet außerdem „Im Editor öffnen“ und „Im Finder zeigen“.
+
+Der Verlauf liest nur Aufnahmen im Sicherungsordner. Ist „Automatisch sichern“ aus, fehlen neue Aufnahmen dort; das Fenster bietet an, es einzuschalten. Den Text liest Knippi nur, solange das Fenster offen ist. Beim Ausschalten und über „Index löschen“ wird der gelesene Text gelöscht.
+
 ## Updates
 
 Knippi sucht im Hintergrund nach neuen Versionen. Von Hand: Menüleiste → „Nach Updates suchen …“ oder Einstellungen → Allgemein → „Nach Updates suchen“. Findet Knippi im Hintergrund eine neue Version, steht oben im Menü „Update auf … verfügbar“. Updates sind signiert; Knippi installiert nur Versionen, deren Signatur stimmt.
 
 ## Datenschutz
 
-Aufnahmen, Texterkennung und die Suche nach Vertraulichem bleiben auf deinem Mac. Ins Netz geht Knippi nur für die Update-Suche und, wenn du sie einrichtest, für die Cloud-Freigabe.
+Aufnahmen, Texterkennung und die Suche nach Vertraulichem bleiben auf deinem Mac. Schaltest du den Verlauf ein, legt Knippi den gelesenen Text als Suchindex auf deinem Mac ab (unverschlüsselt, nur für dein Benutzerkonto lesbar, er kann in Backups landen); du kannst ihn jederzeit löschen. Ins Netz geht Knippi nur für die Update-Suche und, wenn du sie einrichtest, für die Cloud-Freigabe.
 
 ## Fehler melden
 
