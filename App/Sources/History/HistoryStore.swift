@@ -148,6 +148,18 @@ final class HistoryStore {
         Task { [index] in await index.removeAll() }
     }
 
+    /// "Delete Index" in the history window.
+    func deleteStoredText() {
+        deleteIndex()
+        show(String(localized: "Index deleted"), isError: false)
+    }
+
+    /// "Turn Off History" in the history window: same as "Off" in the settings.
+    func turnOff() {
+        settings.historyKeepCount = 0
+        settingsChanged()
+    }
+
     // MARK: Actions on a screenshot
 
     func open(_ item: HistoryScanner.Item) {

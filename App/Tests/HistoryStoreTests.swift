@@ -272,6 +272,32 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(editorOpened, [store.items[0].url])
     }
 
+    func testTurnOffInTheWindowSwitchesHistoryOffAndDeletesText() async throws {
+        try png("a.png", age: 30)
+        let (store, index, settings) = makeStore(texts: ["a.png": "Kontonummer"])
+        store.activate()
+        _ = await waitForIndexCount(index, 1)
+        store.turnOff()
+        XCTAssertFalse(store.isOn)
+        XCTAssertEqual(settings.historyKeepCount, 0)
+        XCTAssertTrue(store.items.isEmpty)
+        let count = await waitForIndexCount(index, 0)
+        XCTAssertEqual(count, 0)
+        store.deactivate()
+    }
+
+    func testDeleteStoredTextFromTheWindowMenuSaysSo() async throws {
+        try png("a.png", age: 30)
+        let (store, index, _) = makeStore(texts: ["a.png": "x"])
+        store.activate()
+        _ = await waitForIndexCount(index, 1)
+        store.deactivate()
+        store.deleteStoredText()
+        XCTAssertEqual(store.notice?.isError, false)
+        let count = await waitForIndexCount(index, 0)
+        XCTAssertEqual(count, 0)
+    }
+
     /// Renders the window content to a PNG when KNIPPI_SNAPSHOT_DIR is set (for a visual check).
     func testRenderSnapshotsForVisualCheck() async throws {
         guard let dir = ProcessInfo.processInfo.environment["KNIPPI_SNAPSHOT_DIR"] else { return }

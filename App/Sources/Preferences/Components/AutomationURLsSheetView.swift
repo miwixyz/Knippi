@@ -87,6 +87,7 @@ struct AutomationURLsSheetView: View {
             id: "settings",
             title: "Settings",
             items: [
+                AutomationCommandItem(id: "history", name: "Screenshot History", urlString: "knippi://grab/history"),
                 AutomationCommandItem(id: "preferences", name: "Preferences", urlString: "knippi://grab/preferences")
             ]
         )

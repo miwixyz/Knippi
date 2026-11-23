@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.5.1] — 2026-11-23
+
+### Neu
+
+- **Tastenkürzel für den Screenshot-Verlauf:** option + shift + H öffnet ihn, ändern kannst du es unter
+  Einstellungen → Tastenkürzel → „Screenshot-Verlauf“. Auch im Menü steht das Kürzel jetzt hinter
+  „Screenshot-Verlauf …“.
+- **Stream-Deck-Taste „Screenshot-Verlauf“:** Das Plugin hat eine neue Taste, die den Verlauf öffnet.
+  Sie steht in der Aktionsliste der Stream-Deck-App unter „Knippi“; in die mitgelieferten Profile
+  ist sie nicht eingebaut. Der Befehl dahinter ist `knippi://grab/history`.
+- **Verlauf-Fenster:** Neben dem Suchfeld gibt es ein Menü mit „Index löschen“ und „Verlauf ausschalten“,
+  damit du beides nicht in den Einstellungen suchen musst.
+
 ## [0.5.0] — 2026-11-23
 
 ### Neu

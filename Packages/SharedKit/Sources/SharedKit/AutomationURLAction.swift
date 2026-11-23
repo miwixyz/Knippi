@@ -20,6 +20,7 @@ public enum AutomationURLAction: Equatable, Sendable {
     case recordArea
     case recordFullscreen
     case openPreferences
+    case openHistory
     case hideDesktopIcons
     case showDesktopIcons
     case toggleDesktopIcons
@@ -56,6 +57,7 @@ public enum AutomationURLAction: Equatable, Sendable {
         case "/record", "/record-area", "/record-screen": self = .recordArea
         case "/record-fullscreen", "/record-full-screen": self = .recordFullscreen
         case "/preferences", "/settings": self = .openPreferences
+        case "/history", "/screenshot-history": self = .openHistory
         case "/hide-desktop-icons": self = .hideDesktopIcons
         case "/show-desktop-icons": self = .showDesktopIcons
         case "/toggle-desktop-icons": self = .toggleDesktopIcons

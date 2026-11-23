@@ -20,6 +20,7 @@ Beim ersten Bildschirmfoto fragt macOS nach der Freigabe **Bildschirm- und Syste
 | option + shift + 8 | Bereich aufnehmen & annotieren |
 | option + shift + 9 | Farbe aufnehmen (Color Picker) |
 | option + shift + 0 | Aufnehmen und in Cloud teilen |
+| option + shift + H | Screenshot-Verlauf öffnen |
 
 Alle Kürzel änderst du unter Einstellungen → Tastenkürzel.
 
@@ -103,7 +104,7 @@ Im Schnellzugriff öffnet „Teilen“ das Teilen-Menü von macOS: AirDrop, Nach
 
 Mit dem Plugin `Knippi.streamDeckPlugin` aus dem Release auf GitHub löst du Knippi über ein Elgato Stream Deck aus. Datei doppelklicken, Stream Deck installiert sie.
 
-- **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild. In der Stream-Deck-App aus der Kategorie „Knippi“ auf eine Taste ziehen.
+- **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild, Screenshot-Verlauf. In der Stream-Deck-App aus der Kategorie „Knippi“ auf eine Taste ziehen.
 - **Regler (Stream Deck +):** Drehen wählt die Aufnahmeart, Drücken oder Tippen nimmt auf. In den Einstellungen des Reglers wählst du Screenshots oder Video.
 - **Fertige Profile** für Stream Deck +, Neo und Stream Deck (15 Tasten) kommen mit. Umschalten in der Stream-Deck-App beim jeweiligen Gerät.
 
@@ -113,11 +114,11 @@ Beim ersten Tastendruck fragt Knippi, ob andere Apps Aufnahmen starten dürfen. 
 
 ## Verlauf und Suche
 
-Menüleiste → „Screenshot-Verlauf …“ zeigt die letzten Aufnahmen aus deinem Sicherungsordner als Raster. Ab Werk ist der Verlauf aus; im Fenster schaltest du ihn mit „Verlauf einschalten“ ein, die Anzahl (25, 50 oder 100) stellst du unter Einstellungen → Bildschirmfotos → „Screenshot-Verlauf“ ein.
+Menüleiste → „Screenshot-Verlauf …“, option + shift + H oder die Stream-Deck-Taste „Screenshot-Verlauf“ zeigt die letzten Aufnahmen aus deinem Sicherungsordner als Raster. Ab Werk ist der Verlauf aus; im Fenster schaltest du ihn mit „Verlauf einschalten“ ein, die Anzahl (25, 50 oder 100) stellst du unter Einstellungen → Bildschirmfotos → „Screenshot-Verlauf“ ein.
 
 Im Suchfeld findest du eine Aufnahme über den Text im Bild. Groß- und Kleinschreibung und Akzente spielen keine Rolle. Klick kopiert das Bild, Doppelklick öffnet es, Ziehen schickt eine Kopie in eine andere App, Entf legt es in den Papierkorb. Rechtsklick bietet außerdem „Im Editor öffnen“ und „Im Finder zeigen“.
 
-Der Verlauf liest nur Aufnahmen im Sicherungsordner. Ist „Automatisch sichern“ aus, fehlen neue Aufnahmen dort; das Fenster bietet an, es einzuschalten. Den Text liest Knippi nur, solange das Fenster offen ist. Beim Ausschalten und über „Index löschen“ wird der gelesene Text gelöscht.
+Der Verlauf liest nur Aufnahmen im Sicherungsordner. Ist „Automatisch sichern“ aus, fehlen neue Aufnahmen dort; das Fenster bietet an, es einzuschalten. Den Text liest Knippi nur, solange das Fenster offen ist. Beim Ausschalten und über „Index löschen“ wird der gelesene Text gelöscht. Beides findest du im Verlauf-Fenster unter dem Symbol mit den drei Punkten neben dem Suchfeld und in den Einstellungen unter Bildschirmfotos → „Screenshot-Verlauf“.
 
 ## Updates
 

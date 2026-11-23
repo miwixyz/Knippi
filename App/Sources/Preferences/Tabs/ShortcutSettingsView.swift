@@ -31,12 +31,14 @@ extension KeyboardShortcuts.Name {
     static let captureLastArea = Self("captureLastArea")
     /// Unbound by default.
     static let togglePins = Self("togglePins")
+    /// Opens the screenshot history. Opens a window only, so a default is harmless (option + shift + H).
+    static let openHistory = Self("openHistory", initial: .init(.h, modifiers: [.option, .shift]))
 
     static let allKnippi: [Self] = [
         .captureAllInOne, .captureArea, .captureFullscreen, .captureWindow, .captureText, .recordScreen,
         .recordFullscreen, .captureScrolling, .captureAreaToClipboard, .captureAreaAndShare,
         .captureAreaAndAnnotate, .captureAreaAndPin, .pickColor, .pinFromClipboard, .editClipboardImage,
-        .selfTimerCapture, .captureLastArea, .togglePins,
+        .selfTimerCapture, .captureLastArea, .togglePins, .openHistory,
     ]
 }
 
@@ -124,6 +126,12 @@ struct ShortcutSettingsView: View {
                     )
                     shortcutRow("Hide / Show All Pins", name: .togglePins, showDivider: true)
                     shortcutRow("Capture Previous Area", name: .captureLastArea, showDivider: true)
+                    shortcutRow(
+                        "Screenshot History",
+                        name: .openHistory,
+                        showDivider: true,
+                        help: "Open the recent screenshots and search the text in them"
+                    )
                     if FeatureFlags.screenRecording {
                         shortcutRow("Record Area", name: .recordScreen, showDivider: true)
                         shortcutRow("Record Full Screen", name: .recordFullscreen, showDivider: true)

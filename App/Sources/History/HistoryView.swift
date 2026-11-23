@@ -46,6 +46,16 @@ struct HistoryView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(String(localized: "Clear search"))
             }
+            Menu {
+                Button(String(localized: "Delete Index")) { store.deleteStoredText() }
+                Button(String(localized: "Turn Off History")) { store.turnOff() }
+            } label: {
+                Image(systemName: "ellipsis.circle").foregroundStyle(FamilyTheme.textSecondary)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .accessibilityLabel(String(localized: "History options"))
         }
         .padding(.horizontal, FamilyTheme.Space.m)
         .padding(.vertical, FamilyTheme.Space.s + 2)

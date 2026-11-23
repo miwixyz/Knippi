@@ -215,6 +215,23 @@
       ]
     },
     {
+      "Name": "Screenshot-Verlauf",
+      "UUID": "dev.mwlr.knippi.deck.history",
+      "Icon": "imgs/list-history",
+      "Tooltip": "Screenshot-Verlauf mit Textsuche öffnen",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/key-history",
+          "Title": "Verlauf",
+          "TitleAlignment": "top",
+          "FontSize": 10
+        }
+      ]
+    },
+    {
       "Name": "Regler",
       "UUID": "dev.mwlr.knippi.deck.dial",
       "Icon": "imgs/dial",

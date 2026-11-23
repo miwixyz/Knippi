@@ -170,6 +170,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         KeyboardShortcuts.onKeyDown(for: .captureText) { [weak self] in
             self?.ocrCoordinator?.startInstantOCR()
         }
+        KeyboardShortcuts.onKeyDown(for: .openHistory) { [weak self] in
+            self?.menuBarController?.showHistory()
+        }
         if FeatureFlags.screenRecording {
             KeyboardShortcuts.onKeyDown(for: .recordScreen) { [weak self] in
                 self?.recordingCoordinator?.startRecordingFlow()
@@ -348,6 +351,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         case .openPreferences:
             showPreferences()
+        case .openHistory:
+            menuBarController?.showHistory()
         case .hideDesktopIcons:
             desktopIconsCover.setHiddenManually(true)
         case .showDesktopIcons:

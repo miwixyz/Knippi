@@ -29,6 +29,7 @@ let commands: [Command] = [
     Command(id: "self-timer", path: "/self-timer", de: "Timer", en: "Self-Timer"),
     Command(id: "record-area", path: "/record", de: "Video", en: "Video"),
     Command(id: "record-fullscreen", path: "/record-fullscreen", de: "Video voll", en: "Video Full"),
+    Command(id: "history", path: "/history", de: "Verlauf", en: "History"),
 ]
 
 /// Dial lists: rotate picks, push or tap runs.

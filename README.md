@@ -17,7 +17,7 @@ Knippi ist eine schnelle, schlanke Screenshot-App für die Menüleiste des Mac. 
 - **Farbe aufnehmen:** Color Picker mit Lupe, mehreren Farbformaten und „Letzte Farben“.
 - **Hintergründe:** Verläufe, eigene Bilder und Formate wie 16:9, 1:1 und 4:5. Fenster bleiben auf Wunsch transparent mit Schatten.
 - **Texterkennung:** Text aus jedem Bildschirmbereich kopieren, auch aus Bildern und Videos.
-- **Verlauf mit Suche:** Die letzten 25, 50 oder 100 Aufnahmen aus dem Sicherungsordner als Raster, durchsuchbar nach dem Text im Bild. Klick kopiert, Doppelklick öffnet, Ziehen schickt eine Kopie in eine andere App, Entf legt in den Papierkorb. Ab Werk aus. Den gelesenen Text speichert Knippi als Suchindex auf deinem Mac; du kannst ihn jederzeit löschen.
+- **Verlauf mit Suche:** Die letzten 25, 50 oder 100 Aufnahmen aus dem Sicherungsordner als Raster, durchsuchbar nach dem Text im Bild, per option + shift + H oder Stream-Deck-Taste geöffnet. Klick kopiert, Doppelklick öffnet, Ziehen schickt eine Kopie in eine andere App, Entf legt in den Papierkorb. Ab Werk aus. Den gelesenen Text speichert Knippi als Suchindex auf deinem Mac; du kannst ihn jederzeit löschen.
 - **Teilen:** Teilen-Menü von macOS, optional Cloud-Freigabe in den eigenen Speicher.
 
 Die Hilfe in der App (Menü → „Knippi-Hilfe“) erklärt alles Schritt für Schritt.
@@ -44,7 +44,7 @@ Knippi aktualisiert sich über [Sparkle](https://sparkle-project.org) und sucht 
 
 Mit dem Plugin `Knippi.streamDeckPlugin` (liegt jedem Release bei) löst du Knippi über Elgatos Stream Deck aus. Datei laden und doppelklicken, Stream Deck installiert sie.
 
-- **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild. In der Stream-Deck-App unter „Knippi“ auf eine Taste ziehen.
+- **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild, Screenshot-Verlauf. In der Stream-Deck-App unter „Knippi“ auf eine Taste ziehen.
 - **Regler (Stream Deck +):** Drehen wählt die Aufnahmeart, Drücken oder Tippen nimmt auf. In den Einstellungen des Reglers wählst du Screenshots oder Video.
 - **Fertige Profile** für Stream Deck +, Neo und Stream Deck (15 Tasten) werden mitinstalliert. Umschalten in der Stream-Deck-App beim jeweiligen Gerät.
 - Vollbild und „Letzten Bereich wiederholen“ werden ohne Auswahl aufgenommen, immer gesichert und mit Hinweis angezeigt, aber nicht automatisch kopiert oder hochgeladen.

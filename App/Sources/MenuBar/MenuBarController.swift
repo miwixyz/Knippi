@@ -130,7 +130,9 @@ final class MenuBarController: NSObject {
         let openImageFile = menuItem(String(localized: "Open Image..."), action: #selector(openImageFile), key: "o", modifiers: [.command])
         openImageFile.toolTip = String(localized: "Open an image file in Annotate")
         menu.addItem(openImageFile)
-        menu.addItem(menuItem(String(localized: "Screenshot History…"), action: #selector(openHistory)))
+        let history = menuItem(String(localized: "Screenshot History…"), action: #selector(openHistory))
+        history.setShortcut(for: .openHistory)
+        menu.addItem(history)
 
         menu.addItem(.separator())
 
@@ -330,6 +332,11 @@ final class MenuBarController: NSObject {
     }
 
     @objc private func openHistory() {
+        showHistory()
+    }
+
+    /// Opens the screenshot history (menu, shortcut and `knippi://grab/history`).
+    func showHistory() {
         historyWindow.show()
     }
 
@@ -398,6 +405,7 @@ extension MenuBarController: NSMenuDelegate {
             case #selector(pinFromClipboard): item.setShortcut(for: .pinFromClipboard)
             case #selector(editClipboardImage): item.setShortcut(for: .editClipboardImage)
             case #selector(captureText): item.setShortcut(for: .captureText)
+            case #selector(openHistory): item.setShortcut(for: .openHistory)
             case #selector(recordArea): item.setShortcut(for: .recordScreen)
             case #selector(recordFullscreen): item.setShortcut(for: .recordFullscreen)
             case #selector(captureScrolling): item.setShortcut(for: .captureScrolling)

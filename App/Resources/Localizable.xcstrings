@@ -53493,6 +53493,46 @@
           }
         }
       }
+    },
+    "Turn Off History" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlauf ausschalten"
+          }
+        }
+      }
+    },
+    "Index deleted" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Index gelöscht"
+          }
+        }
+      }
+    },
+    "History options" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlaufsoptionen"
+          }
+        }
+      }
+    },
+    "Open the recent screenshots and search the text in them" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die letzten Screenshots öffnen und den Text darin durchsuchen"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
