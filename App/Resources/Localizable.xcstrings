@@ -53533,6 +53533,86 @@
           }
         }
       }
+    },
+    "%lld screenshots copied" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Screenshots kopiert"
+          }
+        }
+      }
+    },
+    "Moved to Trash. Press ⌘Z to undo." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In den Papierkorb gelegt. ⌘Z macht es rückgängig."
+          }
+        }
+      }
+    },
+    "Restored" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederhergestellt"
+          }
+        }
+      }
+    },
+    "Couldn't restore the screenshot." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Screenshot konnte nicht wiederhergestellt werden."
+          }
+        }
+      }
+    },
+    "Couldn't open the share menu." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Teilen-Menü ließ sich nicht öffnen."
+          }
+        }
+      }
+    },
+    "Undo Move to Trash" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Papierkorb rückgängig"
+          }
+        }
+      }
+    },
+    "Quick Look" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schnellansicht"
+          }
+        }
+      }
+    },
+    "Share…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen …"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

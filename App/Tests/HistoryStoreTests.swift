@@ -59,6 +59,12 @@ final class HistoryStoreTests: XCTestCase {
             trash: { [unowned self] url in
                 if trashFails { throw CocoaError(.fileWriteNoPermission) }
                 trashed.append(url)
+                // Like the real Trash: the file leaves its folder and lands somewhere else.
+                let bin = root.appendingPathComponent("Trash", isDirectory: true)
+                try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+                let target = bin.appendingPathComponent(UUID().uuidString + "-" + url.lastPathComponent)
+                try FileManager.default.moveItem(at: url, to: target)
+                return target
             },
             openInEditor: { [unowned self] url in editorOpened.append(url) })
         return (store, index, settings)
@@ -296,6 +302,118 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(store.notice?.isError, false)
         let count = await waitForIndexCount(index, 0)
         XCTAssertEqual(count, 0)
+    }
+
+    // MARK: Selection, undo, Return, Quick Look
+
+    private func loaded(_ names: [String], texts: [String: String] = [:]) async throws -> HistoryStore {
+        for (n, name) in names.enumerated() { try png(name, age: Double(10 * (n + 1))) }
+        let (store, _, _) = makeStore(texts: texts)
+        store.activate()
+        await wait { store.items.count == names.count }
+        store.deactivate()
+        return store
+    }
+
+    func testPlainClickChoosesOnlyThatOneAndCopiesIt() async throws {
+        let store = try await loaded(["a.png", "b.png"])
+        store.click(store.items[0], extend: true)
+        store.click(store.items[1], extend: false)
+        XCTAssertEqual(store.selected, [store.items[1].url])
+        XCTAssertNotNil(NSImage(pasteboard: pasteboard))
+        XCTAssertEqual(store.notice?.text, String(localized: "Copied"))
+    }
+
+    func testExtendedClickAddsAndRemovesWithoutCopying() async throws {
+        let store = try await loaded(["a.png", "b.png", "c.png"])
+        store.click(store.items[0], extend: true)
+        store.click(store.items[2], extend: true)
+        XCTAssertEqual(store.selected, [store.items[0].url, store.items[2].url])
+        XCTAssertNil(NSImage(pasteboard: pasteboard))
+        store.click(store.items[0], extend: true)
+        XCTAssertEqual(store.selected, [store.items[2].url])
+        XCTAssertEqual(store.targets(for: store.items[2]).map(\.url), [store.items[2].url])
+        XCTAssertEqual(store.targets(for: store.items[1]).map(\.url), [store.items[1].url])   // not chosen: just it
+    }
+
+    func testSelectAllThenCopyPutsEveryImageOnTheClipboard() async throws {
+        let store = try await loaded(["a.png", "b.png", "c.png"])
+        store.selectAll()
+        store.copy(store.selectedItems)
+        let images = pasteboard.readObjects(forClasses: [NSImage.self]) as? [NSImage]
+        XCTAssertEqual(images?.count, 3)
+        XCTAssertEqual(store.notice?.isError, false)
+        store.clearSelection()
+        XCTAssertTrue(store.selected.isEmpty)
+    }
+
+    func testTrashSeveralThenUndoPutsThemBackWhereTheyWere() async throws {
+        let store = try await loaded(["a.png", "b.png", "c.png"])
+        let originals = store.items.map(\.url)
+        store.click(store.items[0], extend: true)
+        store.click(store.items[1], extend: true)
+        let chosen = store.selectedItems
+        store.moveToTrash(chosen)
+        XCTAssertEqual(store.items.count, 1)
+        XCTAssertTrue(store.canUndoTrash)
+        for url in chosen.map(\.url) { XCTAssertFalse(FileManager.default.fileExists(atPath: url.path)) }
+
+        store.undoTrash()
+        for url in originals { XCTAssertTrue(FileManager.default.fileExists(atPath: url.path), url.lastPathComponent) }
+        XCTAssertFalse(store.canUndoTrash)
+        XCTAssertEqual(store.notice?.text, String(localized: "Restored"))
+        XCTAssertEqual(store.selected, Set(chosen.map(\.url)))
+    }
+
+    func testUndoNeverOverwritesAFileThatIsThereAgain() async throws {
+        let store = try await loaded(["a.png"])
+        let original = store.items[0].url
+        store.moveToTrash(store.items[0])
+        try Data("neu".utf8).write(to: original)                 // someone saved a new file under that name
+        store.undoTrash()
+        XCTAssertEqual(try String(contentsOf: original, encoding: .utf8), "neu")
+        XCTAssertEqual(store.notice?.isError, true)
+        XCTAssertTrue(store.canUndoTrash)                         // still undoable once the name is free
+    }
+
+    func testUndoWithNothingToUndoDoesNothing() async throws {
+        let store = try await loaded(["a.png"])
+        store.undoTrash()
+        XCTAssertNil(store.notice)
+    }
+
+    func testReturnInSearchCopiesTheNewestMatch() async throws {
+        let store = try await loaded(["a.png", "b.png"], texts: ["a.png": "Rechnung", "b.png": "Rechnung Mai"])
+        store.activate()
+        for _ in 0..<60 where store.isIndexing || store.matches.count != 2 { try? await Task.sleep(for: .milliseconds(50)) }
+        store.query = "rechnung"
+        await wait { store.matches.count == 2 }
+        store.copyFirstMatch()
+        store.deactivate()
+        XCTAssertEqual(store.selected, [store.matches[0].url])
+        XCTAssertNotNil(NSImage(pasteboard: pasteboard))
+    }
+
+    func testReturnWithoutMatchesDoesNothing() async throws {
+        let store = try await loaded(["a.png"])
+        store.query = "gibtesnicht"
+        try? await Task.sleep(for: .milliseconds(300))
+        store.copyFirstMatch()
+        XCTAssertNil(NSImage(pasteboard: pasteboard))
+    }
+
+    func testQuickLookStartsAtTheFirstChosenAndCoversTheWholeList() async throws {
+        let store = try await loaded(["a.png", "b.png", "c.png"])
+        XCTAssertEqual(store.quickLookTargets()?.index, 0)          // nothing chosen: start at the first
+        store.click(store.items[2], extend: true)
+        let target = try XCTUnwrap(store.quickLookTargets())
+        XCTAssertEqual(target.urls.count, 3)
+        XCTAssertEqual(target.index, 2)
+    }
+
+    func testQuickLookWithNoScreenshotsIsNil() async throws {
+        let (store, _, _) = makeStore()
+        XCTAssertNil(store.quickLookTargets())
     }
 
     /// Renders the window content to a PNG when KNIPPI_SNAPSHOT_DIR is set (for a visual check).

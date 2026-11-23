@@ -116,7 +116,13 @@ Beim ersten Tastendruck fragt Knippi, ob andere Apps Aufnahmen starten dürfen. 
 
 Menüleiste → „Screenshot-Verlauf …“, option + shift + H oder die Stream-Deck-Taste „Screenshot-Verlauf“ zeigt die letzten Aufnahmen aus deinem Sicherungsordner als Raster. Ab Werk ist der Verlauf aus; im Fenster schaltest du ihn mit „Verlauf einschalten“ ein, die Anzahl (25, 50 oder 100) stellst du unter Einstellungen → Bildschirmfotos → „Screenshot-Verlauf“ ein.
 
-Im Suchfeld findest du eine Aufnahme über den Text im Bild. Groß- und Kleinschreibung und Akzente spielen keine Rolle. Klick kopiert das Bild, Doppelklick öffnet es, Ziehen schickt eine Kopie in eine andere App, Entf legt es in den Papierkorb. Rechtsklick bietet außerdem „Im Editor öffnen“ und „Im Finder zeigen“.
+Im Suchfeld findest du eine Aufnahme über den Text im Bild. Groß- und Kleinschreibung und Akzente spielen keine Rolle. Return kopiert den neuesten Treffer.
+
+- **Klick** wählt ein Bild und kopiert es. **Shift- oder command-Klick** wählt mehrere (oder nimmt eins wieder heraus), ohne etwas zu kopieren. command + A wählt alle, Esc hebt die Auswahl auf.
+- **Doppelklick** öffnet das Bild, **Leertaste** zeigt es in der Schnellansicht (Pfeiltasten blättern weiter).
+- **Ziehen** schickt eine Kopie in eine andere App.
+- **Entf** legt die Auswahl in den Papierkorb, **command + Z** holt die letzte Auswahl zurück (auch im Menü mit den drei Punkten: „Papierkorb rückgängig“). Knippi überschreibt dabei nie eine Datei, die inzwischen wieder unter dem alten Namen liegt.
+- **Rechtsklick** bietet außerdem „Teilen …“, „Im Editor öffnen“ und „Im Finder zeigen“. Kopieren, Teilen und Papierkorb gelten für die ganze Auswahl.
 
 Der Verlauf liest nur Aufnahmen im Sicherungsordner. Ist „Automatisch sichern“ aus, fehlen neue Aufnahmen dort; das Fenster bietet an, es einzuschalten. Den Text liest Knippi nur, solange das Fenster offen ist. Beim Ausschalten und über „Index löschen“ wird der gelesene Text gelöscht. Beides findest du im Verlauf-Fenster unter dem Symbol mit den drei Punkten neben dem Suchfeld und in den Einstellungen unter Bildschirmfotos → „Screenshot-Verlauf“.
 

@@ -2,6 +2,23 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.5.2] — 2026-11-23
+
+### Neu
+
+- **Verlauf: Mehrfachauswahl.** Shift- oder command-Klick wählt mehrere Aufnahmen, command + A alle.
+  Kopieren, Teilen und Papierkorb gelten dann für die ganze Auswahl.
+- **Verlauf: Schnellansicht.** Die Leertaste zeigt die Aufnahme groß, die Pfeiltasten blättern durch die Liste.
+- **Verlauf: Return kopiert den neuesten Treffer** der Suche.
+- **Verlauf: Rückgängig.** command + Z (oder „Papierkorb rückgängig“ im Menü mit den drei Punkten)
+  holt die zuletzt weggelegten Aufnahmen aus dem Papierkorb zurück. Eine Datei, die inzwischen wieder
+  unter dem alten Namen liegt, wird nie überschrieben.
+- **Verlauf: „Teilen …“** im Rechtsklick-Menü, mit dem Teilen-Menü von macOS.
+
+### Hinweise
+
+- Ideen dazu stammen aus dem Open-Source-Programm Tendedero (MIT, Alejandro Buján); der Code ist neu geschrieben.
+
 ## [0.5.1] — 2026-11-23
 
 ### Neu

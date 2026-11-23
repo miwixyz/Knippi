@@ -29,6 +29,12 @@ final class HistoryStore {
         let isError: Bool
     }
 
+    /// A file that went to the Trash: where it was and where it is now.
+    struct TrashedFile: Equatable {
+        let original: URL
+        let trashed: URL
+    }
+
     /// What "Turn On History" switches to.
     nonisolated static let defaultKeepCount = 50
 
@@ -38,8 +44,15 @@ final class HistoryStore {
     private(set) var autoSaveIsOff = true
     private(set) var keepCount: Int
     private(set) var notice: Notice?
+    /// Screenshots chosen in the grid (by file).
+    private(set) var selected: Set<URL> = []
 
     var isOn: Bool { keepCount > 0 }
+
+    var canUndoTrash: Bool { !undoStack.isEmpty }
+
+    /// The chosen screenshots, in the order of the grid.
+    var selectedItems: [HistoryScanner.Item] { matches.filter { selected.contains($0.url) } }
 
     var query: String = "" {
         didSet { if query != oldValue { runSearch() } }
@@ -48,7 +61,10 @@ final class HistoryStore {
     @ObservationIgnored private let settings: AppSettings
     @ObservationIgnored private let index: SearchIndex
     @ObservationIgnored private let pasteboard: NSPasteboard
-    @ObservationIgnored private let trash: (URL) throws -> Void
+    @ObservationIgnored private let trash: (URL) throws -> URL?
+    @ObservationIgnored private let restore: (URL, URL) throws -> Void
+    /// Batches moved to the Trash, newest last, so "Undo" can put them back.
+    @ObservationIgnored private var undoStack: [[TrashedFile]] = []
     @ObservationIgnored private let editor: @MainActor (URL) -> Void
     @ObservationIgnored private var windowOpen = false
     @ObservationIgnored private var polling: Task<Void, Never>?
@@ -63,13 +79,19 @@ final class HistoryStore {
         settings: AppSettings,
         index: SearchIndex = SearchIndex(),
         pasteboard: NSPasteboard = .general,
-        trash: @escaping (URL) throws -> Void = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) },
+        trash: @escaping (URL) throws -> URL? = {
+            var result: NSURL?
+            try FileManager.default.trashItem(at: $0, resultingItemURL: &result)
+            return result as URL?
+        },
+        restore: @escaping (URL, URL) throws -> Void = { try FileManager.default.moveItem(at: $0, to: $1) },
         openInEditor: @escaping @MainActor (URL) -> Void = { _ in }
     ) {
         self.settings = settings
         self.index = index
         self.pasteboard = pasteboard
         self.trash = trash
+        self.restore = restore
         self.editor = openInEditor
         self.keepCount = settings.historyKeepCount
         // No deinit: the store lives as long as the menu bar controller, and the observers hold `self` weakly.
@@ -174,31 +196,142 @@ final class HistoryStore {
         NSWorkspace.shared.activateFileViewerSelecting([item.url])
     }
 
+    // MARK: Selection
+
+    /// Click on a screenshot. Plain: choose only this one and copy it. With ⇧ or ⌘: add it to the
+    /// choice or take it out again, and copy nothing.
+    func click(_ item: HistoryScanner.Item, extend: Bool) {
+        if extend {
+            if selected.contains(item.url) { selected.remove(item.url) } else { selected.insert(item.url) }
+        } else {
+            selected = [item.url]
+            copy(item)
+        }
+    }
+
+    /// What a menu or key acts on for this screenshot: the whole choice when it is part of it, else just it.
+    func targets(for item: HistoryScanner.Item) -> [HistoryScanner.Item] {
+        selected.contains(item.url) ? selectedItems : [item]
+    }
+
+    func selectAll() { selected = Set(matches.map(\.url)) }
+    func clearSelection() { selected = [] }
+
+    // MARK: Actions on screenshots
+
     /// Puts the image on the clipboard and says so.
-    func copy(_ item: HistoryScanner.Item) {
-        guard let image = NSImage(contentsOf: item.url) else {
+    func copy(_ item: HistoryScanner.Item) { copy([item]) }
+
+    /// Puts several images on the clipboard, one item each.
+    func copy(_ targets: [HistoryScanner.Item]) {
+        let images = targets.compactMap { NSImage(contentsOf: $0.url) }
+        guard !targets.isEmpty, images.count == targets.count else {
             show(String(localized: "Couldn't copy the screenshot."), isError: true)
             return
         }
         pasteboard.clearContents()
-        if pasteboard.writeObjects([image]) {
-            show(String(localized: "Copied"), isError: false)
-        } else {
+        guard pasteboard.writeObjects(images) else {
             show(String(localized: "Couldn't copy the screenshot."), isError: true)
+            return
+        }
+        show(images.count == 1 ? String(localized: "Copied")
+                               : String(localized: "\(images.count) screenshots copied"),
+             isError: false)
+    }
+
+    /// Return in the search field: copy the newest match.
+    func copyFirstMatch() {
+        guard let first = matches.first else { return }
+        selected = [first.url]
+        copy(first)
+    }
+
+    /// Moves the file to the Trash (it can be put back from there or with Undo) and drops its text.
+    func moveToTrash(_ item: HistoryScanner.Item) { moveToTrash([item]) }
+
+    func moveToTrash(_ targets: [HistoryScanner.Item]) {
+        var done: [TrashedFile] = []
+        var failed = 0
+        for item in targets {
+            do {
+                if let result = try trash(item.url) {
+                    done.append(TrashedFile(original: item.url, trashed: result))
+                } else {
+                    // Moved, but the Trash did not say where: it cannot be undone from here.
+                    done.append(TrashedFile(original: item.url, trashed: item.url))
+                }
+            } catch {
+                failed += 1
+            }
+        }
+        let gone = Set(done.map(\.original))
+        items.removeAll { gone.contains($0.url) }
+        matches.removeAll { gone.contains($0.url) }
+        selected.subtract(gone)
+        gone.forEach(forget)
+        let undoable = done.filter { $0.trashed != $0.original }
+        if !undoable.isEmpty {
+            undoStack.append(undoable)
+            if undoStack.count > 20 { undoStack.removeFirst() }
+        }
+        if failed > 0 {
+            show(String(localized: "Couldn't move the screenshot to the Trash."), isError: true)
+        } else if !done.isEmpty {
+            show(String(localized: "Moved to Trash. Press ⌘Z to undo."), isError: false)
         }
     }
 
-    /// Moves the file to the Trash (it can be put back from there) and drops its text.
-    func moveToTrash(_ item: HistoryScanner.Item) {
-        do {
-            try trash(item.url)
-        } catch {
-            show(String(localized: "Couldn't move the screenshot to the Trash."), isError: true)
+    /// Puts the last batch from the Trash back. Never overwrites a file that is there again.
+    func undoTrash() {
+        guard let batch = undoStack.popLast() else { return }
+        var failed: [TrashedFile] = []
+        var restored: Set<URL> = []
+        for file in batch {
+            guard !FileManager.default.fileExists(atPath: file.original.path) else {
+                failed.append(file)
+                continue
+            }
+            do {
+                try restore(file.trashed, file.original)
+                restored.insert(file.original)
+            } catch {
+                failed.append(file)
+            }
+        }
+        if failed.isEmpty {
+            show(String(localized: "Restored"), isError: false)
+        } else {
+            undoStack.append(failed)
+            show(String(localized: "Couldn't restore the screenshot."), isError: true)
+        }
+        selected = restored
+        if windowOpen { Task { await refresh() } }
+    }
+
+    // MARK: Quick Look and sharing
+
+    /// Space: Quick Look at the chosen screenshots, or at the first one when none is chosen.
+    /// The arrow keys then go through the whole list.
+    func quickLookTargets() -> (urls: [URL], index: Int)? {
+        let urls = matches.map(\.url)
+        guard !urls.isEmpty else { return nil }
+        let index = selectedItems.first.flatMap { first in urls.firstIndex(of: first.url) } ?? 0
+        return (urls, index)
+    }
+
+    func quickLook() {
+        guard let target = quickLookTargets() else { return }
+        HistoryQuickLook.shared.show(target.urls, at: target.index)
+    }
+
+    /// The macOS share menu for these screenshots, below the top edge of the history window.
+    func share(_ targets: [HistoryScanner.Item]) {
+        guard !targets.isEmpty, let view = NSApp.keyWindow?.contentView else {
+            show(String(localized: "Couldn't open the share menu."), isError: true)
             return
         }
-        items.removeAll { $0.url == item.url }
-        matches.removeAll { $0.url == item.url }
-        forget(item.url)
+        let anchor = NSRect(x: view.bounds.midX - 1, y: view.bounds.maxY - 8, width: 2, height: 2)
+        SystemShare.present(fileURLs: targets.map(\.url), relativeTo: anchor, of: view)
     }
 
     private func show(_ text: String, isError: Bool) {
@@ -225,6 +358,7 @@ final class HistoryStore {
         guard isOn else { return }
         if found != items {
             items = found
+            selected.formIntersection(Set(found.map(\.url)))
             runSearch()
         }
         startIndexingIfNeeded()

@@ -6,7 +6,6 @@ import SwiftUI
 /// Recent screenshots from the export folder, searchable by the text in them.
 struct HistoryView: View {
     @Bindable var store: HistoryStore
-    @State private var selection: URL?
 
     private let columns = [GridItem(.adaptive(minimum: 170), spacing: FamilyTheme.Space.m)]
 
@@ -36,6 +35,7 @@ struct HistoryView: View {
                 .foregroundStyle(FamilyTheme.textSecondary)
                 .accessibilityHidden(true)
             TextField(String(localized: "Search text in screenshots"), text: $store.query)
+                .onSubmit { store.copyFirstMatch() }
                 .textFieldStyle(.plain)
                 .font(FamilyTheme.font(.body))
                 .foregroundStyle(FamilyTheme.textPrimary)
@@ -47,6 +47,10 @@ struct HistoryView: View {
                 .accessibilityLabel(String(localized: "Clear search"))
             }
             Menu {
+                Button(String(localized: "Undo Move to Trash")) { store.undoTrash() }
+                    .disabled(!store.canUndoTrash)
+                Button(String(localized: "Select All")) { store.selectAll() }
+                Divider()
                 Button(String(localized: "Delete Index")) { store.deleteStoredText() }
                 Button(String(localized: "Turn Off History")) { store.turnOff() }
             } label: {
@@ -98,38 +102,59 @@ struct HistoryView: View {
                     ForEach(store.matches) { item in
                         HistoryCell(
                             item: item,
-                            isSelected: selection == item.url,
+                            isSelected: store.selected.contains(item.url),
                             onOpen: { store.open(item) })
                             .onTapGesture(count: 2) { store.open(item) }
                             .onTapGesture {
-                                selection = item.url
-                                store.copy(item)
+                                let extend = !NSEvent.modifierFlags.intersection([.command, .shift]).isEmpty
+                                store.click(item, extend: extend)
                             }
                             .onDrag { NSItemProvider(contentsOf: item.url) ?? NSItemProvider() }
                             .contextMenu {
-                                Button(String(localized: "Copy")) { store.copy(item) }
+                                let targets = store.targets(for: item)
+                                Button(String(localized: "Copy")) { store.copy(targets) }
+                                Button(String(localized: "Quick Look")) {
+                                    if !store.selected.contains(item.url) { store.click(item, extend: true) }
+                                    store.quickLook()
+                                }
+                                Button(String(localized: "Share…")) { store.share(targets) }
+                                Divider()
                                 Button(String(localized: "Open")) { store.open(item) }
                                 Button(String(localized: "Open in Editor")) { store.openInEditor(item) }
                                 Button(String(localized: "Show in Finder")) { store.reveal(item) }
                                 Divider()
-                                Button(String(localized: "Move to Trash")) { trash(item) }
+                                Button(String(localized: "Move to Trash")) { store.moveToTrash(targets) }
                             }
                     }
                 }
                 .padding(2)
             }
             .focusable()
-            .onKeyPress(keys: [.delete, .deleteForward]) { _ in
-                guard let selection, let item = store.matches.first(where: { $0.url == selection }) else { return .ignored }
-                trash(item)
-                return .handled
-            }
+            .onKeyPress(phases: .down) { press in handleKey(press) }
         }
     }
 
-    private func trash(_ item: HistoryScanner.Item) {
-        if selection == item.url { selection = nil }
-        store.moveToTrash(item)
+    /// Keys on the grid: Space Quick Look, Delete to the Trash, Esc clears the choice,
+    /// ⌘A chooses all, ⌘Z puts the last move to the Trash back.
+    private func handleKey(_ press: KeyPress) -> KeyPress.Result {
+        let command = press.modifiers.contains(.command)
+        switch press.key {
+        case .space:
+            store.quickLook()
+            return .handled
+        case .delete, .deleteForward:
+            guard !store.selected.isEmpty else { return .ignored }
+            store.moveToTrash(store.selectedItems)
+            return .handled
+        case .escape:
+            guard !store.selected.isEmpty else { return .ignored }
+            store.clearSelection()
+            return .handled
+        default:
+            if command, press.characters == "a" { store.selectAll(); return .handled }
+            if command, press.characters == "z", store.canUndoTrash { store.undoTrash(); return .handled }
+            return .ignored
+        }
     }
 
     private var offState: some View {

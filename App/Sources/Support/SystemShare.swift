@@ -16,7 +16,17 @@ enum SystemShare {
         of view: NSView,
         onFinish: (@MainActor () -> Void)? = nil
     ) {
-        let picker = NSSharingServicePicker(items: [fileURL])
+        present(fileURLs: [fileURL], relativeTo: rect, of: view, onFinish: onFinish)
+    }
+
+    /// Same for several files at once.
+    static func present(
+        fileURLs: [URL],
+        relativeTo rect: NSRect,
+        of view: NSView,
+        onFinish: (@MainActor () -> Void)? = nil
+    ) {
+        let picker = NSSharingServicePicker(items: fileURLs)
         let delegate = Delegate(onFinish: {
             activeDelegate = nil
             onFinish?()
