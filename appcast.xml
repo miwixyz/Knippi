@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.5.1</title>
+            <pubDate>Mon, 23 Nov 2026 12:53:58 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>543</sparkle:version>
+            <sparkle:shortVersionString>0.5.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Tastenkürzel für den Screenshot-Verlauf:</b> option + shift + H öffnet ihn, ändern kannst du es unter Einstellungen → Tastenkürzel → „Screenshot-Verlauf“. Auch im Menü steht das Kürzel jetzt hinter „Screenshot-Verlauf …“.</li><li><b>Stream-Deck-Taste „Screenshot-Verlauf“:</b> Das Plugin hat eine neue Taste, die den Verlauf öffnet. Sie steht in der Aktionsliste der Stream-Deck-App unter „Knippi“; in die mitgelieferten Profile ist sie nicht eingebaut. Der Befehl dahinter ist <code>knippi://grab/history</code>.</li><li><b>Verlauf-Fenster:</b> Neben dem Suchfeld gibt es ein Menü mit „Index löschen“ und „Verlauf ausschalten“, damit du beides nicht in den Einstellungen suchen musst.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.1/Knippi-0.5.1.zip" length="5654812" type="application/octet-stream" sparkle:edSignature="XjoebLogq+WUVYkXBLktPK/g6nH2oB57Gl7FscBgLwRxkAdbMDTp6J7mjYZ8iH6YtiqEc7A/y6mpzVsxZmYLBA=="/>
+        </item>
+        <item>
             <title>0.5.0</title>
             <pubDate>Mon, 23 Nov 2026 12:27:12 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Bild-Editor:</b> Ein Klick zum Auswählen legt keinen leeren Rückgängig-Schritt mehr an. Eine Stilvorlage ist ein einziger Rückgängig-Schritt. Höchstens 100 Rückgängig-Schritte. Esc beim Schreiben übernimmt erst den Text. Überfahren des Zieh-Symbols verpixelt die Vorschläge von „Vertrauliches finden“ nicht mehr vorzeitig. Kann Knippi das Bild nicht exportieren oder skalieren, sagt es das.</li><li><b>Verpixeln von Hand</b> bekommt dasselbe Zufallsrauschen wie „Vertrauliches finden“, damit sich Text nicht zurückrechnen lässt. Die Blöcke wirken dadurch etwas fleckiger.</li><li><b>All-in-One:</b> Kann Knippi die Anmerkungen nicht übernehmen, wird nichts unbearbeitet weitergegeben. Rückgängig trennt Farbe, Füllung und Muster.</li><li><b>Scroll-Aufnahme:</b> Return und Enter funktionieren in anderen Apps wieder, sobald die Aufnahme läuft. Wird der Bildschirm abgesteckt, bricht sie ab, statt ein anderes Display aufzunehmen.</li><li><b>Selbstauslöser:</b> Ein Abbruch kurz vor Null löst nicht mehr trotzdem aus.</li><li><b>Video:</b> Zeitanzeige läuft auch bei offenem Menü weiter. Esc während des Countdowns bleibt zuverlässig. Mauszeiger-Daten sammeln sich nicht mehr an. Neustart einer Aufnahme meldet Fehler. Fehlermeldungen beim Export sind verständlich und deutsch. Hochformat-Videos werden für „Social“ und „Web“ verkleinert. Der Aufnahme-Rahmen sitzt enger.</li><li><b>Texterkennung:</b> „Alles kopieren“ beachtet die Einstellung für Zeilenumbrüche, Meldungen sind deutsch.</li><li><b>Cloud-Freigabe:</b> Tencent-COS-Uploads sind enger signiert und kürzer gültig. Fehlerseiten von WLAN-Anmeldeseiten erscheinen nicht mehr als HTML in der Meldung. Ein http://-Ziel zeigt einen Hinweis.</li><li><b>Dateinamen:</b> Fenstertitel können keine versteckten Dateien, unsichtbare Steuerzeichen oder Platzhalter mehr in den Namen bringen.</li><li><b>Einstellungen:</b> Der Schalter „andere Apps dürfen steuern“ zeigt nach der Rückfrage sofort den richtigen Stand.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.4/Knippi-0.4.4.zip" length="5573692" type="application/octet-stream" sparkle:edSignature="b2tZ2pNM4vonZxqj4uEzgVic7yWpxhGog61qJe4YRklv3gMEYwwdPBSv0sjBkJqs4ForuFYTMnHoFqZ8JwjJDA=="/>
         </item>
-        <item>
-            <title>0.4.3</title>
-            <pubDate>Sat, 21 Nov 2026 20:44:05 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>534</sparkle:version>
-            <sparkle:shortVersionString>0.4.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Video-Export stürzte ab</b>, wenn sich während der Aufnahme lange nichts bewegte (Bildrate unter 1 Bild pro Sekunde). Jetzt exportiert Knippi mit fester Bildrate.</li><li><b>Video nicht mehr länger als die Aufnahme:</b> Bei wenig Bewegung hängte der Export mit Hintergrund oder Effekt hinten Sekunden Standbild an (gemessen 8,6 statt 12,5 Sekunden).</li><li><b>Mikrofon im Export:</b> Mit Hintergrund, Effekt, Mauszeiger oder Schnitt landeten Systemton und Mikrofon in zwei getrennten Spuren, viele Player spielten nur eine davon. Jetzt ist es eine Spur.</li><li><b>Weichzeichnen im Video bleibt beim Zoom über dem Inhalt</b>, statt ihn beim Heranzoomen freizugeben.</li><li><b>Video-Editor:</b> Glättung und Stil des Mauszeigers wirken jetzt sofort. Schließen mit dem roten Knopf stoppt die Wiedergabe. Die angezeigte Dauer stimmt auch bei überlappenden Schnitten. Die Zwischendatei beim Export mit Schnitten liegt im temporären Ordner statt im Zielordner.</li><li><b>Bild-Editor:</b> Farbe, Größe und Modus lassen sich rückgängig machen (Schieberegler als ein Schritt). Drehen und Spiegeln lassen sich nicht mehr rückgängig machen, dafür entsteht nie mehr ein falscher Ausschnitt. „Ausgabe skalieren“ bleibt beim Ändern des Zuschnitts und beim Drehen im Seitenverhältnis und ist auf 16384 Pixel begrenzt. Ein noch offener Text geht beim Schließen nicht mehr ohne Rückfrage verloren. Verpixeln ruckelt beim Zeichnen nicht mehr. Nach dem Zuschneiden sucht „Vertrauliches finden“ nicht noch einmal (keine doppelten Verpixelungen).</li><li><b>All-in-One:</b> Farbe ändern macht eine Verpixelung nicht mehr schwächer, Stiländerungen sind rückgängig zu machen.</li><li><b>Aufnahme:</b> Selbstauslöser, „Wiederholen“ und Sofort-Texterkennung nehmen auf 1×- und 3×-Bildschirmen in der richtigen Auflösung auf. Feste Größen und freie Auswahl bleiben im Bildschirm. Esc bricht den Selbstauslöser jetzt zuverlässig ab.</li><li><b>Video und Kamera:</b> Ein zweites Aufnahme-Kürzel lässt keine verwaiste Leiste mehr zurück. Eine abgesteckte Kamera wird gemeldet, statt eine leere Kamerablase mitzufilmen. Die Kamera bremst die Oberfläche nicht mehr. Schließen der Vorschau nach fehlgeschlagenem Sichern fragt nach.</li><li><b>Cloud-Freigabe:</b> Waren die Zugangsdaten beim Start nicht lesbar (Schlüsselbund gesperrt), versucht Knippi es beim nächsten Teilen erneut und sagt sonst, dass es am Schlüsselbund liegt. Eine einzelne nicht löschbare alte Datei blockiert Ziehen und Teilen nicht mehr. Die Testdatei der Einrichtung wird auch bei Netzfehlern wieder entfernt.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.4.3/Knippi-0.4.3.zip" length="5659642" type="application/octet-stream" sparkle:edSignature="2bAG9J0zEXIa1qg4GR6UN1/4FMtKvoR2JOOBy0BxTsTASa8UZwSzXaPsKSjqow3H/c/3QUUYDa9/gLCsV4rEAg=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: F/WNa1hUdU1Dal5hJ6H2hAE4GMDgH8RVLJ9W0JrVXWNoUX5av1diG15QV4nq8cOvop4r2ph1h8HTXl/koarvAA==
-length: 9188
+edSignature: eOMqOIjRCXlQNxonS5W3qCQxtQcQmnJXObCIQ+TwtSmniwZS9dNi5XExHLszRb1SjAL2kTEp5W/IjtysPgYpAA==
+length: 7299
 -->
