@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import os
 import Vision
 
 /// Gesichtssuche für „Vertrauliches finden“ (Spec Knippi 0.6.0, Teil A).
@@ -146,24 +147,50 @@ public enum FaceDetector {
 
         let limit = max(2, ProcessInfo.processInfo.activeProcessorCount)
         let source = image
-        var all: [Face] = []
-        try await withThrowingTaskGroup(of: [Face].self) { group in
+        var results: [Result<[Face], any Error>] = []
+        await withTaskGroup(of: Result<[Face], any Error>.self) { group in
             var iterator = jobs.makeIterator()
             var running = 0
             func addNext() -> Bool {
                 guard let job = iterator.next() else { return false }
-                group.addTask { try await run(job, on: source) }
+                group.addTask {
+                    do { return .success(try await run(job, on: source)) } catch { return .failure(error) }
+                }
                 running += 1
                 return true
             }
             while running < limit, addNext() {}
-            while let faces = try await group.next() {
-                all += faces
+            while let result = await group.next() {
+                results.append(result)
                 running -= 1
                 _ = addNext()
             }
         }
-        return deduplicated(all)
+        return try combine(results)
+    }
+
+    private static let log = Logger(subsystem: "dev.mwlr.knippi", category: "FaceDetector")
+
+    /// Ein einzelner fehlgeschlagener Teillauf (eine Kachel) bricht die Suche nicht ab, wird aber
+    /// protokolliert. Schlagen alle Läufe fehl, ist die Suche nicht gelaufen: dann der erste
+    /// Fehler, sichtbar, nie ein leeres „keine Gesichter“.
+    static func combine(_ results: [Result<[Face], any Error>]) throws -> [Face] {
+        var faces: [Face] = []
+        var firstError: (any Error)?
+        var failed = 0
+        for result in results {
+            switch result {
+            case let .success(found): faces += found
+            case let .failure(error):
+                failed += 1
+                firstError = firstError ?? error
+            }
+        }
+        if failed > 0 {
+            log.error("Gesichtssuche: \(failed) von \(results.count) Teilläufen fehlgeschlagen")
+        }
+        if let firstError, failed == results.count { throw firstError }
+        return deduplicated(faces)
     }
 
     private static func run(_ job: Job, on image: CGImage) async throws -> [Face] {

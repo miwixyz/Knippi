@@ -156,3 +156,22 @@ struct FaceDetectorRuntimeTests {
         #expect(Date().timeIntervalSince(started) < 20)
     }
 }
+
+@Suite("Gesichtssuche: Teilfehler")
+struct FaceDetectorFailureTests {
+    struct Boom: Error {}
+    let face = FaceDetector.Face(rect: CGRect(x: 0, y: 0, width: 50, height: 50), confidence: 0.9)
+
+    @Test func oneFailedJobKeepsTheRest() throws {
+        let out = try FaceDetector.combine([.failure(Boom()), .success([face]), .success([face])])
+        #expect(out.count == 1)
+    }
+
+    @Test func allJobsFailingThrows() {
+        #expect(throws: Boom.self) { try FaceDetector.combine([.failure(Boom()), .failure(Boom())]) }
+    }
+
+    @Test func noFacesIsEmptyNotAnError() throws {
+        #expect(try FaceDetector.combine([.success([]), .success([])]).isEmpty)
+    }
+}
