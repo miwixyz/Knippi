@@ -7,7 +7,7 @@ Alle nennenswerten Änderungen an Knippi.
 ### Neu
 
 - **Gesichter mitsuchen:** „Vertrauliches finden“ schlägt zusätzlich Gesichter vor, ab Werk an, abschaltbar in den
-  Einstellungen unter „Texterkennung“ → „Gesichter mitsuchen“. Jedes Gesicht ist ein eigener Rahmen, den du behalten
+  Einstellungen unter „Allgemein“ → „Gesichter mitsuchen“. Jedes Gesicht ist ein eigener Rahmen, den du behalten
   oder auslassen kannst; ein gestrichelter Rahmen ist unsicher. Der Rahmen wird um Haare, Stirn und Ohren vergrößert und
   grob verpixelt (etwa sechs Blöcke breit, mit festem Rauschen). Gesichts- und Textrahmen verschmelzen nie.
   **Das ist eine Hilfe, kein Schutz:** Die Suche läuft auf dem Mac mit Apples Vision und findet gut sichtbare Gesichter.

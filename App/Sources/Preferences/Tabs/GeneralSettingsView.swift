@@ -10,6 +10,7 @@ struct GeneralSettingsView: View {
     let updateManager: UpdateManager?
     @State private var showHideMenuBarConfirmation = false
     @State private var showingAutomationURLs = false
+    @AppStorage(SensitiveSuggestionsModel.findFacesKey) private var findFaces = true
 
     private var menuBarToggleBinding: Binding<Bool> {
         Binding(
@@ -79,6 +80,19 @@ struct GeneralSettingsView: View {
 
             if let updateManager {
                 UpdatesSettingsSection(updateManager: updateManager)
+            }
+
+            SettingGroup(title: "Sensitive Data") {
+                SettingCard {
+                    SettingRow(
+                        label: "Also Look for Faces",
+                        sublabel: "Finds clearly visible faces. Small or partly hidden ones can be missed, so please check."
+                    ) {
+                        Toggle("", isOn: $findFaces)
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                    }
+                }
             }
 
             SettingGroup(title: "Diagnostics") {
