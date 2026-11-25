@@ -125,3 +125,34 @@ struct FaceDetectorTests {
         #expect(try JSONDecoder().decode([SensitiveMatch.Kind].self, from: data) == [.face, .email])
     }
 }
+
+@Suite("Gesichtssuche: echte Vision-Läufe an Grenzfällen")
+struct FaceDetectorRuntimeTests {
+    private func solid(_ w: Int, _ h: Int, gray: Bool = false) throws -> CGImage {
+        let ctx = try #require(CGContext(
+            data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: 0,
+            space: gray ? CGColorSpaceCreateDeviceGray() : CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: gray ? CGImageAlphaInfo.none.rawValue : CGImageAlphaInfo.premultipliedLast.rawValue))
+        ctx.setFillColor(gray ? CGColor(gray: 0.5, alpha: 1) : CGColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1))
+        ctx.fill(CGRect(x: 0, y: 0, width: w, height: h))
+        return try #require(ctx.makeImage())
+    }
+
+    @Test(arguments: [(1, 1), (3, 3), (20, 8), (100, 30), (640, 640), (700, 300), (4000, 40)])
+    func tinyAndOddSizesDoNotThrow(size: (Int, Int)) async throws {
+        let regions = try await FaceDetector.regions(in: try solid(size.0, size.1))
+        #expect(regions.isEmpty)
+    }
+
+    @Test func grayscaleImageDoesNotThrow() async throws {
+        let regions = try await FaceDetector.regions(in: try solid(300, 200, gray: true))
+        #expect(regions.isEmpty)
+    }
+
+    @Test func tallImageIsSearchedInStrips() async throws {
+        let started = Date()
+        let regions = try await FaceDetector.regions(in: try solid(400, 20_000))
+        #expect(regions.isEmpty)
+        #expect(Date().timeIntervalSince(started) < 20)
+    }
+}
