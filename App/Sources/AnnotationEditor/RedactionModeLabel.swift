@@ -7,6 +7,7 @@ extension RedactionMode {
         case .pixelate: String(localized: "Pixelate")
         case .blur: String(localized: "Blur")
         case .solid: String(localized: "Black Bar")
+        case .erase: String(localized: "Erase")
         }
     }
 }

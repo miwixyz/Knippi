@@ -53623,6 +53623,56 @@
           }
         }
       }
+    },
+    "Erase" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "Sensitive Data" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertrauliches"
+          }
+        }
+      }
+    },
+    "Also Look for Faces" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesichter mitsuchen"
+          }
+        }
+      }
+    },
+    "Finds clearly visible faces. Small or partly hidden ones can be missed, so please check." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Findet gut sichtbare Gesichter. Kleine oder verdeckte können fehlen, bitte prüfen."
+          }
+        }
+      }
+    },
+    "Possible face. Click to keep or skip this area" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mögliches Gesicht. Klicken, um den Bereich zu behalten oder auszulassen"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

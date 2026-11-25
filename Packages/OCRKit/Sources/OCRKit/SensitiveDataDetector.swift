@@ -2,7 +2,7 @@ import CoreGraphics
 import Foundation
 
 public struct SensitiveMatch: Equatable, Sendable {
-    public enum Kind: String, Sendable, Codable { case email, phone, iban, card, secret }
+    public enum Kind: String, Sendable, Codable { case email, phone, iban, card, secret, face }
     public let kind: Kind
     public let range: Range<String.Index>
     /// False for IBAN/card-shaped text whose checksum failed or couldn't be checked

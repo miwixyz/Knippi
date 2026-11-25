@@ -290,3 +290,43 @@ final class SecureBlockSizeTests: XCTestCase {
         XCTAssertEqual(SensitiveSuggestionsModel.secureBlockSize(for: CGRect(x: 0, y: 0, width: 50, height: 6)), 12)
     }
 }
+
+@MainActor
+final class SensitiveSuggestionsFaceTests: XCTestCase {
+    func testFaceBlockSizeGivesAboutSixBlocksAcrossTheWidth() {
+        // Gerendert wird mit der doppelten Blockgröße: Breite / (2 × Block) ≈ 6.
+        for width in [60.0, 170.0, 400.0] {
+            let block = SensitiveSuggestionsModel.faceBlockSize(for: CGRect(x: 0, y: 0, width: width, height: width))
+            let across = width / (2 * block)
+            XCTAssertLessThanOrEqual(across, 6.01, "width \(width)")
+            XCTAssertGreaterThanOrEqual(across, 4.0, "width \(width)")
+        }
+        XCTAssertGreaterThanOrEqual(SensitiveSuggestionsModel.faceBlockSize(for: CGRect(x: 0, y: 0, width: 10, height: 10)), 4)
+    }
+
+    func testFaceSuggestionIsPixelatedWithItsOwnBlockRuleAndNoise() {
+        let model = SensitiveSuggestionsModel()
+        let face = CGRect(x: 10, y: 10, width: 240, height: 280)
+        let text = CGRect(x: 300, y: 20, width: 200, height: 30)
+        model.show([RedactionSuggestion(rect: face, isVerified: true, isFace: true),
+                    RedactionSuggestion(rect: text, isVerified: true)])
+        let document = AnnotationDocument(imageSize: CGSize(width: 600, height: 400))
+        XCTAssertTrue(model.applyPendingRedactions(to: document))
+        let objects = document.objects.compactMap { $0 as? PixelateObject }
+        XCTAssertEqual(objects.count, 2)
+        let faceObject = objects.first { $0.rect == face }
+        let textObject = objects.first { $0.rect == text }
+        XCTAssertEqual(faceObject?.blockSize, SensitiveSuggestionsModel.faceBlockSize(for: face))
+        XCTAssertEqual(textObject?.blockSize, SensitiveSuggestionsModel.secureBlockSize(for: text))
+        XCTAssertNotNil(faceObject?.noiseSeed)
+        XCTAssertEqual(faceObject?.locksStrength, true)
+        XCTAssertTrue(faceObject?.mode == RedactionMode.pixelate)
+    }
+
+    func testDeselectedFaceIsNotRedacted() {
+        let model = SensitiveSuggestionsModel()
+        model.show([RedactionSuggestion(rect: CGRect(x: 0, y: 0, width: 100, height: 100), isVerified: false, isFace: true)])
+        model.toggle(model.items[0].id)
+        XCTAssertFalse(model.applyPendingRedactions(to: AnnotationDocument(imageSize: CGSize(width: 600, height: 400))))
+    }
+}

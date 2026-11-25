@@ -1313,7 +1313,7 @@ final class AnnotationCanvasNSView: NSView {
                         noiseSeed: UInt64.random(in: .min ... .max),
                         locksStrength: false
                     )
-                    if redactionMode != .solid { redaction.style = currentStyle }
+                    if redactionMode != .solid && redactionMode != .erase { redaction.style = currentStyle }
                     doc.addObject(redaction)
                 }
             case .counter:
