@@ -61,7 +61,7 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
             return
         }
         blockSize = max(blockSize, newBlockSize)
-        if newMode == .solid { mode = .solid }
+        if newMode.strengthRank > mode.strengthRank { mode = newMode }
     }
 
     public var bounds: CGRect { rect }
@@ -78,7 +78,7 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
             ctx.setAlpha(1)
             ctx.setFillColor(CGColor(gray: 0, alpha: 1))
             ctx.fill(rect)
-        case .pixelate, .blur:
+        case .pixelate, .blur, .erase:
             // Without the source image nothing can be pixelated: fail closed with an opaque
             // fill instead of a see-through grid over the plain text (audit A19, 21.11.).
             ctx.setAlpha(1)
@@ -108,12 +108,16 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
         }
 
         // Redaction bounds already use source-image pixel coordinates with a top-left origin.
-        let cropRect = rect.intersection(CGRect(
+        let imageBounds = CGRect(
             x: 0,
             y: 0,
             width: CGFloat(sourceImage.width),
             height: CGFloat(sourceImage.height)
-        ))
+        )
+        // „Entfernen“ arbeitet pixelgenau, die anderen Modi wie bisher mit dem Rechteck.
+        let cropRect = mode == .erase
+            ? rect.integral.intersection(imageBounds)
+            : rect.intersection(imageBounds)
         guard !cropRect.isEmpty else { return }
 
         let redactor: (CGImage, CGFloat, RedactionMode) -> CGImage? =
@@ -131,9 +135,14 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
             return
         }
 
-        guard let cropped = sourceImage.cropping(to: cropRect),
-              let redacted = redactor(cropped, blockSize, mode)
-        else {
+        // „Entfernen“ liest die Randpixel außerhalb des Rechtecks, braucht also das ganze Bild.
+        let redacted: CGImage?
+        if Self.redactorOverride == nil, mode == .erase {
+            redacted = EraseFill.makeImage(source: sourceImage, rect: cropRect, noiseSeed: noiseSeed)
+        } else {
+            redacted = sourceImage.cropping(to: cropRect).flatMap { redactor($0, blockSize, mode) }
+        }
+        guard let redacted else {
             // Fail closed: lieber schwarz als Klartext.
             ctx.saveGState()
             ctx.setFillColor(CGColor(gray: 0, alpha: 1))
@@ -165,7 +174,7 @@ public final class PixelateObject: AnnotationObject, @unchecked Sendable {
             // Pixelating first leaves only block averages, so the blur can't be undone to reveal text.
             makePixelatedImage(from: image, blockSize: blockSize, noiseSeed: noiseSeed)
                 .flatMap { makeBlurredImage(from: $0, radius: max(4, blockSize * 0.9)) }
-        case .solid:
+        case .solid, .erase:
             nil
         }
     }

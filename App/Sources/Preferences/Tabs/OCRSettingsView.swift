@@ -5,6 +5,7 @@ import SharedKit
 
 struct OCRSettingsView: View {
     @Bindable var viewModel: PreferencesViewModel
+    @AppStorage(SensitiveSuggestionsModel.findFacesKey) private var findFaces = true
     @State private var supportedLanguages: [(code: String, name: String)] = []
 
     var body: some View {
@@ -21,6 +22,19 @@ struct OCRSettingsView: View {
                     }
                     SettingRow(label: "Detect Links", sublabel: "Auto-detect and linkify URLs", showDivider: true) {
                         Toggle("", isOn: $viewModel.ocrDetectLinks)
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                    }
+                }
+            }
+
+            SettingGroup(title: "Sensitive Data") {
+                SettingCard {
+                    SettingRow(
+                        label: "Also Look for Faces",
+                        sublabel: "Finds clearly visible faces. Small or partly hidden ones can be missed, so please check."
+                    ) {
+                        Toggle("", isOn: $findFaces)
                             .toggleStyle(.switch)
                             .controlSize(.small)
                     }

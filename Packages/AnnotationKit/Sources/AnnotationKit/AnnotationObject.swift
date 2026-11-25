@@ -11,12 +11,25 @@ public enum RedactionMode: Int, Codable, CaseIterable, Sendable {
     case pixelate
     case blur
     case solid
+    /// Hinten angefügt (Rohwert 3): gespeicherte Werte 0–2 bleiben gültig.
+    case erase
 
     public var label: String {
         switch self {
         case .pixelate: "Pixelate"
         case .blur: "Blur"
         case .solid: "Black Bar"
+        case .erase: "Erase"
+        }
+    }
+
+    /// Wie wenig vom Original übrig bleibt. Ein gesperrter (sicherer) Modus wird nur
+    /// durch einen höheren Rang ersetzt, nie durch einen niedrigeren.
+    var strengthRank: Int {
+        switch self {
+        case .pixelate, .blur: 0
+        case .erase: 1
+        case .solid: 2
         }
     }
 }

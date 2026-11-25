@@ -803,7 +803,7 @@ private struct AllInOneAnnotationToolbarView: View {
 
     private var primaryControls: some View {
         HStack(spacing: 7) {
-            if !(session.currentTool == .pixelate && session.redactionMode == .solid) {
+            if !(session.currentTool == .pixelate && (session.redactionMode == .solid || session.redactionMode == .erase)) {
                 Slider(value: Binding(
                     get: { session.sliderValue },
                     set: { session.setSliderValue($0) }
@@ -1148,7 +1148,7 @@ private struct AllInOneAnnotationToolbarView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .help(mode == .solid ? mode.localizedLabel : "\(mode.localizedLabel) – \(redactionConfidentialHint)")
+                .help(mode == .solid || mode == .erase ? mode.localizedLabel : "\(mode.localizedLabel) – \(redactionConfidentialHint)")
                 .accessibilityLabel(mode.localizedLabel)
             }
         }

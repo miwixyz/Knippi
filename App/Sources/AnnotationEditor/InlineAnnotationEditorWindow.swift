@@ -747,7 +747,7 @@ private struct InlineAnnotationToolbar: View {
 
     private var primaryControls: some View {
         HStack(spacing: 7) {
-            if !(currentTool == .pixelate && redactionMode == .solid) {
+            if !(currentTool == .pixelate && (redactionMode == .solid || redactionMode == .erase)) {
                 Slider(value: $lineWidth, in: sliderRange, step: sliderStep)
                     .frame(width: 82)
                     .help(sliderHelp)
@@ -761,8 +761,8 @@ private struct InlineAnnotationToolbar: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 168)
-                .help(redactionMode == .solid
+                .frame(width: 224)
+                .help(redactionMode == .solid || redactionMode == .erase
                       ? String(localized: "Redaction Mode")
                       : String(localized: "Not for confidential data – use the black bar."))
             }

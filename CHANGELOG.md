@@ -2,6 +2,33 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [Unreleased]
+
+### Neu
+
+- **Gesichter mitsuchen:** „Vertrauliches finden“ schlägt zusätzlich Gesichter vor, ab Werk an, abschaltbar in den
+  Einstellungen unter „Texterkennung“ → „Gesichter mitsuchen“. Jedes Gesicht ist ein eigener Rahmen, den du behalten
+  oder auslassen kannst; ein gestrichelter Rahmen ist unsicher. Der Rahmen wird um Haare, Stirn und Ohren vergrößert und
+  grob verpixelt (etwa sechs Blöcke breit, mit festem Rauschen). Gesichts- und Textrahmen verschmelzen nie.
+  **Das ist eine Hilfe, kein Schutz:** Die Suche läuft auf dem Mac mit Apples Vision und findet gut sichtbare Gesichter.
+  Gemessen an 300 echten Bildschirmfotos fand die Ganzbild-Suche allein rund ein Drittel der Gesichter, die
+  Kombination mit vergrößerten Kacheln etwa dreimal so viele; kleine (unter etwa 25 Pixel), verdeckte, abgewandte und
+  stilisierte Gesichter können trotzdem fehlen oder falsch gerahmt sein. Bitte vor dem Teilen ansehen.
+- **Schwärzungsmodus „Entfernen“:** Die Stelle wird aus den Randpixeln rundherum nachgebaut (weicher Verlauf plus
+  leichtes festes Rauschen). Gut für Text auf einfarbigem Grund, etwa Namen in Tabellen; auf Mustern und Fotos bleibt ein
+  sichtbarer Fleck. Vom alten Inhalt geht nichts in die Füllung ein, er lässt sich nicht zurückrechnen. Ein sicherer
+  Vorschlag („Vertrauliches finden“) lässt sich auf „Entfernen“ verstärken, nie auf Verpixeln oder Weichzeichnen
+  abschwächen.
+
+### Intern
+
+- `FaceDetector` (OCRKit): neue `DetectFaceRectanglesRequest` auf dem ganzen Bild, dazu 2× vergrößerte 640-px-Kacheln
+  (neue und klassische Anfrage), parallel gerechnet. Bilder über 8 000 px Höhe oder Breite werden in Streifen
+  geschnitten (gemessen: 30 439 px hohe Scroll-Aufnahme 0,7 s statt 23 s); bei mehr als 80 Kacheln nur Streifensuche.
+  Mehrfachfunde fallen nach strenger Regel zusammen (Mitte im um 50 % vergrößerten Nachbarrahmen).
+- `SensitiveMatch.Kind.face`, `RedactionMode.erase` (Rohwert 3, hinten angefügt), `EraseFill` (AnnotationKit).
+  Der Ersatzprozess für die Texterkennung führt Gesichter mit.
+
 ## [0.5.4] — 2026-11-23
 
 ### Behoben

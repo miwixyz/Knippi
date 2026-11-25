@@ -60,11 +60,11 @@ enum OCRProcessFallback {
     }
 
     /// Sensitive-data boxes with the same fresh-process fallback as `recognize`.
-    static func sensitiveRegions(image: CGImage) async throws -> [SensitiveRegion] {
+    static func sensitiveRegions(image: CGImage, includeFaces: Bool = false) async throws -> [SensitiveRegion] {
         try await sensitiveRegions(
             image: image,
-            run: { try await TextRecognizer.sensitiveRegions(image: $0) },
-            retry: sensitiveRegionsInFreshProcess,
+            run: { try await FaceDetector.sensitiveRegions(image: $0, includeFaces: includeFaces) },
+            retry: { try sensitiveRegionsInFreshProcess(image: $0, includeFaces: includeFaces) },
             router: router
         )
     }
@@ -72,7 +72,9 @@ enum OCRProcessFallback {
     static func sensitiveRegions(
         image: CGImage,
         run: @Sendable (CGImage) async throws -> [SensitiveRegion],
-        retry: @escaping @Sendable (CGImage) throws -> [SensitiveRegion] = sensitiveRegionsInFreshProcess,
+        retry: @escaping @Sendable (CGImage) throws -> [SensitiveRegion] = {
+            try sensitiveRegionsInFreshProcess(image: $0, includeFaces: false)
+        },
         router: OCRFallbackRouter = OCRFallbackRouter()
     ) async throws -> [SensitiveRegion] {
         try await router.route(
@@ -90,11 +92,13 @@ enum OCRProcessFallback {
     /// shortcuts.
     static func runHelperIfRequested() -> Bool {
         let arguments = CommandLine.arguments
-        if arguments.count == 4, arguments[1] == sensitiveHelperArgument,
+        if arguments.count == 5, arguments[1] == sensitiveHelperArgument,
            let inputURL = fileURL(arguments[2]),
            let outputURL = fileURL(arguments[3]) {
+            let includeFaces = arguments[4] == "1"
             runHelper {
-                let regions = try await TextRecognizer.sensitiveRegions(image: loadImage(at: inputURL))
+                let regions = try await FaceDetector.sensitiveRegions(
+                    image: loadImage(at: inputURL), includeFaces: includeFaces)
                 let data = try JSONEncoder().encode(regions.map(EncodedSensitiveRegion.init))
                 try data.write(to: outputURL, options: .atomic)
             }
@@ -159,9 +163,9 @@ enum OCRProcessFallback {
         return try JSONDecoder().decode([EncodedRegion].self, from: data).map(TextRegion.init)
     }
 
-    private static func sensitiveRegionsInFreshProcess(image: CGImage) throws -> [SensitiveRegion] {
+    private static func sensitiveRegionsInFreshProcess(image: CGImage, includeFaces: Bool) throws -> [SensitiveRegion] {
         let data = try runFreshProcess(image: image) { input, output in
-            [sensitiveHelperArgument, input, output]
+            [sensitiveHelperArgument, input, output, includeFaces ? "1" : "0"]
         }
         return try JSONDecoder().decode([EncodedSensitiveRegion].self, from: data).map(\.region)
     }

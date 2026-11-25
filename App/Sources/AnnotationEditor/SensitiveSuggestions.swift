@@ -15,6 +15,7 @@ final class SensitiveSuggestionsModel {
         let id = UUID()
         let rect: CGRect
         let isVerified: Bool
+        var isFace = false
         var isSelected = true
     }
 
@@ -22,6 +23,12 @@ final class SensitiveSuggestionsModel {
         case idle
         case scanning
         case showing
+    }
+
+    /// UserDefaults-Schlüssel des Schalters „Gesichter mitsuchen“ (ab Werk an).
+    static let findFacesKey = "findFacesWithSensitive"
+    static var findsFaces: Bool {
+        UserDefaults.standard.object(forKey: findFacesKey) as? Bool ?? true
     }
 
     private(set) var phase: Phase = .idle
@@ -39,10 +46,12 @@ final class SensitiveSuggestionsModel {
     func scan(
         image: CGImage,
         screen: NSScreen?,
-        findRegions: @escaping @Sendable (CGImage) async throws -> [SensitiveRegion] = {
-            try await OCRProcessFallback.sensitiveRegions(image: $0)
-        }
+        findRegions: (@Sendable (CGImage) async throws -> [SensitiveRegion])? = nil
     ) {
+        let includeFaces = Self.findsFaces
+        let findRegions = findRegions ?? { @Sendable in
+            try await OCRProcessFallback.sensitiveRegions(image: $0, includeFaces: includeFaces)
+        }
         guard phase != .scanning else { return }
         cancel()
         generation += 1
@@ -63,7 +72,7 @@ final class SensitiveSuggestionsModel {
                         screen: screen
                     )
                 } else {
-                    self.items = suggestions.map { Item(rect: $0.rect, isVerified: $0.isVerified) }
+                    self.items = suggestions.map { Item(rect: $0.rect, isVerified: $0.isVerified, isFace: $0.isFace) }
                     self.phase = .showing
                 }
             } catch {
@@ -97,7 +106,7 @@ final class SensitiveSuggestionsModel {
     /// Shows suggestions directly (tests; no OCR).
     func show(_ suggestions: [RedactionSuggestion]) {
         cancel()
-        items = suggestions.map { Item(rect: $0.rect, isVerified: $0.isVerified) }
+        items = suggestions.map { Item(rect: $0.rect, isVerified: $0.isVerified, isFace: $0.isFace) }
         phase = items.isEmpty ? .idle : .showing
     }
 
@@ -120,9 +129,11 @@ final class SensitiveSuggestionsModel {
     @discardableResult
     func applyPendingRedactions(to document: AnnotationDocument) -> Bool {
         guard isShowing else { return false }
-        let redactions: [any AnnotationObject] = selectedRects.map {
+        let redactions: [any AnnotationObject] = items.filter(\.isSelected).map {
             PixelateObject(
-                rect: $0, blockSize: Self.secureBlockSize(for: $0), mode: .pixelate,
+                rect: $0.rect,
+                blockSize: $0.isFace ? Self.faceBlockSize(for: $0.rect) : Self.secureBlockSize(for: $0.rect),
+                mode: .pixelate,
                 noiseSeed: UInt64.random(in: .min ... .max)
             )
         }
@@ -141,6 +152,13 @@ final class SensitiveSuggestionsModel {
     /// Never below the editor's default, so tiny rects don't get finer pixels.
     static func secureBlockSize(for rect: CGRect) -> CGFloat {
         max(12, (rect.height / 2).rounded(.up))
+    }
+
+    /// Blockgröße für ein Gesicht: `PixelateObject` rendert Blöcke der doppelten `blockSize`,
+    /// gewünscht sind etwa 6 Blöcke über die Rahmenbreite (Augen, Mund und Kontur bleiben nicht
+    /// erkennbar). Untergrenze 4 ist die des Renderers.
+    static func faceBlockSize(for rect: CGRect) -> CGFloat {
+        max(4, (rect.width / 12).rounded(.up))
     }
 }
 
@@ -190,7 +208,9 @@ struct SensitiveSuggestionsOverlay: View {
         }
         .buttonStyle(.plain)
         .offset(x: frame.minX, y: frame.minY)
-        .help(item.isVerified
+        .help(item.isFace
+              ? String(localized: "Possible face. Click to keep or skip this area")
+              : item.isVerified
               ? String(localized: "Click to keep or skip this area")
               : String(localized: "Possibly sensitive (checksum not confirmed). Click to keep or skip this area"))
         .accessibilityLabel(Text("Sensitive data suggestion"))

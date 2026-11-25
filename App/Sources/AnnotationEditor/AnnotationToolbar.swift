@@ -176,7 +176,7 @@ struct AnnotationToolbar: View {
             .pickerStyle(.segmented)
             .labelsHidden()
             .fixedSize()
-            .help(redactionMode == .solid
+            .help(redactionMode == .solid || redactionMode == .erase
                   ? String(localized: "Redaction Mode")
                   : String(localized: "Not for confidential data – use the black bar."))
             Spacer(minLength: 0)
@@ -192,7 +192,7 @@ struct AnnotationToolbar: View {
                     .help("Font Size: \(Int(lineWidth))")
             } else if currentTool == .pixelate {
                 // The mode picker sits in its own row below (`redactionModeGroup`).
-                if redactionMode != .solid {
+                if redactionMode != .solid && redactionMode != .erase {
                     Slider(value: $lineWidth, in: 4...48, step: 2)
                         .frame(width: 80)
                         .help("Block Size: \(Int(lineWidth))")
