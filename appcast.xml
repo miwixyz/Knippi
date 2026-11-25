@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.6.0</title>
+            <pubDate>Wed, 25 Nov 2026 20:15:31 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>556</sparkle:version>
+            <sparkle:shortVersionString>0.6.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Gesichter mitsuchen:</b> „Vertrauliches finden“ schlägt zusätzlich Gesichter vor, ab Werk an, abschaltbar in den Einstellungen unter „Allgemein“ → „Gesichter mitsuchen“. Jedes Gesicht ist ein eigener Rahmen, den du behalten oder auslassen kannst; ein gestrichelter Rahmen ist unsicher. Der Rahmen wird um Haare, Stirn und Ohren vergrößert und grob verpixelt (etwa sechs Blöcke breit, mit festem Rauschen). Gesichts- und Textrahmen verschmelzen nie. <b>Das ist eine Hilfe, kein Schutz:</b> Die Suche läuft auf dem Mac mit Apples Vision und findet gut sichtbare Gesichter. Gemessen an 300 echten Bildschirmfotos fand die Ganzbild-Suche allein rund ein Drittel der Gesichter, die Kombination mit vergrößerten Kacheln etwa dreimal so viele; kleine (unter etwa 25 Pixel), verdeckte, abgewandte und stilisierte Gesichter können trotzdem fehlen oder falsch gerahmt sein. Bitte vor dem Teilen ansehen.</li><li><b>Schwärzungsmodus „Entfernen“:</b> Die Stelle wird aus den Randpixeln rundherum nachgebaut (weicher Verlauf plus leichtes festes Rauschen). Gut für Text auf einfarbigem Grund, etwa Namen in Tabellen; auf Mustern und Fotos bleibt ein sichtbarer Fleck. Vom alten Inhalt geht nichts in die Füllung ein, er lässt sich nicht zurückrechnen. Ein sicherer Vorschlag („Vertrauliches finden“) lässt sich auf „Entfernen“ verstärken, nie auf Verpixeln oder Weichzeichnen abschwächen.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.6.0/Knippi-0.6.0.zip" length="5695433" type="application/octet-stream" sparkle:edSignature="96fDTGzP2tp3swG8QeF5zLWtDwp6C1L4PfEgSLjunvAw+l5v0vQWiYXblNpwuBNgl8rcwMer4JfOYxuOou58Dg=="/>
+        </item>
+        <item>
             <title>0.5.4</title>
             <pubDate>Mon, 23 Nov 2026 17:50:37 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream-Deck-Plugin aus dem Menü laden:</b> Im Menü der Menüleiste öffnet „Stream-Deck-Plugin laden …“ den Download des Plugins aus dem neuesten Release im Browser. Du musst die GitHub-Seite nicht suchen. Datei doppelklicken, die Stream-Deck-App installiert sie. Knippi selbst lädt dabei nichts herunter.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.3/Knippi-0.5.3.zip" length="5667836" type="application/octet-stream" sparkle:edSignature="RRwI4Ue8nEKjjV+M7/5YcM+3wcoFMq+EFRxLjX9FZuoSj5n/g94nYpwVa76hv/jyTO6chQpxWOw2ZJtVqvBCCQ=="/>
         </item>
-        <item>
-            <title>0.5.2</title>
-            <pubDate>Mon, 23 Nov 2026 14:26:46 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>545</sparkle:version>
-            <sparkle:shortVersionString>0.5.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Verlauf: Mehrfachauswahl.</b> Shift- oder command-Klick wählt mehrere Aufnahmen, command + A alle. Kopieren, Teilen und Papierkorb gelten dann für die ganze Auswahl.</li><li><b>Verlauf: Schnellansicht.</b> Die Leertaste zeigt die Aufnahme groß, die Pfeiltasten blättern durch die Liste.</li><li><b>Verlauf: Return kopiert den neuesten Treffer</b> der Suche.</li><li><b>Verlauf: Rückgängig.</b> command + Z (oder „Papierkorb rückgängig“ im Menü mit den drei Punkten) holt die zuletzt weggelegten Aufnahmen aus dem Papierkorb zurück. Eine Datei, die inzwischen wieder unter dem alten Namen liegt, wird nie überschrieben.</li><li><b>Verlauf: „Teilen …“</b> im Rechtsklick-Menü, mit dem Teilen-Menü von macOS.</li></ul><h3>Hinweise</h3><ul><li>Ideen dazu stammen aus dem Open-Source-Programm Tendedero (MIT, Alejandro Buján); der Code ist neu geschrieben.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.2/Knippi-0.5.2.zip" length="5667330" type="application/octet-stream" sparkle:edSignature="2S0FP6SaryKs4TJWbaGBXnzlILw6IFZEhh/YToBjrYzCN3Es/f0ISFZthmAzbStPaQLEN/iGOoxisEhSfCjCBA=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: 97GwWE8Vt4rv5qhZhCMBHEt0X/i1UqcnPAK4Vmmrj/w1KhwznvWd8nna5tGRTBzLP5Af1o55z9aaAiI7WBTgDQ==
-length: 4847
+edSignature: xqtXJW57Nvyu9cDTSyqXr9GGKAhsBfIs9M6YK8oVD2XajWqXgZ+ir9Uvu17osPx+YMQYq1jrQRZ6POqQqIU+Bg==
+length: 5390
 -->
