@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.6.1</title>
+            <pubDate>Thu, 26 Nov 2026 11:39:35 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>559</sparkle:version>
+            <sparkle:shortVersionString>0.6.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><p>Ein ausführlicher Prüfdurchgang über den ganzen Code: Fehler behoben, Datenschutz verschärft, Bedienung und Texte verbessert.</p><h3>Geändert</h3><ul><li><b>Update-Suche ab Werk aus.</b> Knippi fragt nicht mehr von selbst bei GitHub nach neuen Versionen. Wer die Suche nie angefasst hatte, steht damit auf „aus“ und bekommt keinen Hinweis mehr: Einstellungen → Allgemein → Updates einschalten oder von Hand „Nach Updates suchen“. Wer sie ausdrücklich eingeschaltet hat, behält sie.</li><li><b>Tastenanzeige zeigt ab Werk nur Kurzbefehle</b> (⌘ und ⌃), nie normales Tippen. In Passwortfeldern erscheint nichts. Neuer Schalter „Nur Kurzbefehle zeigen“ unter Einstellungen → Aufnahme.</li><li><b>Editor schließt nur nach Rückfrage.</b> Roter Knopf und ⌘W fragen „Aufnahme verwerfen?“, solange nichts exportiert ist; während eines Exports lässt sich das Fenster nicht schließen. Nach dem Schließen wird die Aufnahme im temporären Ordner gelöscht (bisher blieb jede mehrere hundert MB groß liegen).</li><li>„Gesichter mitsuchen“ steht jetzt unter Bildschirmfotos. Die Meldung ohne Treffer heißt „Keine Treffer der bekannten Muster“.</li></ul><h3>Behoben</h3><ul><li><b>„Vertrauliches finden“ übersah Geheimnisse:</b> über Zeilen umbrochene Zugangsschlüssel, Kartennummern und IBAN, kurze Schlüssel hinter Wörtern wie „Passwort:“, „Token:“ oder „API-Key:“ und Hex-Schlüssel ab 16 Zeichen werden jetzt vorgeschlagen.</li><li><b>Editor:</b> Zog man den Start-Griff hinter den End-Griff, entstand ein leeres Video. Die Griffe halten jetzt Abstand; Schnitte am Rand verschwinden nicht mehr.</li><li><b>Annotation:</b> Ein Doppelklick auf Text speicherte die Schriftgröße als Linienbreite, danach waren alle Pfeile und Rechtecke dick. Ein Farbwechsel änderte Zählmarken-Größe oder Textmarker-Deckkraft mit. Rückgängig ist während der Textbearbeitung gesperrt. Griffe und Linien treffen bei starkem Zoom wieder.</li><li><b>Bildschirmfoto-Aufnahme:</b> „Symbole ausblenden“ färbte den Schreibtisch grau, wenn das Hintergrundbild fehlte. Gepinnte Bildschirmfotos waren auf Retina doppelt so groß und zeigten die Zoomstufe falsch. Scroll-Aufnahmen kopierten bei jedem Schritt beide Vollbilder. Ein Bereich unter 2 Pixel meldet sich statt still abzubrechen.</li><li><b>Videoaufnahme und Export:</b> Halbe Dateien bleiben nach einem Fehler nicht mehr liegen. Die Qualitätsstufe „Social/Web“ gilt auch bei zwei Tonspuren. Trennt sich die Kamera mitten in der Aufnahme, schließt die Kamerablase mit Hinweis. Eine abgebrochene Wiederherstellung meldet sich mit Dateipfad. Die Pause ist an der grauen Zeit erkennbar.</li><li><b>Verlauf:</b> Ein Einfachklick wählt nur noch aus und überschreibt nicht mehr die Zwischenablage; kopiert wird mit ⌘C, Return oder Doppelklick. Quick Look im Kontextmenü zeigt das angeklickte Bild und verändert die Auswahl nicht.</li><li><b>Teilen:</b> Uploads folgen keinen Weiterleitungen mehr. Fehler bei Aliyun und Tencent nennen die echte Ursache statt immer „ungültige Zugangsdaten“. Große Bilder aus der Zwischenablage werden begrenzt.</li><li><b>Einstellungen:</b> Berechtigungen laden neu, wenn du aus den Systemeinstellungen zurückkehrst. „Zurücksetzen“ der Cloud-Freigabe fragt nach. Das Farbfeld nimmt Tippen an. Die Kamerafrage ist deutsch. Texte und Statusfarben folgen dem Theme; Bedienelemente haben Beschriftungen für VoiceOver.</li><li>Die Editor-Vorschau rechnet im Stillstand nicht mehr 30-mal pro Sekunde.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.6.1/Knippi-0.6.1.zip" length="5733309" type="application/octet-stream" sparkle:edSignature="rUWPKlP0A+u0qgKj31jgS2TV5NsUQNOTXUG1fDTiwuQGh9TnvWRGdM8xDLOC4d0eMRdfFHIV66fdlOosQJ/aBA=="/>
+        </item>
+        <item>
             <title>0.6.0</title>
             <pubDate>Wed, 25 Nov 2026 20:15:31 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Knippi-Bildschirmfotos werden als Bildschirmfoto gekennzeichnet.</b> Bisher setzte Knippi das Spotlight-Merkmal „Bildschirmfoto“ (<code>kMDItemIsScreenCapture</code>) nicht, anders als macOS und andere Aufnahme-Programme. Deshalb sah keine App, die Bildschirmfotos daran erkennt, die Aufnahmen von Knippi: Gnotchis Bildschirmfoto-Ablage zeigte sie nicht, und sie fehlten in Spotlight unter der Art „Bildschirmfoto“. Jetzt tragen neu gesicherte Aufnahmen das Merkmal, auch nachdem der Editor sie ersetzt hat (der Austausch löscht Merkmale der alten Datei). Bereits gesicherte ältere Aufnahmen bleiben unmarkiert. Gemessen: Spotlight meldet eine so gesicherte Datei nach rund 6 Sekunden.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.4/Knippi-0.5.4.zip" length="5671675" type="application/octet-stream" sparkle:edSignature="W5Xf7cPudVdjbVdPWChpUscWt/WhNYTpYk8qR3ZWbaboeiFmWa3CVVXuAz9qSy+X1VqHFoEUAcrdpFLWiPonAw=="/>
         </item>
-        <item>
-            <title>0.5.3</title>
-            <pubDate>Mon, 23 Nov 2026 15:06:12 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>547</sparkle:version>
-            <sparkle:shortVersionString>0.5.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Stream-Deck-Plugin aus dem Menü laden:</b> Im Menü der Menüleiste öffnet „Stream-Deck-Plugin laden …“ den Download des Plugins aus dem neuesten Release im Browser. Du musst die GitHub-Seite nicht suchen. Datei doppelklicken, die Stream-Deck-App installiert sie. Knippi selbst lädt dabei nichts herunter.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.3/Knippi-0.5.3.zip" length="5667836" type="application/octet-stream" sparkle:edSignature="RRwI4Ue8nEKjjV+M7/5YcM+3wcoFMq+EFRxLjX9FZuoSj5n/g94nYpwVa76hv/jyTO6chQpxWOw2ZJtVqvBCCQ=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: xqtXJW57Nvyu9cDTSyqXr9GGKAhsBfIs9M6YK8oVD2XajWqXgZ+ir9Uvu17osPx+YMQYq1jrQRZ6POqQqIU+Bg==
-length: 5390
+edSignature: wziO0nkpctF2MZ7HZWurkfBmCyayFrm7s3IRuW+9o7/Y0mrGuY0M25hprjo7JhbQ2PZaF3BFGed27dKGZsvmBg==
+length: 8603
 -->
