@@ -17,10 +17,10 @@ Beim ersten Bildschirmfoto fragt macOS nach der Freigabe **Bildschirm- und Syste
 | option + shift + 5 | Bereich als Video oder GIF aufzeichnen |
 | option + shift + 6 | Scroll-Aufnahme (lange Seite) |
 | option + shift + 7 | Bereich in die Zwischenablage |
-| option + shift + 8 | Bereich aufnehmen & annotieren |
-| option + shift + 9 | Farbe aufnehmen (Color Picker) |
+| option + shift + 8 | Bereich aufnehmen & bearbeiten |
+| option + shift + 9 | Farbe aufnehmen (Pipette) |
 | option + shift + 0 | Aufnehmen und in Cloud teilen |
-| option + shift + H | Screenshot-Verlauf öffnen |
+| option + shift + H | Bildschirmfoto-Verlauf öffnen |
 
 Alle Kürzel änderst du unter Einstellungen → Tastenkürzel.
 
@@ -30,11 +30,11 @@ Alle Kürzel änderst du unter Einstellungen → Tastenkürzel.
 
 Unter Einstellungen → Bildschirmfotos → „Nach der Aufnahme“ wählst du:
 
-- **Vorschau zeigen:** Ein Vorschaubild erscheint in der Ecke (der **Schnellzugriff**). Von dort kopierst, sicherst, teilst, annotierst oder heftest du die Aufnahme an.
-- **Editor öffnen:** Die Aufnahme öffnet sich sofort im Editor.
-- **Still:** Knippi kopiert und sichert, ohne etwas anzuzeigen.
+- **Vorschau zeigen:** Ein Vorschaubild erscheint in der Ecke (der **Schnellzugriff**). Von dort kopierst, sicherst, teilst, bearbeitest oder heftest du das Bildschirmfoto an.
+- **Editor öffnen:** Das Bildschirmfoto öffnet sich sofort im Editor.
+- **Still:** Knippi kopiert in die Zwischenablage und sichert im Ablageordner, ohne etwas anzuzeigen.
 
-Ab Werk wird jede Aufnahme gleich in die Zwischenablage kopiert.
+Ab Werk kopiert Knippi jedes Bildschirmfoto in die Zwischenablage. Als Datei landet es im Ablageordner (ab Werk Bilder/Knippi), wenn du in der Vorschau „Sichern“ klickst oder unter Einstellungen → Bildschirmfotos „Automatisch sichern“ einschaltest.
 
 ## Video und GIF
 
@@ -42,13 +42,13 @@ Ab Werk wird jede Aufnahme gleich in die Zwischenablage kopiert.
 2. In der Leiste einstellen: **Mikrofon** (wahlweise), **Systemaudio**, **Kamera** für dein Sprecherbild.
 3. Mit dem roten Knopf aufzeichnen, mit **GIF aufzeichnen** als GIF. Pausieren und Stoppen in der kleinen Steuerleiste; die Pause fehlt im fertigen Video.
 
-Nach dem Stoppen sichert Knippi das Video sofort in deinen Sicherungsordner und meldet „Aufnahme gesichert“. Klappt das Sichern nicht, bleibt die Vorschau mit „Sichern“ und „Kopieren“ offen.
+Nach dem Stoppen sichert Knippi das Video sofort in deinen Ablageordner und meldet „Aufzeichnung gesichert in …“. Klappt das Sichern nicht, bleibt die Vorschau mit „Sichern“ und „Kopieren“ offen. Ist unter Einstellungen → Aufzeichnung „Video-Editor nach der Aufzeichnung öffnen“ an, öffnet sich stattdessen der Video-Editor zum Kürzen und Exportieren.
 
-**Sprecherbild:** Klick auf das Kamera-Symbol öffnet die Einstellungen (Kamera, Form, Größe, Spiegeln). Sie bleiben offen, bis du daneben klickst. Vor dem Start ziehst du das Kamerabild an seinen Platz. Während der Aufnahme weicht es der Maus aus und kehrt danach zurück. Mit gedrückter **command**-Taste bleibt es stehen und lässt sich verschieben. Ein Klick darauf schaltet auf Vollbild-Kamera.
+**Kamerabild:** Klick auf das Kamera-Symbol öffnet die Einstellungen (Kamera, Form, Größe, Spiegeln). Sie bleiben offen, bis du daneben klickst. Vor dem Start ziehst du das Kamerabild an seinen Platz. Während der Aufzeichnung weicht es der Maus aus und kehrt danach zurück. Mit gedrückter **command**-Taste bleibt es stehen und lässt sich verschieben. Ein Klick darauf schaltet auf Vollbild-Kamera.
 
 **Freigaben:** Mikrofon und Kamera fragt macOS beim ersten Einschalten. Später findest du sie unter Systemeinstellungen → Datenschutz & Sicherheit → Mikrofon bzw. Kamera.
 
-**Lange GIFs** werden ruckeliger und kleiner, damit der Speicher reicht. Für lange Aufnahmen ist ein Video besser.
+**Lange GIFs** werden ruckeliger und kleiner, damit der Speicher reicht. Für lange Aufzeichnungen ist ein Video besser.
 
 ## Scroll-Aufnahme
 
@@ -66,17 +66,17 @@ Feste Kopf- und Fußleisten der Seite erscheinen im Bild nur einmal.
 
 **Höchstlänge:** Bei 30 000 Pixeln endet die Aufnahme mit dem Hinweis „Maximale Länge erreicht“. Für noch längere Seiten in zwei Teilen aufnehmen.
 
-## Speichern
+## Sichern und Ablageordner
 
-Bildschirmfotos landen ab Werk in **Bilder/Knippi**, als „Knippi JJJJ-MM-TT um HH.MM.SS“. Speicherort und Dateiname stellst du unter Einstellungen → Exportieren ein, das Bildformat unter Einstellungen → Bildschirmfotos. Knippi überschreibt nie eine fremde Datei. Gesicherte Aufnahmen kennzeichnet Knippi für das System als Bildschirmfoto (wie macOS), damit Spotlight und Apps wie Gnotchi sie finden; ältere Aufnahmen bleiben, wie sie sind. Kann eine Aufnahme nicht gesichert werden, sagt Knippi das sichtbar.
+Gesicherte Bildschirmfotos und Videos landen im **Ablageordner**, ab Werk **Bilder/Knippi**, als „Knippi JJJJ-MM-TT um HH.MM.SS“. Ablageordner, Dateiname und Bildschirmfotoformat stellst du unter Einstellungen → Exportieren ein. Knippi überschreibt nie eine fremde Datei. Gesicherte Bildschirmfotos kennzeichnet Knippi für das System als Bildschirmfoto (wie macOS), damit Spotlight und Apps wie Gnotchi sie finden; ältere Dateien bleiben, wie sie sind. Kann eine Datei nicht gesichert werden, sagt Knippi das sichtbar.
 
-Ist „Automatisch sichern“ an und du bearbeitest die Aufnahme im Editor, ersetzt Knippi die gesicherte Datei durch die bearbeitete Fassung, egal ob du sicherst, kopierst, anheftest oder „Sichern unter“ wählst. So bleibt kein ungeschwärztes Original im Ordner liegen.
+Ist „Automatisch sichern“ an und du bearbeitest das Bildschirmfoto im Editor, ersetzt Knippi die gesicherte Datei durch die bearbeitete Fassung, egal ob du sicherst, kopierst, anheftest oder „Sichern unter“ wählst. So bleibt kein ungeschwärztes Original im Ordner liegen.
 
 ## Editor
 
-Pfeil, Linie, Rechteck, Ellipse, Text, Freihand, Textmarker, Zähler, Spotlight und Verpixeln. command + Z widerruft den letzten Schritt. Mit „Kopieren“ (command + C) landet das fertige Bild in der Zwischenablage, mit „Sichern“ im Ausgabeordner.
+Pfeil, Linie, Rechteck, Ellipse, Text, Freihand, Textmarker, Zähler, Spotlight und Verpixeln. command + Z widerruft den letzten Schritt. Mit „Kopieren“ (command + C) landet das fertige Bild in der Zwischenablage, mit „Sichern“ im Ablageordner.
 
-**Hintergrund:** Im Editor rechts oben, neben Sichern und Teilen, öffnet der Knopf „Hintergrund“ die Einstellungen. Damit legst du einen Rahmen um die Aufnahme: einen der Verläufe Polarlicht, Abendglut oder Graphit, eine Farbe oder ein eigenes Bild. Die Formate 16:9, 1:1 und 4:5 passen für Folien und soziale Netzwerke. Das ganze Bild bekommt dabei abgerundete Ecken, außen durchsichtig; im Format JPEG gibt es keine Durchsichtigkeit. Fenster-Aufnahmen können „Transparent mit Schatten“ bleiben.
+**Hintergrund:** Im Editor rechts oben, neben Sichern und Teilen, öffnet der Knopf „Hintergrund“ die Einstellungen. Damit legst du einen Rahmen um das Bildschirmfoto: einen der Verläufe Polarlicht, Abendglut oder Graphit, eine Farbe oder ein eigenes Bild. Die Formate 16:9, 1:1 und 4:5 passen für Folien und soziale Netzwerke. Das ganze Bild bekommt dabei abgerundete Ecken, außen durchsichtig; im Format JPEG gibt es keine Durchsichtigkeit. Fensteraufnahmen können „Transparent mit Schatten“ bleiben.
 
 ## Vertrauliches finden
 
@@ -98,7 +98,7 @@ option + shift + 4 und einen Bereich aufziehen: Knippi erkennt den Text darin un
 
 ## Teilen und Anheften
 
-Im Schnellzugriff öffnet „Teilen“ das Teilen-Menü von macOS: AirDrop, Nachrichten, Mail und mehr. command + P heftet die Aufnahme als schwebendes Fenster an den Bildschirm.
+Im Schnellzugriff öffnet „Teilen“ das Teilen-Menü von macOS: AirDrop, Nachrichten, Mail und mehr. command + P heftet das Bildschirmfoto als schwebendes Fenster an den Bildschirm.
 
 **Cloud-Freigabe** (optional): Knippi lädt in **deinen eigenen** Cloud-Speicher hoch, zum Beispiel einen Cloudflare-R2-Bucket, nie auf fremde Server. Einrichten unter Einstellungen → Cloud-Freigabe. Hochgeladene Bildschirmfotos bleiben öffentlich, bis du sie löschst: im Vorschaubild über „…“ → „Link löschen“, oder in den Einstellungen → Cloud-Freigabe → „Hochgeladen“ (einzeln oder alle).
 
@@ -106,19 +106,19 @@ Im Schnellzugriff öffnet „Teilen“ das Teilen-Menü von macOS: AirDrop, Nach
 
 Mit dem Plugin `Knippi.streamDeckPlugin` löst du Knippi über ein Elgato Stream Deck aus. Du lädst es aus dem Menü der Menüleiste: „Stream-Deck-Plugin laden …“ öffnet den Download im Browser. Datei doppelklicken, Stream Deck installiert sie.
 
-- **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild, Screenshot-Verlauf. In der Stream-Deck-App aus der Kategorie „Knippi“ auf eine Taste ziehen.
-- **Regler (Stream Deck +):** Drehen wählt die Aufnahmeart, Drücken oder Tippen nimmt auf. In den Einstellungen des Reglers wählst du Screenshots oder Video.
+- **Tasten:** Bereich, Fenster, Vollbild, Scroll-Aufnahme, Letzten Bereich wiederholen, Text erkennen, Farbe aufnehmen, Selbstauslöser, Video Bereich, Video Vollbild, Screenshot-Verlauf (so heißen die Tasten im Plugin). In der Stream-Deck-App aus der Kategorie „Knippi“ auf eine Taste ziehen.
+- **Regler (Stream Deck +):** Drehen wählt die Aufnahmeart, Drücken oder Tippen nimmt auf. In den Einstellungen des Reglers wählst du „Screenshots“ oder „Video“.
 - **Fertige Profile** für Stream Deck +, Neo und Stream Deck (15 Tasten) kommen mit. Umschalten in der Stream-Deck-App beim jeweiligen Gerät.
 
-Vollbild und „Letzten Bereich wiederholen“ vom Stream Deck (oder aus einer anderen App) nimmt Knippi ohne Auswahl auf. Diese Aufnahmen werden immer gesichert und mit einem Hinweis angezeigt, kommen aber nicht automatisch in die Zwischenablage oder in die Cloud. Kopieren geht über das Vorschaubild.
+Vollbild und „Letzten Bereich wiederholen“ vom Stream Deck (oder aus einer anderen App) nimmt Knippi ohne Auswahl auf. Diese Bildschirmfotos werden immer gesichert und mit einem Hinweis angezeigt, kommen aber nicht automatisch in die Zwischenablage oder in die Cloud. Kopieren geht über das Vorschaubild.
 
 Beim ersten Tastendruck fragt Knippi, ob andere Apps Aufnahmen starten dürfen. Später änderst du das unter Einstellungen → Allgemein → Automatisierung. Hast du abgelehnt, zeigt die Taste ein Warnzeichen.
 
 ## Verlauf und Suche
 
-Menüleiste → „Screenshot-Verlauf …“, option + shift + H oder die Stream-Deck-Taste „Screenshot-Verlauf“ zeigt die letzten Aufnahmen aus deinem Sicherungsordner als Raster. Ab Werk ist der Verlauf aus; im Fenster schaltest du ihn mit „Verlauf einschalten“ ein, die Anzahl (25, 50 oder 100) stellst du unter Einstellungen → Bildschirmfotos → „Screenshot-Verlauf“ ein.
+Menüleiste → „Bildschirmfoto-Verlauf …“, option + shift + H oder die Stream-Deck-Taste „Screenshot-Verlauf“ zeigt die letzten Bildschirmfotos aus deinem Ablageordner als Raster. Ab Werk ist der Verlauf aus; im Fenster schaltest du ihn mit „Verlauf einschalten“ ein, die Anzahl (25, 50 oder 100) stellst du unter Einstellungen → Bildschirmfotos → „Bildschirmfoto-Verlauf“ → „Verlauf behalten“ ein.
 
-Im Suchfeld findest du eine Aufnahme über den Text im Bild. Groß- und Kleinschreibung und Akzente spielen keine Rolle. Return kopiert den neuesten Treffer.
+Im Suchfeld findest du ein Bildschirmfoto über den Text im Bild. Groß- und Kleinschreibung und Akzente spielen keine Rolle. Return kopiert den neuesten Treffer.
 
 - **Klick** wählt ein Bild und kopiert es. **Shift- oder command-Klick** wählt mehrere (oder nimmt eins wieder heraus), ohne etwas zu kopieren. command + A wählt alle, Esc hebt die Auswahl auf.
 - **Doppelklick** öffnet das Bild, **Leertaste** zeigt es in der Schnellansicht (Pfeiltasten blättern weiter).
@@ -126,7 +126,7 @@ Im Suchfeld findest du eine Aufnahme über den Text im Bild. Groß- und Kleinsch
 - **Entf** legt die Auswahl in den Papierkorb, **command + Z** holt die letzte Auswahl zurück (auch im Menü mit den drei Punkten: „Papierkorb rückgängig“). Knippi überschreibt dabei nie eine Datei, die inzwischen wieder unter dem alten Namen liegt.
 - **Rechtsklick** bietet außerdem „Teilen …“, „Im Editor öffnen“ und „Im Finder zeigen“. Kopieren, Teilen und Papierkorb gelten für die ganze Auswahl.
 
-Der Verlauf liest nur Aufnahmen im Sicherungsordner. Ist „Automatisch sichern“ aus, fehlen neue Aufnahmen dort; das Fenster bietet an, es einzuschalten. Den Text liest Knippi nur, solange das Fenster offen ist. Beim Ausschalten und über „Index löschen“ wird der gelesene Text gelöscht. Beides findest du im Verlauf-Fenster unter dem Symbol mit den drei Punkten neben dem Suchfeld und in den Einstellungen unter Bildschirmfotos → „Screenshot-Verlauf“.
+Der Verlauf liest nur Bildschirmfotos im Ablageordner. Ist „Automatisch sichern“ aus, fehlen neue Bildschirmfotos dort; das Fenster bietet an, es einzuschalten. Den Text liest Knippi nur, solange das Fenster offen ist. Beim Ausschalten und über „Index löschen“ wird der gelesene Text gelöscht. Beides findest du im Verlauf-Fenster unter dem Symbol mit den drei Punkten neben dem Suchfeld und in den Einstellungen unter Bildschirmfotos → „Bildschirmfoto-Verlauf“.
 
 ## Updates
 

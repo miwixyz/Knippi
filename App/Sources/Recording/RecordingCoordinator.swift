@@ -50,8 +50,19 @@ final class RecordingCoordinator {
     private var borderWindow: RecordingBorderWindow?
     private var cameraPiPWindow: CameraPiPWindow?
     private var recordingPreviewWindow: RecordingPreviewWindow?
-    private var editorWindow: RecordingEditorWindow?
-    private var editorCoordinator: EditorCoordinator?
+    /// Every open recording editor. Several can be open at once (record, keep the editor,
+    /// record again); each one only ever closes and forgets itself.
+    private var openEditors: [RecordingEditorWindow] = []
+
+    /// True while at least one recording editor is open (its recording is not saved yet).
+    /// Also counts editors still loading their video (between stop and window).
+    var hasOpenEditor: Bool { !openEditors.isEmpty || editorsOpening > 0 }
+    private var editorsOpening = 0
+
+    /// Brings the open editors to the front, e.g. when a quit has to ask about them.
+    func showOpenEditors() {
+        for editor in openEditors { editor.makeKeyAndOrderFront(nil) }
+    }
     private var clickMonitor: ClickMonitor?
     private var cursorTelemetry: CursorTelemetry?
     private var clickHighlightWindow: ClickHighlightWindow?
@@ -119,7 +130,14 @@ final class RecordingCoordinator {
         recorder.state != .idle || controlsWindow != nil || countdownWindow != nil
     }
 
-    func startRecordingFlow() {
+    func startRecordingFlow(togglesStop: Bool = false) {
+        // The record shortcut doubles as Stop while a recording runs: if the controls are on
+        // another screen or covered, pressing the shortcut again used to do nothing at all.
+        // Menu and automation URLs keep the old behaviour (ignored while recording).
+        if togglesStop, recorder.state == .recording || recorder.state == .paused {
+            stopRecording()
+            return
+        }
         guard !isRecordingActive else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
             guard let self else { return }
@@ -546,6 +564,7 @@ final class RecordingCoordinator {
         }
         if let tap = escEventTap {
             CGEvent.tapEnable(tap: tap, enable: false)
+            CFMachPortInvalidate(tap)
             escEventTap = nil
         }
     }
@@ -1039,10 +1058,13 @@ final class RecordingCoordinator {
                 // given, and a partly written file stayed in tmp (audit R12, 21.11.).
                 discardPartialRecording()
                 hideRecordingUI()
+                if runTerminationFollowUp() { return }
                 showRecordingProblem(String(localized: "Couldn't restart recording"), error: error)
                 return
             }
             hideRecordingUI()
+            // A quit arrived during the restart: don't start a recording the quit would cut off.
+            if runTerminationFollowUp() { return }
             startRecording(
                 format: format,
                 cameraEnabled: currentCameraEnabled,
@@ -1083,11 +1105,21 @@ final class RecordingCoordinator {
                 try? FileManager.default.removeItem(at: result.fileURL)
                 hideRecordingUI()
             } catch {
-                print("Failed to delete recording: \(error)")
+                NSLog("[Knippi] Failed to delete recording: %@", String(describing: error))
                 discardPartialRecording()
                 hideRecordingUI()
             }
+            runTerminationFollowUp()
         }
+    }
+
+    /// Answers a quit that was waiting for this restart/delete. `true` if there was one.
+    @discardableResult
+    private func runTerminationFollowUp() -> Bool {
+        guard let follow = terminationFollowUp else { return false }
+        terminationFollowUp = nil
+        follow(false)
+        return true
     }
 
     private func exportRecording(
@@ -1105,10 +1137,17 @@ final class RecordingCoordinator {
         } else {
             let exportDir = settings.exportLocation
             let fileName = FileNaming.generateFileName(for: .recording, format: fileFormat)
-            destURL = exportDir.appendingPathComponent(fileName)
+            // Names are per second; two exports in the same second must not replace each
+            // other (the exporters remove an existing file at the destination first).
+            destURL = FileNaming.availableFileURL(for: exportDir.appendingPathComponent(fileName))
         }
         let exportDir = destURL.deletingLastPathComponent()
         try? FileManager.default.createDirectory(at: exportDir, withIntermediateDirectories: true)
+        // Reserve the name with an empty file: the real file only appears when the export
+        // ends, so a second export in the same second would otherwise get the same name.
+        // The exporters replace an existing file at the destination.
+        let reservedName = destinationOverride == nil
+            && FileManager.default.createFile(atPath: destURL.path, contents: nil)
 
         let options = ExportOptions(
             format: exportFormat,
@@ -1122,7 +1161,12 @@ final class RecordingCoordinator {
                 _ = await copyTask.value
             }
             let result = try await VideoExporter.export(source: tempURL, options: options, progress: progress)
-            InterruptedRecording.clear(ifMarking: tempURL)
+            // Only the export that keeps the recording clears the recovery marker. The
+            // clipboard copy (own folder, source kept) used to clear it early, so a crash
+            // during the real save left nothing to recover.
+            if destinationOverride == nil || deleteSourceOnSuccess {
+                InterruptedRecording.clear(ifMarking: tempURL)
+            }
             if deleteSourceOnSuccess {
                 // Clean up temp file after successful export
                 try? FileManager.default.removeItem(at: tempURL)
@@ -1134,6 +1178,12 @@ final class RecordingCoordinator {
             NSLog("[Knippi] Recording export FAILED (format=%@, dest=%@): %@",
                   String(describing: format), destURL.path,
                   String(describing: error))
+            // Drop the empty name reservation, never a real file.
+            if reservedName,
+               let size = (try? FileManager.default.attributesOfItem(atPath: destURL.path))?[.size] as? NSNumber,
+               size.intValue == 0 {
+                try? FileManager.default.removeItem(at: destURL)
+            }
             return nil
         }
     }
@@ -1199,7 +1249,10 @@ final class RecordingCoordinator {
         recordingAreaSize: CGSize,
         outputFormat: EditorOutputFormat
     ) {
+        // A quit while the video loads must still ask (the editor isn't listed yet).
+        editorsOpening += 1
         Task {
+            defer { editorsOpening -= 1 }
             let asset = AVURLAsset(url: tempURL)
             let duration = (try? await asset.load(.duration).seconds) ?? 0
             let tracks = try? await asset.loadTracks(withMediaType: .video)
@@ -1215,6 +1268,9 @@ final class RecordingCoordinator {
             )
 
             let coordinator = EditorCoordinator(project: project, outputFormat: outputFormat)
+            // Each editor closes only its own window and files. A shared "current editor"
+            // property let closing an older editor close (and delete) a newer one.
+            weak var ownWindow: RecordingEditorWindow?
             coordinator.onClose = { [weak self] in
                 // The editor is the only reader of cursor.json and it is not reopened
                 // later, so remove it with the editor (audit R11, 21.11.).
@@ -1226,13 +1282,13 @@ final class RecordingCoordinator {
                 // is no longer needed. Without this every recording stayed behind
                 // (several hundred MB each).
                 try? FileManager.default.removeItem(at: tempURL)
-                self?.editorWindow?.close()
-                self?.editorWindow = nil
-                self?.editorCoordinator = nil
+                guard let window = ownWindow else { return }
+                window.close()
+                self?.openEditors.removeAll { $0 === window }
             }
             let window = RecordingEditorWindow(coordinator: coordinator)
-            self.editorCoordinator = coordinator
-            self.editorWindow = window
+            ownWindow = window
+            self.openEditors.append(window)
             window.showCentered()
         }
     }
@@ -1645,7 +1701,10 @@ final class RecordingCoordinator {
     /// Pauses video and cursor telemetry together: the video has the pause cut out, so
     /// the telemetry must too, or pointer, clicks and auto-zoom in the editor land late
     /// by the length of every pause.
-    private func togglePause() {
+    /// Pause / resume, also from the menu bar.
+    var isRecordingPaused: Bool { recorder.state == .paused }
+
+    func togglePause() {
         switch recorder.state {
         case .recording:
             recorder.pause()

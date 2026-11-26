@@ -261,10 +261,12 @@ final class QuickAccessWindowPresentationTests: XCTestCase {
             settleRunLoop(for: 0.5)
 
             XCTAssertFalse(window.isVisible)
-            XCTAssertGreaterThanOrEqual(window.frame.minX, screenFrame.minX)
-            XCTAssertLessThanOrEqual(window.frame.maxX, screenFrame.maxX)
-            XCTAssertGreaterThanOrEqual(window.frame.minY, screenFrame.minY)
-            XCTAssertLessThanOrEqual(window.frame.maxY, screenFrame.maxY)
+            // The visible card must stay on screen; the window's transparent shadow margin may not.
+            let card = window.frame.insetBy(dx: QuickAccessWindow.edge, dy: QuickAccessWindow.edge)
+            XCTAssertGreaterThanOrEqual(card.minX, screenFrame.minX)
+            XCTAssertLessThanOrEqual(card.maxX, screenFrame.maxX)
+            XCTAssertGreaterThanOrEqual(card.minY, screenFrame.minY)
+            XCTAssertLessThanOrEqual(card.maxY, screenFrame.maxY)
             switch position {
             case .bottomLeft:
                 XCTAssertLessThan(window.frame.minX, startFrame.minX)
@@ -307,10 +309,12 @@ final class QuickAccessWindowPresentationTests: XCTestCase {
             window.close()
             settleRunLoop(for: 0.5)
 
-            XCTAssertGreaterThanOrEqual(window.frame.minX, screenFrame.minX)
-            XCTAssertLessThanOrEqual(window.frame.maxX, screenFrame.maxX)
-            XCTAssertGreaterThanOrEqual(window.frame.minY, screenFrame.minY)
-            XCTAssertLessThanOrEqual(window.frame.maxY, screenFrame.maxY)
+            // The visible card returns to the screen; the transparent shadow margin may stick out.
+            let card = window.frame.insetBy(dx: QuickAccessWindow.edge, dy: QuickAccessWindow.edge)
+            XCTAssertGreaterThanOrEqual(card.minX, screenFrame.minX)
+            XCTAssertLessThanOrEqual(card.maxX, screenFrame.maxX)
+            XCTAssertGreaterThanOrEqual(card.minY, screenFrame.minY)
+            XCTAssertLessThanOrEqual(card.maxY, screenFrame.maxY)
         }
     }
 

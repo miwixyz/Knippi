@@ -62,30 +62,30 @@ struct RecordingToolbarView: View {
                 // Dimensions display
                 HStack(spacing: 6) {
                     Text("\(width)")
-                        .font(.system(size: 13, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.9))
+                        .font(FamilyTheme.font(13, weight: .medium).monospacedDigit())
+                        .foregroundStyle(FamilyTheme.textPrimary)
                         .frame(minWidth: 48)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(.white.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .background(FamilyTheme.textPrimary.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
 
                     Text("\u{00D7}")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .font(FamilyTheme.font(13))
+                        .foregroundStyle(FamilyTheme.textSecondary)
 
                     Text("\(height)")
-                        .font(.system(size: 13, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.9))
+                        .font(FamilyTheme.font(13, weight: .medium).monospacedDigit())
+                        .foregroundStyle(FamilyTheme.textPrimary)
                         .frame(minWidth: 48)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(.white.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .background(FamilyTheme.textPrimary.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
 
                     Text("px")
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.45))
+                        .font(FamilyTheme.font(11, weight: .medium))
+                        .foregroundStyle(FamilyTheme.textSecondary)
                 }
 
                 // Controls row
@@ -106,25 +106,25 @@ struct RecordingToolbarView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
 
-            Divider()
-                .background(.white.opacity(0.15))
+            hairline
 
             // Action rows
             VStack(spacing: 0) {
                 // Record GIF
                 Button(action: onRecordGIF) {
                     HStack(spacing: 10) {
+                        // Neutrale Marke statt Lila: ein Akzent pro App (G2).
                         Text("GIF")
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
+                            .font(FamilyTheme.font(10, weight: .bold))
+                            .foregroundStyle(FamilyTheme.textPrimary)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 3)
-                            .background(.purple.opacity(0.6))
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .background(FamilyTheme.textPrimary.opacity(0.1))
+                            .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
 
                         Text("Record GIF")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white)
+                            .font(FamilyTheme.font(13, weight: .medium))
+                            .foregroundStyle(FamilyTheme.textPrimary)
 
                         Spacer()
 
@@ -139,19 +139,18 @@ struct RecordingToolbarView: View {
                 }
                 .buttonStyle(.plain)
 
-                Divider()
-                    .background(.white.opacity(0.1))
+                hairline
 
                 // Record Video
                 Button(action: onRecordVideo) {
                     HStack(spacing: 10) {
                         Image(systemName: "record.circle.fill")
                             .font(.system(size: 14))
-                            .foregroundStyle(.red)
+                            .foregroundStyle(FamilyTheme.danger)
 
                         Text("Record Video")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white)
+                            .font(FamilyTheme.font(13, weight: .medium))
+                            .foregroundStyle(FamilyTheme.textPrimary)
 
                         Spacer()
 
@@ -163,18 +162,17 @@ struct RecordingToolbarView: View {
                 }
                 .buttonStyle(.plain)
 
-                Divider()
-                    .background(.white.opacity(0.1))
+                hairline
 
                 Button(action: onChangeArea) {
                     HStack(spacing: 10) {
                         Image(systemName: "selection.pin.in.out")
                             .font(.system(size: 14))
-                            .foregroundStyle(.white.opacity(0.8))
+                            .foregroundStyle(FamilyTheme.textSecondary)
 
                         Text("Change Area")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white)
+                            .font(FamilyTheme.font(13, weight: .medium))
+                            .foregroundStyle(FamilyTheme.textPrimary)
 
                         Spacer()
                     }
@@ -185,18 +183,10 @@ struct RecordingToolbarView: View {
                 .buttonStyle(.plain)
             }
         }
-        .frame(width: 220)
-        .background(.black.opacity(0.8))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(.white.opacity(0.1), lineWidth: 0.5)
-        )
-        .shadow(color: .black.opacity(0.5), radius: 12, y: 6)
-        // Force dark appearance so `.white` always resolves to true
-        // white — the toolbar has a dark background regardless of the
-        // system color scheme.
-        .environment(\.colorScheme, .dark)
+        .frame(width: 240)
+        .clipShape(RoundedRectangle(cornerRadius: FamilyTheme.Floating.radius, style: .continuous))
+        // Familien-Schwebefläche (getöntes Glas, Hell/Dunkel), Schatten im transparenten Fensterrand.
+        .familyFloatingSurface(in: RoundedRectangle(cornerRadius: FamilyTheme.Floating.radius, style: .continuous))
         .onAppear { restoreMicSelection() }
     }
 
@@ -234,12 +224,12 @@ struct RecordingToolbarView: View {
         } label: {
             Image(systemName: micEnabled ? "mic.fill" : "mic.slash.fill")
                 .font(.system(size: 14))
-                .foregroundStyle(micEnabled ? .white : .white.opacity(0.4))
+                .foregroundStyle(micEnabled ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .frame(width: 36, height: 30)
-        .background(micEnabled ? .white.opacity(0.15) : .clear)
+        .background(micEnabled ? FamilyTheme.textPrimary.opacity(0.1) : .clear)
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .help("Microphone")
         .accessibilityLabel("Microphone")
@@ -271,9 +261,9 @@ struct RecordingToolbarView: View {
         } label: {
             Image(systemName: cameraEnabled ? "camera.fill" : "camera")
                 .font(.system(size: 14))
-                .foregroundStyle(cameraEnabled ? .white : .white.opacity(0.4))
+                .foregroundStyle(cameraEnabled ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
                 .frame(width: 36, height: 30)
-                .background(cameraEnabled ? .white.opacity(0.15) : .clear)
+                .background(cameraEnabled ? FamilyTheme.textPrimary.opacity(0.1) : .clear)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
                 .contentShape(Rectangle())
         }
@@ -352,12 +342,17 @@ struct RecordingToolbarView: View {
 
     // MARK: - Helpers
 
+    /// Feine Trennlinie im Familienton (Systemtrenner wirkt auf der dunklen Glastönung grell).
+    private var hairline: some View {
+        Rectangle().fill(FamilyTheme.cardStroke).frame(height: 1)
+    }
+
     private func toolbarIcon(systemName: String, active: Bool) -> some View {
         Image(systemName: systemName)
             .font(.system(size: 14))
-            .foregroundStyle(active ? .white : .white.opacity(0.4))
+            .foregroundStyle(active ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
             .frame(width: 36, height: 30)
-            .background(active ? .white.opacity(0.15) : .clear)
+            .background(active ? FamilyTheme.textPrimary.opacity(0.1) : .clear)
             .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
@@ -365,9 +360,9 @@ struct RecordingToolbarView: View {
         Button(action: { isOn.wrappedValue.toggle() }) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundStyle(isOn.wrappedValue ? .white : .white.opacity(0.4))
+                .foregroundStyle(isOn.wrappedValue ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
                 .frame(width: 36, height: 30)
-                .background(isOn.wrappedValue ? .white.opacity(0.15) : .clear)
+                .background(isOn.wrappedValue ? FamilyTheme.textPrimary.opacity(0.1) : .clear)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
         }
         .buttonStyle(.plain)
@@ -378,11 +373,11 @@ struct RecordingToolbarView: View {
 
     private func shortcutKey(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 10))
-            .foregroundStyle(.white.opacity(0.4))
+            .font(FamilyTheme.font(10))
+            .foregroundStyle(FamilyTheme.textSecondary)
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
-            .background(.white.opacity(0.08))
+            .background(FamilyTheme.textPrimary.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: 3))
     }
 

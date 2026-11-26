@@ -9,22 +9,33 @@ struct EditorTimelineView: View {
     private let trimTrackHeight: Double = 36
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: FamilyTheme.Space.xs) {
             trimRegionRow
 
             GeometryReader { geo in
                 let trackWidth = geo.size.width
                 ZStack(alignment: .leading) {
-                    // Track background
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.white.opacity(0.06))
+                    // Track background: feste Fläche wie ein Feld
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(FamilyTheme.card)
+                        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .strokeBorder(FamilyTheme.cardStroke, lineWidth: 0.8))
 
-                    // Trim regions (shaded)
+                    // Kept range between the trim handles (accent tint)
+                    let keptStart = timeToX(coordinator.effectiveStartTime, in: trackWidth)
+                    let keptEnd = timeToX(coordinator.effectiveEndTime, in: trackWidth)
+                    Rectangle()
+                        .fill(FamilyTheme.accent.opacity(0.10))
+                        .frame(width: max(0, keptEnd - keptStart))
+                        .offset(x: keptStart)
+                        .allowsHitTesting(false)
+
+                    // Trim regions (shaded): removed parts in `danger`
                     ForEach(coordinator.project.trimRegions) { trim in
                         let startX = timeToX(trim.startTime, in: trackWidth)
                         let endX = timeToX(trim.endTime, in: trackWidth)
                         Rectangle()
-                            .fill(Color.red.opacity(0.15))
+                            .fill(FamilyTheme.danger.opacity(0.16))
                             .frame(width: max(1, endX - startX))
                             .offset(x: startX)
                     }
@@ -71,11 +82,11 @@ struct EditorTimelineView: View {
 
         return VStack(spacing: 0) {
             Circle()
-                .fill(Color.accentColor)
+                .fill(FamilyTheme.accent)
                 .frame(width: 10, height: 10)
 
             Rectangle()
-                .fill(Color.accentColor)
+                .fill(FamilyTheme.accent)
                 .frame(width: 2, height: trimTrackHeight - 10)
         }
         .frame(width: handleWidth, height: trimTrackHeight, alignment: .top)
@@ -121,9 +132,15 @@ struct EditorTimelineView: View {
             Color.clear
                 .frame(width: hitAreaWidth, height: trimTrackHeight)
 
+            // Griff im Akzent mit Griffrille in onAccent (statt festem Orange).
             RoundedRectangle(cornerRadius: 3)
-                .fill(Color.orange.opacity(0.85))
+                .fill(FamilyTheme.accentFill)
                 .frame(width: handleWidth, height: trimTrackHeight - 4)
+                .overlay(
+                    Capsule()
+                        .fill(FamilyTheme.onAccent.opacity(0.85))
+                        .frame(width: 2, height: 12)
+                )
         }
         .offset(x: hitOffset)
         // highPriorityGesture ensures the handle drag takes precedence over
@@ -150,14 +167,15 @@ struct EditorTimelineView: View {
             }
             if !segmentTrims.isEmpty {
                 Text("Trimmed segments: \(segmentTrims.count)")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
+                    .font(FamilyTheme.font(10))
+                    .foregroundStyle(FamilyTheme.textSecondary)
             }
             Spacer()
             if coordinator.project.effectiveDuration < coordinator.duration {
                 Text("Duration: \(coordinator.formatTime(coordinator.project.effectiveDuration))")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .font(FamilyTheme.font(10))
+                    .monospacedDigit()
+                    .foregroundStyle(FamilyTheme.textSecondary)
             }
         }
     }
@@ -167,17 +185,14 @@ struct EditorTimelineView: View {
     private var timeMarkers: some View {
         HStack {
             Text(coordinator.formatTime(0))
-                .font(.system(size: 9, design: .monospaced))
-                .foregroundStyle(.quaternary)
             Spacer()
             Text(coordinator.formatTime(coordinator.duration / 2))
-                .font(.system(size: 9, design: .monospaced))
-                .foregroundStyle(.quaternary)
             Spacer()
             Text(coordinator.formatTime(coordinator.duration))
-                .font(.system(size: 9, design: .monospaced))
-                .foregroundStyle(.quaternary)
         }
+        .font(FamilyTheme.font(9))
+        .monospacedDigit()
+        .foregroundStyle(FamilyTheme.textSecondary.opacity(0.8))
     }
 
     // MARK: - Coordinate Conversion

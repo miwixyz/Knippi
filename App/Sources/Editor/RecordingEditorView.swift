@@ -21,23 +21,33 @@ struct RecordingEditorView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                Divider()
+                hairline(vertical: false)
 
-                VStack(spacing: 8) {
+                VStack(spacing: FamilyTheme.Space.s) {
                     EditorPlaybackControls(coordinator: coordinator)
                     EditorTimelineView(coordinator: coordinator)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, FamilyTheme.Space.l)
+                .padding(.vertical, FamilyTheme.Space.m)
                 .frame(height: 226)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Divider()
+            hairline(vertical: true)
 
             EditorSettingsPanel(coordinator: coordinator)
                 .frame(width: 280)
         }
+        // Fester Fensterkörper aus dem Familien-Verlauf (keine vom Schreibtisch getönte Systemfläche).
+        .background(FamilyTheme.backgroundGradient.ignoresSafeArea())
+        .foregroundStyle(FamilyTheme.textPrimary)
+    }
+
+    /// Feine Trennlinie statt eigenem Streifen (Design-System, Flächen).
+    private func hairline(vertical: Bool) -> some View {
+        Rectangle()
+            .fill(FamilyTheme.cardStroke)
+            .frame(width: vertical ? 0.8 : nil, height: vertical ? nil : 0.8)
     }
 
     private var exportOverlay: some View {
@@ -46,22 +56,24 @@ struct RecordingEditorView: View {
                 .fill(.black.opacity(0.24))
                 .ignoresSafeArea()
 
-            VStack(spacing: 12) {
+            VStack(spacing: FamilyTheme.Space.m) {
                 ProgressView(value: coordinator.exportProgress)
                     .progressViewStyle(.linear)
+                    .tint(FamilyTheme.accent)
                     .frame(width: 220)
 
                 Text(coordinator.exportStatusMessage ?? "Exporting…")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(FamilyTheme.font(13, weight: .medium))
+                    .foregroundStyle(FamilyTheme.textPrimary)
 
                 Text("The editor will close when the export is finished.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                    .font(FamilyTheme.font(11))
+                    .foregroundStyle(FamilyTheme.textSecondary)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .shadow(color: .black.opacity(0.16), radius: 18, y: 8)
+            .padding(.horizontal, FamilyTheme.Space.xl)
+            .padding(.vertical, FamilyTheme.Space.l)
+            // Schwebt über dem Inhalt → getöntes Glas der Familie (Regel G1 erlaubt Glas hier).
+            .familyTintedGlass(in: RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous))
         }
         .transition(.opacity)
     }

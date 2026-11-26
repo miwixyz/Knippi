@@ -359,8 +359,8 @@ struct ScrollCaptureControlsView: View {
                 if viewModel.isTrackingLost {
                     Label(String(localized: "Too fast – scroll back a little"),
                           systemImage: "exclamationmark.triangle.fill")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.orange)
+                        .font(FamilyTheme.font(12, weight: .semibold))
+                        .foregroundStyle(FamilyTheme.warning)
                         .lineLimit(2)
                 }
             } else {
@@ -373,14 +373,14 @@ struct ScrollCaptureControlsView: View {
                 controlButton(
                     icon: "play.fill",
                     label: String(localized: "Start Capture"),
-                    color: Color.green,
+                    // Hauptaktion: accentFill trägt weiße Schrift (≥ 4,6 : 1), Grün nur 2,2 : 1.
+                    color: FamilyTheme.accentFill,
                     action: onStart
                 )
             }
         }
         .padding(8)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .familyTintedGlass(in: RoundedRectangle(cornerRadius: FamilyTheme.Floating.radius, style: .continuous))
         .environment(\.colorScheme, .dark)
     }
 
@@ -390,14 +390,14 @@ struct ScrollCaptureControlsView: View {
                 Image(systemName: icon)
                     .font(.system(size: 11, weight: .semibold))
                 Text(label)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(FamilyTheme.font(13, weight: .medium))
                     .fixedSize()
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .background(color)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .clipShape(Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -425,7 +425,7 @@ struct ScrollCapturePreviewView: View {
                         .font(.system(size: 20))
                         .foregroundStyle(.tertiary)
                     Text(viewModel.statusText)
-                        .font(.system(size: 11))
+                        .font(FamilyTheme.font(11))
                         .foregroundStyle(.tertiary)
                         .multilineTextAlignment(.center)
                 }
@@ -434,8 +434,8 @@ struct ScrollCapturePreviewView: View {
 
             HStack {
                 Text(viewModel.statusText)
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .font(FamilyTheme.font(10, weight: .medium).monospacedDigit())
+                    .foregroundStyle(FamilyTheme.textSecondary)
                     .lineLimit(1)
                 Spacer()
             }
@@ -443,8 +443,9 @@ struct ScrollCapturePreviewView: View {
             .padding(.vertical, 4)
             .background(.bar)
         }
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        // Vorschau ist Inhalt → feste Fläche statt Glas (G1).
+        .background(FamilyTheme.card)
+        .clipShape(RoundedRectangle(cornerRadius: FamilyTheme.Floating.radius, style: .continuous))
         .environment(\.colorScheme, .dark)
     }
 }

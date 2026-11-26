@@ -86,8 +86,24 @@ final class MenuBarController: NSObject {
         pendingUpdateSeparator.isHidden = true
         menu.addItem(pendingUpdateSeparator)
 
+        // Recording controls: only visible while a video is being recorded (see `menuWillOpen`).
+        if FeatureFlags.screenRecording {
+            let stopRecording = menuItem(String(localized: "Stop Recording"), action: #selector(stopRecording))
+            stopRecording.isHidden = true
+            menu.addItem(stopRecording)
+            let pauseRecording = menuItem(String(localized: "Pause Recording"), action: #selector(togglePauseRecording))
+            pauseRecording.isHidden = true
+            menu.addItem(pauseRecording)
+            let recordingSeparator = NSMenuItem.separator()
+            recordingSeparator.tag = Self.recordingSeparatorTag
+            recordingSeparator.isHidden = true
+            menu.addItem(recordingSeparator)
+        }
+
+        // Screenshots
         let captureAllInOne = menuItem(String(localized: "All-in-One"), action: #selector(captureAllInOne))
         captureAllInOne.setShortcut(for: .captureAllInOne)
+        captureAllInOne.toolTip = String(localized: "Choose an area and copy, save or edit it right there")
         menu.addItem(captureAllInOne)
 
         menu.addItem(.separator())
@@ -104,44 +120,6 @@ final class MenuBarController: NSObject {
         captureWindow.setShortcut(for: .captureWindow)
         menu.addItem(captureWindow)
 
-        let pickColor = menuItem(String(localized: "Pick Color"), action: #selector(pickColor))
-        pickColor.setShortcut(for: .pickColor)
-        menu.addItem(pickColor)
-        let recentColors = NSMenuItem(title: String(localized: "Recent Colors"), action: nil, keyEquivalent: "")
-        recentColors.submenu = NSMenu(title: String(localized: "Recent Colors"))
-        recentColors.tag = Self.recentColorsTag
-        refreshRecentColors(recentColors)
-        menu.addItem(recentColors)
-
-        let pinFromClipboard = menuItem(String(localized: "Pin from Clipboard"), action: #selector(pinFromClipboard))
-        pinFromClipboard.setShortcut(for: .pinFromClipboard)
-        pinFromClipboard.toolTip = String(localized: "Float copied images, text, colors, or files above other windows")
-        menu.addItem(pinFromClipboard)
-        let togglePins = menuItem(String(localized: "Hide All Pins"), action: #selector(togglePins))
-        togglePins.setShortcut(for: .togglePins)
-        menu.addItem(togglePins)
-        menu.addItem(menuItem(String(localized: "Save All in Quick Access"), action: #selector(saveAllQuickAccess)))
-        menu.addItem(menuItem(String(localized: "Close Quick Access"), action: #selector(closeAllQuickAccess)))
-        menu.addItem(menuItem(String(localized: "Reopen Last Closed Screenshot"), action: #selector(reopenQuickAccess)))
-
-        let editClipboardImage = menuItem(String(localized: "Edit Clipboard Image"), action: #selector(editClipboardImage))
-        editClipboardImage.setShortcut(for: .editClipboardImage)
-        editClipboardImage.toolTip = String(localized: "Open the image currently copied to the clipboard in Annotate")
-        menu.addItem(editClipboardImage)
-
-        let openImageFile = menuItem(String(localized: "Open Image…"), action: #selector(openImageFile), key: "o", modifiers: [.command])
-        openImageFile.toolTip = String(localized: "Open an image file in Annotate")
-        menu.addItem(openImageFile)
-        let history = menuItem(String(localized: "Screenshot History…"), action: #selector(openHistory))
-        history.setShortcut(for: .openHistory)
-        menu.addItem(history)
-
-        menu.addItem(.separator())
-
-        let captureText = menuItem(String(localized: "Capture Text (OCR)"), action: #selector(captureText))
-        captureText.setShortcut(for: .captureText)
-        menu.addItem(captureText)
-
         if FeatureFlags.scrollingCapture {
             let captureScrolling = menuItem(String(localized: "Scrolling Capture"), action: #selector(captureScrolling))
             captureScrolling.setShortcut(for: .captureScrolling)
@@ -151,6 +129,11 @@ final class MenuBarController: NSObject {
         let selfTimer = selfTimerMenuItem()
         menu.addItem(selfTimer)
 
+        menu.addItem(menuItem(String(localized: "Save All in Quick Access"), action: #selector(saveAllQuickAccess)))
+        menu.addItem(menuItem(String(localized: "Close Quick Access"), action: #selector(closeAllQuickAccess)))
+        menu.addItem(menuItem(String(localized: "Reopen Last Closed Screenshot"), action: #selector(reopenQuickAccess)))
+
+        // Video
         if FeatureFlags.screenRecording {
             menu.addItem(.separator())
 
@@ -165,7 +148,46 @@ final class MenuBarController: NSObject {
 
         menu.addItem(.separator())
 
+        // Tools: color, text, pins, clipboard
+        let pickColor = menuItem(String(localized: "Pick Color"), action: #selector(pickColor))
+        pickColor.setShortcut(for: .pickColor)
+        menu.addItem(pickColor)
+        let recentColors = NSMenuItem(title: String(localized: "Recent Colors"), action: nil, keyEquivalent: "")
+        recentColors.submenu = NSMenu(title: String(localized: "Recent Colors"))
+        recentColors.tag = Self.recentColorsTag
+        refreshRecentColors(recentColors)
+        menu.addItem(recentColors)
+
+        let captureText = menuItem(String(localized: "Capture Text (OCR)"), action: #selector(captureText))
+        captureText.setShortcut(for: .captureText)
+        menu.addItem(captureText)
+
+        let pinFromClipboard = menuItem(String(localized: "Pin from Clipboard"), action: #selector(pinFromClipboard))
+        pinFromClipboard.setShortcut(for: .pinFromClipboard)
+        pinFromClipboard.toolTip = String(localized: "Float copied images, text, colors, or files above other windows")
+        menu.addItem(pinFromClipboard)
+        let togglePins = menuItem(String(localized: "Hide All Pins"), action: #selector(togglePins))
+        togglePins.setShortcut(for: .togglePins)
+        menu.addItem(togglePins)
+
+        let editClipboardImage = menuItem(String(localized: "Edit Clipboard Image"), action: #selector(editClipboardImage))
+        editClipboardImage.setShortcut(for: .editClipboardImage)
+        editClipboardImage.toolTip = String(localized: "Open the image currently copied to the clipboard in Annotate")
+        menu.addItem(editClipboardImage)
+
+        let openImageFile = menuItem(String(localized: "Open Image…"), action: #selector(openImageFile), key: "o", modifiers: [.command])
+        openImageFile.toolTip = String(localized: "Open an image file in Annotate")
+        menu.addItem(openImageFile)
+
         menu.addItem(menuItem(String(localized: "Hide Desktop Icons"), action: #selector(toggleDesktopIcons)))
+
+        menu.addItem(.separator())
+
+        // History
+        let history = menuItem(String(localized: "Screenshot History…"), action: #selector(openHistory))
+        history.setShortcut(for: .openHistory)
+        menu.addItem(history)
+
         menu.addItem(.separator())
 
         menu.addItem(menuItem(String(localized: "Settings…"), action: #selector(openPreferences), key: ",", modifiers: [.command]))
@@ -201,7 +223,7 @@ final class MenuBarController: NSObject {
 
     private func refreshSelfTimerTitle(_ item: NSMenuItem) {
         let label = String(localized: "Self-Timer")
-        let duration = "\(settings.selfTimerDurationSeconds)s"
+        let duration = "\(settings.selfTimerDurationSeconds)\u{202F}s"
         let attributed = NSMutableAttributedString(
             string: label,
             attributes: [.font: NSFont.safeMenuFont(ofSize: 0)]
@@ -218,6 +240,7 @@ final class MenuBarController: NSObject {
 
     private static let recentColorsTag = 4_711
     private static let pendingUpdateSeparatorTag = 4_712
+    private static let recordingSeparatorTag = 4_713
 
     /// Rebuilds the "Recent Colors" submenu: swatch + value in the current format.
     private func refreshRecentColors(_ item: NSMenuItem) {
@@ -322,6 +345,14 @@ final class MenuBarController: NSObject {
         recordingCoordinator.startFullScreenRecordingFlow()
     }
 
+    @objc private func stopRecording() {
+        recordingCoordinator.stopRecording()
+    }
+
+    @objc private func togglePauseRecording() {
+        recordingCoordinator.togglePause()
+    }
+
     @objc private func openPreferences() {
         onShowPreferences()
     }
@@ -391,8 +422,15 @@ extension MenuBarController: NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         // Refresh shortcut display from KeyboardShortcuts in case user changed them
         let pendingVersion = updateManager?.pendingUpdateVersion
+        let recording = recordingCoordinator.isCapturingVideo
         for item in menu.items {
             switch item.action {
+            case #selector(stopRecording): item.isHidden = !recording
+            case #selector(togglePauseRecording):
+                item.isHidden = !recording
+                item.title = recordingCoordinator.isRecordingPaused
+                    ? String(localized: "Resume Recording")
+                    : String(localized: "Pause Recording")
             case #selector(showPendingUpdate):
                 item.isHidden = pendingVersion == nil
                 if let pendingVersion {
@@ -426,7 +464,21 @@ extension MenuBarController: NSMenuDelegate {
             default:
                 if item.tag == Self.recentColorsTag { refreshRecentColors(item) }
                 if item.tag == Self.pendingUpdateSeparatorTag { item.isHidden = pendingVersion == nil }
+                if item.tag == Self.recordingSeparatorTag { item.isHidden = !recording }
             }
+        }
+    }
+}
+
+// MARK: - Grey out the video start items while a video is being recorded
+
+extension MenuBarController: NSMenuItemValidation {
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        switch menuItem.action {
+        case #selector(recordArea), #selector(recordFullscreen):
+            return !recordingCoordinator.isCapturingVideo
+        default:
+            return true
         }
     }
 }

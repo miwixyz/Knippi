@@ -14,7 +14,8 @@ final class PinnedScreenshotController {
     private let chromeWindow: PinnedScreenshotChromeWindow
 
     private var isLocked = false
-    private var hoverTimer: Timer?
+    /// Pointer monitors of a locked pin (see `toggleLock`); empty while unlocked.
+    private var hoverMonitors: [Any] = []
     private var isClosing = false
 
     init(
@@ -94,7 +95,7 @@ final class PinnedScreenshotController {
         guard !isClosing else { return }
         isClosing = true
 
-        hoverTimer?.invalidate()
+        stopHoverTracking()
         contentWindow.removeChildWindow(chromeWindow)
         chromeWindow.close()
 
@@ -112,13 +113,29 @@ final class PinnedScreenshotController {
         contentWindow.ignoresMouseEvents = isLocked
         contentWindow.contentView.map { ($0 as? PinnedScreenshotContentView)?.isResizable = !isLocked }
 
-        hoverTimer?.invalidate()
-        hoverTimer = nil
+        stopHoverTracking()
         guard isLocked else { return }
-        // A locked pin lets clicks through, so it gets no hover events; poll the pointer instead.
-        hoverTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        // A locked pin lets clicks through, so it gets no hover events. Watch the pointer moving
+        // instead (other apps: global monitor, Knippi's own windows: local monitor), only while
+        // locked. Mouse monitors need no extra permission.
+        let mask: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: { [weak self] _ in
             MainActor.assumeIsolated { self?.fadeWhileHovered() }
+        }) {
+            hoverMonitors.append(global)
         }
+        if let local = NSEvent.addLocalMonitorForEvents(matching: mask, handler: { [weak self] event in
+            MainActor.assumeIsolated { self?.fadeWhileHovered() }
+            return event
+        }) {
+            hoverMonitors.append(local)
+        }
+        fadeWhileHovered()
+    }
+
+    private func stopHoverTracking() {
+        hoverMonitors.forEach { NSEvent.removeMonitor($0) }
+        hoverMonitors = []
     }
 
     /// A locked pin fades almost away while the pointer is over it, to show what's underneath.

@@ -35,7 +35,7 @@ enum ScreenshotSavePanel {
             ) else {
                 throw CocoaError(.fileWriteUnknown)
             }
-            try data.write(to: url)
+            try data.write(to: url, options: .atomic)
             return url
         } catch {
             NSAlert(error: error).runModal()

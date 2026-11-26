@@ -23,22 +23,10 @@ final class RecordingEditorWindow: NSPanel {
         hidesOnDeactivate = false
         titlebarAppearsTransparent = false
 
-        let visualEffect = NSVisualEffectView()
-        visualEffect.blendingMode = .behindWindow
-        visualEffect.material = .sidebar
-        visualEffect.state = .active
-        contentView = visualEffect
-
-        let editorView = RecordingEditorView(coordinator: coordinator)
-        let hostingView = NSHostingView(rootView: editorView)
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
-        visualEffect.addSubview(hostingView)
-        NSLayoutConstraint.activate([
-            hostingView.topAnchor.constraint(equalTo: visualEffect.topAnchor),
-            hostingView.bottomAnchor.constraint(equalTo: visualEffect.bottomAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: visualEffect.leadingAnchor),
-            hostingView.trailingAnchor.constraint(equalTo: visualEffect.trailingAnchor),
-        ])
+        // Fester Fensterkörper: Der Familien-Verlauf kommt aus RecordingEditorView. Vorher lag
+        // hier ein NSVisualEffectView (.sidebar, behindWindow), das vom Schreibtischbild
+        // getönt wird (Design-System: kein violetter Stich).
+        contentView = NSHostingView(rootView: RecordingEditorView(coordinator: coordinator))
     }
 
     private var hasClosed = false

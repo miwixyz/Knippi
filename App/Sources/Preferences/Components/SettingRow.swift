@@ -17,13 +17,18 @@ struct SettingRow<Control: View>: View {
                     Text(label)
                         .font(FamilyTheme.font(13))
                         .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let sublabel {
+                        // Erklärtexte umbrechen statt mit „…“ abzuschneiden, wenn ein breites
+                        // Steuerelement daneben steht (z. B. „Transparent mit Schatten“).
                         Text(sublabel)
                             .font(FamilyTheme.font(11))
                             .foregroundStyle(FamilyTheme.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                Spacer()
+                .layoutPriority(1)
+                Spacer(minLength: 12)
                 // Most controls here are `Toggle("")`/`Picker("")` without a label of
                 // their own: the group carries the row's name, so VoiceOver reads
                 // "Automatically Check for Updates, switch" instead of just "switch".

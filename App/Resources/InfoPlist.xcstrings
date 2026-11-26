@@ -128,7 +128,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Knippi benötigt Zugriff auf die Kamera, um während Bildschirmaufnahmen dein Webcam-Bild einzublenden."
+            "value" : "Knippi benötigt Zugriff auf die Kamera, um während Aufzeichnungen dein Kamerabild einzublenden."
           }
         },
         "en" : {
@@ -152,7 +152,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Knippi benötigt Zugriff auf das Mikrofon, um während Bildschirmaufnahmen Audio aufzuzeichnen."
+            "value" : "Knippi benötigt Zugriff auf das Mikrofon, um während Aufzeichnungen Ton aufzuzeichnen."
           }
         },
         "en" : {
@@ -229,7 +229,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Knippi benötigt die Berechtigung zur Bildschirmaufnahme, um Bildschirmfotos zu erstellen und den Bildschirm aufzuzeichnen."
+            "value" : "Knippi benötigt die Freigabe „Bildschirm- und Systemaudioaufnahme“, um Bildschirmfotos zu erstellen und den Bildschirm aufzuzeichnen."
           }
         },
         "es" : {

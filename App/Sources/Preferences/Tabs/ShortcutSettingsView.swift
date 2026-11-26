@@ -59,8 +59,8 @@ struct ShortcutSettingsView: View {
         ContextualShortcut(id: "all-in-one-save", scope: "All-in-One", action: "Save selected area", shortcuts: ["⌘S"]),
         ContextualShortcut(id: "all-in-one-pin", scope: "All-in-One", action: "Pin selected area", shortcuts: ["⌘P"]),
         ContextualShortcut(id: "all-in-one-cancel", scope: "All-in-One", action: "Cancel", shortcuts: ["Esc"]),
-        ContextualShortcut(id: "window-multi-select", scope: "Window Capture", action: "Select multiple windows", shortcuts: ["⇧ + click"]),
-        ContextualShortcut(id: "window-multi-confirm", scope: "Window Capture", action: "Capture selected windows", shortcuts: ["Release ⇧"]),
+        ContextualShortcut(id: "window-multi-select", scope: "Window Capture", action: "Select multiple windows", shortcuts: [String(localized: "⇧ + click", comment: "Keycap: hold Shift and click")]),
+        ContextualShortcut(id: "window-multi-confirm", scope: "Window Capture", action: "Capture selected windows", shortcuts: [String(localized: "Release ⇧", comment: "Keycap: let go of the Shift key")]),
         ContextualShortcut(id: "quick-access-copy", scope: "Quick Access", action: "Copy", shortcuts: ["⌘C"]),
         ContextualShortcut(id: "quick-access-save", scope: "Quick Access", action: "Save", shortcuts: ["⌘S"]),
         ContextualShortcut(id: "quick-access-annotate", scope: "Quick Access", action: "Annotate", shortcuts: ["⌘E"]),
@@ -175,8 +175,8 @@ struct ShortcutSettingsView: View {
         help: LocalizedStringKey? = nil
     ) -> some View {
         let row = SettingRow(label: label, showDivider: showDivider) {
-            KeyboardShortcuts.Recorder(for: name)
-                .controlSize(.small)
+            // Breit genug für den deutschen Platzhalter „Kurzbefehl aufnehmen“ (Paket: fest 130 pt).
+            WideShortcutRecorder(name: name, width: 172)
         }
 
         if let help {
@@ -194,6 +194,29 @@ struct ShortcutSettingsView: View {
                 }
             }
         }
+    }
+}
+
+/// `KeyboardShortcuts.Recorder` meldet fest 130 pt Breite (`RecorderCocoa.minimumWidth`), dann
+/// wird „Kurzbefehl aufnehmen“ abgeschnitten. Gleiche Steuerung, nur mit eigener Breite.
+private struct WideShortcutRecorder: NSViewRepresentable {
+    let name: KeyboardShortcuts.Name
+    let width: CGFloat
+
+    func makeNSView(context: Context) -> KeyboardShortcuts.RecorderCocoa {
+        let recorder = KeyboardShortcuts.RecorderCocoa(for: name)
+        recorder.controlSize = .small
+        recorder.font = .systemFont(ofSize: NSFont.systemFontSize(for: .small))
+        recorder.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        return recorder
+    }
+
+    func updateNSView(_ nsView: KeyboardShortcuts.RecorderCocoa, context: Context) {
+        if nsView.shortcutName != name { nsView.shortcutName = name }
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView: KeyboardShortcuts.RecorderCocoa, context: Context) -> CGSize? {
+        CGSize(width: width, height: nsView.intrinsicContentSize.height)
     }
 }
 
@@ -306,8 +329,8 @@ private struct ShortcutKeycap: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 11, weight: .semibold, design: .monospaced))
-            .foregroundStyle(.secondary)
+            .font(FamilyTheme.font(11, weight: .semibold))
+            .foregroundStyle(FamilyTheme.textSecondary)
             .padding(.horizontal, 8)
             .frame(height: 24)
             .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 6, style: .continuous))

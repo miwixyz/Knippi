@@ -175,7 +175,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if FeatureFlags.screenRecording {
             KeyboardShortcuts.onKeyDown(for: .recordScreen) { [weak self] in
-                self?.recordingCoordinator?.startRecordingFlow()
+                // Only the shortcut toggles: a repeated automation URL must not stop a recording.
+                self?.recordingCoordinator?.startRecordingFlow(togglesStop: true)
             }
             KeyboardShortcuts.onKeyDown(for: .recordFullscreen) { [weak self] in
                 self?.recordingCoordinator?.startFullScreenRecordingFlow()
@@ -235,6 +236,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// recovery marker then brings back what was written on the next launch.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if isTerminatingAfterRecording { return .terminateLater }
+        // An open editor holds unsaved work: a recording editor keeps the only copy of
+        // the recording in tmp (no recovery marker), a screenshot editor its annotations.
+        // AppKit does not close windows on quit, so the editors' own prompts never run.
+        // Asked also while a recording runs: that one gets saved, but an editor opened
+        // for an earlier recording would still be lost without a word.
+        if !confirmQuitWithOpenEditors() {
+            return .terminateCancel
+        }
         guard let coordinator = recordingCoordinator, coordinator.isCapturingVideo else {
             return .terminateNow
         }
@@ -248,6 +257,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.replyToPendingTermination()
         }
         return .terminateLater
+    }
+
+    /// Asks before quitting while an editor has unsaved work. `true` = quit.
+    private func confirmQuitWithOpenEditors() -> Bool {
+        let recordingOpen = recordingCoordinator?.hasOpenEditor ?? false
+        // Every screenshot editor, not only the newest: older ones can stay open.
+        let screenshotEditors = NSApp.windows.compactMap { $0 as? AnnotationEditorWindow }
+        let screenshotOpen = screenshotEditors.contains { $0.isVisible && $0.hasUnsavedWork }
+        guard recordingOpen || screenshotOpen else { return true }
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = String(localized: "Quit and discard unsaved work?")
+        alert.informativeText = recordingOpen
+            ? String(localized: "A recording is still open in the editor and has not been saved. It will be lost.")
+            : String(localized: "The screenshot in the editor has unsaved changes. They will be lost.")
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        alert.addButton(withTitle: String(localized: "Quit"))
+        let quit = alert.runModal() == .alertSecondButtonReturn
+        if !quit {
+            recordingCoordinator?.showOpenEditors()
+            screenshotEditors.filter { $0.isVisible && $0.hasUnsavedWork }
+                .forEach { $0.makeKeyAndOrderFront(nil) }
+        }
+        return quit
     }
 
     /// Answers the `.terminateLater` exactly once (save finished or timeout, whichever first).

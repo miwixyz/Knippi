@@ -66,13 +66,16 @@ final class RecordingSelectionModeWindow: NSPanel {
         self.canUseLastArea = canUseLastArea
         self.selectedMode = selectedMode
 
-        let size = NSSize(width: 520, height: 68)
+        // Leiste 520 × 56 pt, oben 30 pt unter dem sichtbaren Rand wie bisher; das Fenster ist
+        // ringsum um Floating.edge größer, damit der Schatten der Leiste nicht abgeschnitten wird.
+        let edge = FamilyTheme.Floating.edge
+        let rail = NSSize(width: 520, height: 56)
         let visible = screen.visibleFrame
         let frame = NSRect(
-            x: visible.midX - size.width / 2,
-            y: visible.maxY - size.height - 24,
-            width: size.width,
-            height: size.height
+            x: visible.midX - rail.width / 2 - edge,
+            y: visible.maxY - 30 - rail.height - edge,
+            width: rail.width + 2 * edge,
+            height: rail.height + 2 * edge
         )
 
         super.init(
@@ -85,7 +88,8 @@ final class RecordingSelectionModeWindow: NSPanel {
         level = .screenSaver + 1
         isOpaque = false
         backgroundColor = .clear
-        hasShadow = true
+        // Nur der Schatten der Ansicht (vorher doppelt: Fenster- plus Ansichtsschatten).
+        hasShadow = false
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
@@ -172,9 +176,10 @@ private struct RecordingSelectionModeRail: View {
         HStack(spacing: 4) {
             ForEach(RecordingSelectionMode.allCases, id: \.self) { mode in
                 let isSelected = selectedMode == mode
-                let foregroundColor: Color = isSelected ? .white : .primary
-                let shortcutColor: Color = isSelected ? .white.opacity(0.72) : .secondary
-                let backgroundColor: Color = isSelected ? .accentColor : .clear
+                // Aktiv: Akzentfläche mit `onAccent` (nie festes Weiß, Design-System G2).
+                let foregroundColor: Color = isSelected ? FamilyTheme.onAccent : FamilyTheme.textPrimary
+                let shortcutColor: Color = isSelected ? FamilyTheme.onAccent.opacity(0.78) : FamilyTheme.textSecondary
+                let backgroundColor: Color = isSelected ? FamilyTheme.accent : .clear
 
                 Button {
                     onSelect(mode)
@@ -183,10 +188,10 @@ private struct RecordingSelectionModeRail: View {
                         Image(systemName: mode.systemImage)
                             .font(.system(size: 13, weight: .semibold))
                         Text(mode.title)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(FamilyTheme.font(12, weight: .medium))
                             .lineLimit(1)
                         Text(mode.shortcut)
-                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                            .font(FamilyTheme.font(10, weight: .semibold))
                             .foregroundStyle(shortcutColor)
                     }
                     .frame(maxWidth: .infinity, minHeight: 44)
@@ -203,9 +208,8 @@ private struct RecordingSelectionModeRail: View {
             }
         }
         .padding(6)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .shadow(color: .black.opacity(0.24), radius: 18, y: 6)
-        .padding(.horizontal, 2)
+        .frame(width: 520, height: 56)
+        .familyFloatingSurface(in: RoundedRectangle(cornerRadius: FamilyTheme.Floating.radius, style: .continuous))
     }
 }
 

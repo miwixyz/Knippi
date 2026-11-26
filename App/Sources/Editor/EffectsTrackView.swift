@@ -28,11 +28,16 @@ struct EffectsTrackView: View {
 
             VStack(spacing: laneGap) {
                 cutLane(trackWidth: trackWidth)
-                effectLane(.zoom, title: "Zoom", trackWidth: trackWidth)
-                effectLane(.blur, title: "Blur", trackWidth: trackWidth)
+                effectLane(.zoom, title: String(localized: "Zoom"), trackWidth: trackWidth)
+                effectLane(.blur, title: String(localized: "Blur"), trackWidth: trackWidth)
             }
             .padding(6)
-            .background(Color.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 6))
+            .background {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(FamilyTheme.card)
+                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(FamilyTheme.cardStroke, lineWidth: 0.8))
+            }
             .contentShape(Rectangle())
             .onTapGesture {
                 coordinator.selectedEffectSegmentID = nil
@@ -47,11 +52,11 @@ struct EffectsTrackView: View {
     private func cutLane(trackWidth: Double) -> some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(Color.black.opacity(0.08))
+                .fill(FamilyTheme.backgroundTop)
 
             Text("Cut")
-                .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(.quaternary)
+                .font(FamilyTheme.font(9, weight: .medium))
+                .foregroundStyle(FamilyTheme.textSecondary)
                 .padding(.leading, 6)
                 .allowsHitTesting(false)
 
@@ -69,11 +74,11 @@ struct EffectsTrackView: View {
     private func effectLane(_ kind: RecordingEffectKind, title: String, trackWidth: Double) -> some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(Color.black.opacity(0.08))
+                .fill(FamilyTheme.backgroundTop)
 
             Text(title)
-                .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(.quaternary)
+                .font(FamilyTheme.font(9, weight: .medium))
+                .foregroundStyle(FamilyTheme.textSecondary)
                 .padding(.leading, 6)
                 .allowsHitTesting(false)
 
@@ -108,23 +113,23 @@ struct EffectsTrackView: View {
 
         return ZStack {
             RoundedRectangle(cornerRadius: 5)
-                .fill(color.opacity(isSelected ? 0.82 : 0.58))
+                .fill(color.opacity(isSelected ? 1 : 0.78))
                 .overlay(
                     RoundedRectangle(cornerRadius: 5)
                         .strokeBorder(
-                            isSelected ? Color.white.opacity(0.75) : Color.white.opacity(0.2),
-                            lineWidth: isSelected ? 1.2 : 0.5
+                            isSelected ? FamilyTheme.textPrimary : Color.clear,
+                            lineWidth: 1.5
                         )
                 )
 
-            HStack(spacing: 5) {
+            HStack(spacing: FamilyTheme.Space.xs) {
                 Image(systemName: icon(for: segment))
                     .font(.system(size: 9, weight: .semibold))
                 Text(label(for: segment))
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .font(FamilyTheme.font(10, weight: .semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(FamilyTheme.onAccent)
             .allowsHitTesting(false)
 
             HStack {
@@ -162,24 +167,25 @@ struct EffectsTrackView: View {
         let isSelected = coordinator.selectedCutRegionID == cut.id
 
         return ZStack {
+            // Schnitt = entfernter Teil → `danger` (statt festem Orange), mit Scheren-Symbol.
             RoundedRectangle(cornerRadius: 5)
-                .fill(Color.orange.opacity(isSelected ? 0.86 : 0.62))
+                .fill(FamilyTheme.danger.opacity(isSelected ? 1 : 0.78))
                 .overlay(
                     RoundedRectangle(cornerRadius: 5)
                         .strokeBorder(
-                            isSelected ? Color.white.opacity(0.75) : Color.white.opacity(0.2),
-                            lineWidth: isSelected ? 1.2 : 0.5
+                            isSelected ? FamilyTheme.textPrimary : Color.clear,
+                            lineWidth: 1.5
                         )
                 )
 
-            HStack(spacing: 5) {
+            HStack(spacing: FamilyTheme.Space.xs) {
                 Image(systemName: "scissors")
                     .font(.system(size: 9, weight: .semibold))
                 Text(String(format: "%.1fs", cut.duration))
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .font(FamilyTheme.font(10, weight: .semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(FamilyTheme.onAccent)
             .allowsHitTesting(false)
 
             HStack {
@@ -274,12 +280,12 @@ struct EffectsTrackView: View {
 
     private func resizeHandleChrome(isSelected: Bool) -> some View {
         Capsule(style: .continuous)
-            .fill(Color.white.opacity(isSelected ? 0.95 : 0.72))
+            .fill(FamilyTheme.card.opacity(isSelected ? 1 : 0.8))
             .overlay {
                 VStack(spacing: 2) {
                     ForEach(0..<3, id: \.self) { _ in
                         RoundedRectangle(cornerRadius: 0.5)
-                            .fill(Color.blue.opacity(0.65))
+                            .fill(FamilyTheme.accent)
                             .frame(width: 3.5, height: 1)
                     }
                 }
@@ -315,8 +321,10 @@ struct EffectsTrackView: View {
 
     private func color(for kind: RecordingEffectKind) -> Color {
         switch kind {
-        case .zoom: .blue
-        case .blur: .red
+        // Ein Akzent (Design-System): Zoom und Unschärfe unterscheiden Spur, Symbol und Text.
+        // Unschärfe im Schiefer-Grau, damit sie nicht mit Schnitten (`danger`) verwechselt wird.
+        case .zoom: FamilyTheme.accentFill
+        case .blur: FamilyTheme.textSecondary
         }
     }
 
@@ -334,7 +342,7 @@ struct EffectsTrackView: View {
         case .zoom(let payload):
             String(format: "%.1fx", payload.zoomLevel)
         case .blur:
-            "Blur"
+            String(localized: "Blur")
         }
     }
 

@@ -1416,7 +1416,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme konnte nicht abgeschlossen werden"
+            "value" : "Aufzeichnung konnte nicht abgeschlossen werden"
           }
         }
       }
@@ -1426,7 +1426,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme konnte nicht gestartet werden"
+            "value" : "Aufzeichnung konnte nicht gestartet werden"
           }
         }
       }
@@ -1446,7 +1446,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Knippi konnte das Video nicht weiterschreiben. Was bis dahin aufgenommen war, liegt in %@."
+            "value" : "Knippi konnte das Video nicht weiterschreiben. Was bis dahin aufgezeichnet war, liegt in %@."
           }
         }
       }
@@ -1466,7 +1466,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Knippi braucht die Freigabe für Bildschirmaufnahme. Öffne Systemeinstellungen → Datenschutz & Sicherheit → Bildschirm- und Systemaudioaufnahme und erlaube Knippi."
+            "value" : "Knippi braucht die Freigabe „Bildschirm- und Systemaudioaufnahme“. Öffne Systemeinstellungen → Datenschutz & Sicherheit → Bildschirm- und Systemaudioaufnahme und erlaube Knippi."
           }
         }
       }
@@ -1477,7 +1477,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Knippi läuft weiter und deine globalen Kurzbefehle funktionieren weiterhin:\n\n• Bereich aufnehmen: %@\n\nUm die Einstellungen wieder zu öffnen, starte Knippi über Spotlight, Launchpad oder den Finder – auch wenn es bereits läuft."
+            "value" : "Knippi läuft weiter und deine globalen Tastenkürzel funktionieren weiterhin:\n\n• Bereich aufnehmen: %@\n\nUm die Einstellungen wieder zu öffnen, starte Knippi über Spotlight, Launchpad oder den Finder – auch wenn es bereits läuft."
           }
         }
       }
@@ -1497,7 +1497,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Screenshot konnte nicht gespeichert werden"
+            "value" : "Bildschirmfoto konnte nicht gesichert werden"
           }
         },
         "es" : {
@@ -1587,7 +1587,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS hat die Aufnahme beendet. Das bisher Aufgenommene ist gesichert."
+            "value" : "macOS hat die Aufzeichnung beendet. Das bisher Aufgezeichnete ist gesichert."
           }
         }
       }
@@ -1597,7 +1597,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS hat die Freigabe für Bildschirmaufnahme entzogen. Das bisher Aufgenommene ist gesichert."
+            "value" : "macOS hat die Freigabe „Bildschirm- und Systemaudioaufnahme“ entzogen. Das bisher Aufgezeichnete ist gesichert."
           }
         }
       }
@@ -1627,7 +1627,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nichts aufgenommen"
+            "value" : "Nichts aufgezeichnet"
           }
         }
       }
@@ -1667,7 +1667,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme beendet"
+            "value" : "Aufzeichnung beendet"
           }
         }
       }
@@ -1677,7 +1677,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme gesichert in %@"
+            "value" : "Aufzeichnung gesichert in %@"
           }
         }
       }
@@ -1687,7 +1687,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme vorzeitig beendet"
+            "value" : "Aufzeichnung vorzeitig beendet"
           }
         }
       }
@@ -1697,7 +1697,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme ohne Mikrofon"
+            "value" : "Aufzeichnung ohne Mikrofon"
           }
         }
       }
@@ -1708,7 +1708,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erforderlich, um Aufnahme und Scroll-Aufnahme mit Esc abzubrechen"
+            "value" : "Erforderlich, um Aufzeichnung und Scroll-Aufnahme mit Esc abzubrechen"
           }
         }
       }
@@ -1718,7 +1718,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erforderlich, um während der Aufnahme dein Kamerabild zu zeigen"
+            "value" : "Erforderlich, um während der Aufzeichnung dein Kamerabild zu zeigen"
           }
         }
       }
@@ -1728,7 +1728,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Freigabe für Bildschirmaufnahme erforderlich"
+            "value" : "Freigabe „Bildschirm- und Systemaudioaufnahme“ nötig"
           }
         }
       }
@@ -1944,7 +1944,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Aufnahme endete, bevor das erste Bild ankam."
+            "value" : "Die Aufzeichnung endete, bevor das erste Bild ankam."
           }
         }
       }
@@ -3359,7 +3359,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bedienungshilfen"
+            "value" : "Gerätesteuerung und Datenzugriff"
           }
         },
         "es" : {
@@ -4899,7 +4899,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotieren"
+            "value" : "Bearbeiten"
           }
         },
         "es" : {
@@ -4970,7 +4970,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Direkt annotieren"
+            "value" : "Direkt bearbeiten"
           }
         },
         "es" : {
@@ -8851,7 +8851,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bereich aufnehmen & annotieren"
+            "value" : "Bereich aufnehmen & bearbeiten"
           }
         },
         "es" : {
@@ -10606,7 +10606,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Klicke auf einen anpassbaren Kurzbefehl, um eine neue Kombination festzulegen. Drücke Esc zum Abbrechen oder Entfernen zum Löschen. Kontextbezogene Kurzbefehle sind fest und funktionieren nur, solange das jeweilige Fenster aktiv ist."
+            "value" : "Klicke auf ein anpassbares Tastenkürzel, um eine neue Kombination festzulegen. Drücke Esc zum Abbrechen oder Entfernen zum Löschen. Kontextbezogene Tastenkürzel sind fest und funktionieren nur, solange das jeweilige Fenster aktiv ist."
           }
         },
         "es" : {
@@ -10677,7 +10677,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Klicke auf einen Kurzbefehl, um eine neue Kombination festzulegen. Drücke **Esc** zum Abbrechen oder **Entfernen** zum Löschen."
+            "value" : "Klicke auf ein Tastenkürzel, um eine neue Kombination festzulegen. Drücke **Esc** zum Abbrechen oder **Entfernen** zum Löschen."
           }
         },
         "es" : {
@@ -13586,7 +13586,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kontextbezogene Kurzbefehle"
+            "value" : "Kontextbezogene Tastenkürzel"
           }
         },
         "es" : {
@@ -13656,7 +13656,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ohne Overlay fortfahren"
+            "value" : "Ohne Tastenanzeige fortfahren"
           }
         },
         "es" : {
@@ -15466,7 +15466,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zugangsdaten konnten nicht im Schlüsselbund gesichert werden: %@"
+            "value" : "Zugangsdaten konnten nicht im Schlüsselbund gespeichert werden: %@"
           }
         },
         "es" : {
@@ -17201,7 +17201,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anpassbare Kurzbefehle"
+            "value" : "Anpassbare Tastenkürzel"
           }
         },
         "es" : {
@@ -17611,7 +17611,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verzögerung bis zur Aufnahme"
+            "value" : "Verzögerung bis zum Bildschirmfoto"
           }
         },
         "es" : {
@@ -21576,7 +21576,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exportieren nach"
+            "value" : "Ablageordner"
           }
         },
         "es" : {
@@ -22201,7 +22201,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Dateien liegen in deinem Account. Kündige Knippi, behalte deine Bildschirmfotos."
+            "value" : "Die Dateien liegen in deinem Konto. Kündige Knippi, behalte deine Bildschirmfotos."
           }
         },
         "es" : {
@@ -22901,7 +22901,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spiegeln ist bei vorhandenen Annotationen deaktiviert"
+            "value" : "Spiegeln ist deaktiviert, solange Markierungen im Bild sind"
           }
         },
         "es" : {
@@ -24986,7 +24986,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alle angehefteten ausblenden"
+            "value" : "Alle Pins ausblenden"
           }
         },
         "es" : {
@@ -25126,7 +25126,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Für eine aufgeräumte Menüleiste ausblenden – Kurzbefehle funktionieren weiterhin"
+            "value" : "Für eine aufgeräumte Menüleiste ausblenden – Tastenkürzel funktionieren weiterhin"
           }
         },
         "es" : {
@@ -27481,7 +27481,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tasten-Overlay im KeyCastr-Stil beim Aufzeichnen. Erfordert Eingabeüberwachung. Standardmäßig aus."
+            "value" : "Blendet beim Aufzeichnen die gedrückten Tasten ein (wie KeyCastr). Erfordert Eingabeüberwachung. Ab Werk aus."
           }
         },
         "es" : {
@@ -28596,7 +28596,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS verwendet ⇧⌘3, ⇧⌘4 und ⇧⌘5 noch für eigene Bildschirmfotos. Um sie für Knippi zu nutzen, deaktiviere die Kurzbefehle unter Tastaturkurzbefehle → Bildschirmfotos."
+            "value" : "macOS verwendet ⇧⌘3, ⇧⌘4 und ⇧⌘5 noch für eigene Bildschirmfotos. Um sie für Knippi zu nutzen, deaktiviere die Tastenkürzel unter Tastaturkurzbefehle → Bildschirmfotos."
           }
         },
         "es" : {
@@ -30898,7 +30898,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bilddatei zum Annotieren öffnen"
+            "value" : "Bilddatei im Editor öffnen"
           }
         },
         "es" : {
@@ -30968,7 +30968,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotationseditor öffnen"
+            "value" : "Editor öffnen"
           }
         },
         "es" : {
@@ -31108,7 +31108,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Editor nach Aufzeichnung öffnen"
+            "value" : "Video-Editor nach der Aufzeichnung öffnen"
           }
         },
         "es" : {
@@ -31798,7 +31798,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Das aktuell in die Zwischenablage kopierte Bild im Annotations-Editor öffnen"
+            "value" : "Das aktuell in die Zwischenablage kopierte Bild im Editor öffnen"
           }
         },
         "es" : {
@@ -34378,7 +34378,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Einstellungen ..."
+            "value" : "Einstellungen …"
           }
         },
         "es" : {
@@ -36599,7 +36599,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme-Editor"
+            "value" : "Video-Editor"
           }
         },
         "es" : {
@@ -37734,7 +37734,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zuletzt geschlossenes Bildschirmfoto wieder öffnen"
+            "value" : "Letzte Vorschau wieder öffnen"
           }
         },
         "es" : {
@@ -38081,7 +38081,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erforderlich für Mikrofonaufnahmen"
+            "value" : "Erforderlich, um das Mikrofon aufzuzeichnen"
           }
         },
         "es" : {
@@ -38292,7 +38292,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cloud Share zurücksetzen?"
+            "value" : "Cloud-Freigabe zurücksetzen?"
           }
         },
         "es" : {
@@ -39025,7 +39025,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drehen ist bei vorhandenen Annotationen deaktiviert"
+            "value" : "Drehen ist deaktiviert, solange Markierungen im Bild sind"
           }
         },
         "es" : {
@@ -39795,7 +39795,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Speicherort"
+            "value" : "Ablage"
           }
         },
         "es" : {
@@ -40550,7 +40550,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bildschirmaufnahme"
+            "value" : "Bildschirm- und Systemaudioaufnahme"
           }
         },
         "es" : {
@@ -41161,7 +41161,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erforderlich für Autoscroll und um Aufnahmen mit Esc abzubrechen"
+            "value" : "Erforderlich für Autoscroll und um Aufzeichnungen mit Esc abzubrechen"
           }
         }
       }
@@ -47428,7 +47428,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Bildschirmfoto-Kurzbefehle von macOS sind deaktiviert. Knippi kann sie übernehmen: ⇧⌘3 Vollbild aufnehmen, ⇧⌘4 Bereich aufnehmen, ⇧⌘5 Alles in einem."
+            "value" : "Die Bildschirmfoto-Tastenkürzel von macOS sind deaktiviert. Knippi kann sie übernehmen: ⇧⌘3 Vollbild aufnehmen, ⇧⌘4 Bereich aufnehmen, ⇧⌘5 Alles in einem."
           }
         },
         "es" : {
@@ -47569,7 +47569,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Das Original. AWS-Account erforderlich."
+            "value" : "Das Original. AWS-Konto erforderlich."
           }
         },
         "es" : {
@@ -48403,7 +48403,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Um Tastenanschläge beim Aufzeichnen anzuzeigen, aktiviere Knippi unter Systemeinstellungen > Datenschutz & Sicherheit > Eingabeüberwachung und starte die Aufzeichnung erneut."
+            "value" : "Um Tastenanschläge beim Aufzeichnen anzuzeigen, aktiviere Knippi unter Systemeinstellungen → Datenschutz & Sicherheit → Eingabeüberwachung und starte die Aufzeichnung erneut."
           }
         },
         "es" : {
@@ -50003,7 +50003,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Praktisch für Menüs, Hover-Zustände und andere Elemente, die verschwinden, sobald du die Maus bewegst."
+            "value" : "Praktisch für Menüs, Hinweise beim Überfahren und andere Elemente, die verschwinden, sobald du die Maus bewegst."
           }
         },
         "es" : {
@@ -51603,7 +51603,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du kannst die Originaldatei überschreiben oder deine Annotationen als neue Datei sichern."
+            "value" : "Du kannst die Originaldatei überschreiben oder deine Änderungen als neue Datei sichern."
           }
         },
         "es" : {
@@ -51808,7 +51808,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deine Annotationen wurden nicht gesichert und gehen verloren."
+            "value" : "Deine Änderungen wurden nicht gesichert und gehen verloren."
           }
         },
         "es" : {
@@ -52019,7 +52019,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dein R2-Account hat sein Speicherlimit erreicht. Gib im Cloudflare-Dashboard Speicher frei oder wechsle zu einem größeren Tarif."
+            "value" : "Dein R2-Konto hat sein Speicherlimit erreicht. Gib im Cloudflare-Dashboard Speicher frei oder wechsle zu einem größeren Tarif."
           }
         },
         "es" : {
@@ -52083,7 +52083,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dein Speicherkonto ist am Limit. Gib Speicher frei oder upgrade deinen Anbietertarif."
+            "value" : "Dein Speicherkonto ist am Limit. Gib Speicher frei oder wechsle zu einem größeren Tarif deines Anbieters."
           }
         },
         "es" : {
@@ -52853,7 +52853,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Öffnet sofort den Bearbeitungseditor"
+            "value" : "Öffnet sofort den Editor"
           }
         }
       }
@@ -52863,7 +52863,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In die Zwischenablage kopieren und im Ausgabeordner sichern, sonst nichts"
+            "value" : "In die Zwischenablage kopieren und im Ablageordner sichern, sonst nichts"
           }
         }
       }
@@ -52903,7 +52903,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Speichern fehlgeschlagen: %@ nicht erreichbar – das Bild liegt in der Zwischenablage"
+            "value" : "Sichern fehlgeschlagen: %@ nicht erreichbar – das Bild liegt in der Zwischenablage"
           }
         }
       }
@@ -52913,7 +52913,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Speichern fehlgeschlagen: Das Bild ließ sich nicht kodieren – es liegt in der Zwischenablage"
+            "value" : "Sichern fehlgeschlagen: Das Bild ließ sich nicht kodieren – es liegt in der Zwischenablage"
           }
         }
       }
@@ -53054,7 +53054,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS hat die Freigabe für Bildschirmaufnahmen entzogen. Das bisher Aufgenommene ist in Knippi geöffnet, aber noch nicht gesichert."
+            "value" : "macOS hat die Freigabe „Bildschirm- und Systemaudioaufnahme“ entzogen. Das bisher Aufgezeichnete ist in Knippi geöffnet, aber noch nicht gesichert."
           }
         }
       }
@@ -53064,7 +53064,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS hat die Aufnahme beendet. Das bisher Aufgenommene ist in Knippi geöffnet, aber noch nicht gesichert."
+            "value" : "macOS hat die Aufzeichnung beendet. Das bisher Aufgezeichnete ist in Knippi geöffnet, aber noch nicht gesichert."
           }
         }
       }
@@ -53074,7 +53074,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Aufnahme wurde angehalten, damit nichts verloren geht. Sie ist in Knippi geöffnet, aber noch nicht gesichert. Gib Speicherplatz frei, bevor du sie sicherst."
+            "value" : "Die Aufzeichnung wurde angehalten, damit nichts verloren geht. Sie ist in Knippi geöffnet, aber noch nicht gesichert. Gib Speicherplatz frei, bevor du sie sicherst."
           }
         }
       }
@@ -53114,7 +53114,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kamera nicht verfügbar – Aufnahme ohne Kamera"
+            "value" : "Kamera nicht verfügbar – Aufzeichnung ohne Kamera"
           }
         }
       }
@@ -53124,7 +53124,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme verwerfen?"
+            "value" : "Aufzeichnung verwerfen?"
           }
         },
         "es" : {
@@ -53140,7 +53140,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sie ist noch nicht gesichert. Schließt du die Vorschau, wird die Aufnahme gelöscht."
+            "value" : "Sie ist noch nicht gesichert. Schließt du die Vorschau, wird die Aufzeichnung gelöscht."
           }
         }
       }
@@ -53160,7 +53160,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme verwerfen"
+            "value" : "Aufzeichnung verwerfen"
           }
         }
       }
@@ -53190,7 +53190,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme konnte nicht neu gestartet werden"
+            "value" : "Aufzeichnung konnte nicht neu gestartet werden"
           }
         }
       }
@@ -53200,7 +53200,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Aufnahmedatei wurde nicht gefunden."
+            "value" : "Die Aufzeichnungsdatei wurde nicht gefunden."
           }
         }
       }
@@ -53250,7 +53250,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anmerkungen konnten nicht übernommen werden. Es wurde nichts exportiert."
+            "value" : "Markierungen konnten nicht übernommen werden. Es wurde nichts exportiert."
           }
         }
       }
@@ -53310,7 +53310,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Screenshot-Verlauf …"
+            "value" : "Bildschirmfoto-Verlauf …"
           }
         }
       }
@@ -53320,7 +53320,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Screenshot-Verlauf"
+            "value" : "Bildschirmfoto-Verlauf"
           }
         }
       }
@@ -53330,7 +53330,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Text in Screenshots suchen"
+            "value" : "Text in Bildschirmfotos suchen"
           }
         }
       }
@@ -53350,7 +53350,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Automatisch sichern ist aus: Neue Screenshots bleiben nicht im Ordner und erscheinen hier nicht."
+            "value" : "Automatisch sichern ist aus: Neue Bildschirmfotos bleiben nicht im Ablageordner und erscheinen hier nicht."
           }
         }
       }
@@ -53370,7 +53370,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Verlauf zeigt die Screenshots aus deinem Exportordner. Automatisch sichern ist aus, deshalb bleibt keiner erhalten."
+            "value" : "Der Verlauf zeigt die Bildschirmfotos aus deinem Ablageordner. Automatisch sichern ist aus, deshalb bleibt keines erhalten."
           }
         }
       }
@@ -53380,7 +53380,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Noch keine gespeicherten Screenshots."
+            "value" : "Noch keine gesicherten Bildschirmfotos."
           }
         }
       }
@@ -53390,7 +53390,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kein Screenshot enthält diesen Text."
+            "value" : "Kein Bildschirmfoto enthält diesen Text."
           }
         }
       }
@@ -53430,7 +53430,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$lld von %2$lld Screenshots"
+            "value" : "%1$lld von %2$lld Bildschirmfotos"
           }
         }
       }
@@ -53440,7 +53440,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Screenshot, %@"
+            "value" : "Bildschirmfoto, %@"
           }
         }
       }
@@ -53460,7 +53460,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wenn er an ist, liest Knippi den Text in deinen letzten %lld gespeicherten Screenshots und legt ihn als Suchindex auf diesem Mac ab. Anzahl ändern oder Index löschen kannst du in den Einstellungen."
+            "value" : "Wenn er an ist, liest Knippi den Text in deinen letzten %lld gesicherten Bildschirmfotos und legt ihn als Suchindex auf diesem Mac ab. Anzahl ändern oder Index löschen kannst du in den Einstellungen."
           }
         }
       }
@@ -53490,7 +53490,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Screenshot konnte nicht kopiert werden."
+            "value" : "Das Bildschirmfoto konnte nicht kopiert werden."
           }
         }
       }
@@ -53500,7 +53500,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Screenshot konnte nicht in den Papierkorb gelegt werden."
+            "value" : "Das Bildschirmfoto konnte nicht in den Papierkorb gelegt werden."
           }
         }
       }
@@ -53540,7 +53540,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Letzte Screenshots aus dem Exportordner, durchsuchbar nach dem Text darin. Ab Werk aus."
+            "value" : "Letzte Bildschirmfotos aus dem Ablageordner, durchsuchbar nach dem Text darin. Ab Werk aus."
           }
         }
       }
@@ -53610,7 +53610,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die letzten Screenshots öffnen und den Text darin durchsuchen"
+            "value" : "Die letzten Bildschirmfotos öffnen und den Text darin durchsuchen"
           }
         }
       }
@@ -53620,7 +53620,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld Screenshots kopiert"
+            "value" : "%lld Bildschirmfotos kopiert"
           }
         }
       }
@@ -53650,7 +53650,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Screenshot konnte nicht wiederhergestellt werden."
+            "value" : "Das Bildschirmfoto konnte nicht wiederhergestellt werden."
           }
         }
       }
@@ -53800,7 +53800,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufnahme konnte nicht wiederhergestellt werden"
+            "value" : "Aufzeichnung konnte nicht wiederhergestellt werden"
           }
         }
       }
@@ -53840,7 +53840,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Freigabe für die Bildschirmaufnahme fehlt."
+            "value" : "Die Freigabe „Bildschirm- und Systemaudioaufnahme“ fehlt."
           }
         }
       }
@@ -53860,7 +53860,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Aufnahmedatei konnte nicht gestartet werden."
+            "value" : "Die Aufzeichnungsdatei konnte nicht gestartet werden."
           }
         }
       }
@@ -53870,7 +53870,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Es läuft keine Aufnahme."
+            "value" : "Es läuft keine Aufzeichnung."
           }
         }
       }
@@ -53880,7 +53880,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Es läuft bereits eine Aufnahme."
+            "value" : "Es läuft bereits eine Aufzeichnung."
           }
         }
       }
@@ -53900,7 +53900,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keine Bilder aufgenommen."
+            "value" : "Keine Bilder aufgezeichnet."
           }
         }
       }
@@ -53920,7 +53920,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nur Kurzbefehle zeigen"
+            "value" : "Nur Tastenkombinationen zeigen"
           }
         },
         "es" : {
@@ -53936,7 +53936,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zeigt nur ⌘- und ⌃-Kombinationen, nie normales Tippen. In Passwortfeldern wird nichts angezeigt."
+            "value" : "Zeigt nur Tastenkombinationen mit ⌘ oder ⌃, nie normales Tippen. In Passwortfeldern wird nichts angezeigt."
           }
         },
         "es" : {
@@ -53952,7 +53952,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Aufnahme wurde nicht gesichert und geht verloren."
+            "value" : "Die Aufzeichnung wurde nicht gesichert und geht verloren."
           }
         },
         "es" : {
@@ -54199,6 +54199,196 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Einige Links wurden nicht gelöscht"
+          }
+        }
+      }
+    },
+    "Knippi quit unexpectedly during a recording, and saving what was captured failed. The file is still at %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knippi wurde während einer Aufzeichnung unerwartet beendet, und das Sichern des Aufgezeichneten ist fehlgeschlagen. Die Datei liegt weiter unter %@."
+          }
+        }
+      }
+    },
+    "Moved to Trash." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In den Papierkorb gelegt."
+          }
+        }
+      }
+    },
+    "Saved to %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesichert in %@"
+          }
+        }
+      }
+    },
+    "Cloud Share is not set up yet. Set it up in Settings → Cloud Share." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Cloud-Freigabe ist noch nicht eingerichtet. Richte sie unter Einstellungen → Cloud-Freigabe ein."
+          }
+        }
+      }
+    },
+    "Pause Recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufzeichnung pausieren"
+          }
+        }
+      }
+    },
+    "Resume Recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufzeichnung fortsetzen"
+          }
+        }
+      }
+    },
+    "Choose an area and copy, save or edit it right there" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereich wählen und direkt dort kopieren, sichern oder bearbeiten"
+          }
+        }
+      }
+    },
+    "Quit and discard unsaved work?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beenden und Ungesichertes verwerfen?"
+          }
+        }
+      }
+    },
+    "A recording is still open in the editor and has not been saved. It will be lost." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Aufzeichnung ist noch im Video-Editor geöffnet und nicht gesichert. Sie geht verloren."
+          }
+        }
+      }
+    },
+    "The screenshot in the editor has unsaved changes. They will be lost." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Bildschirmfoto im Editor hat ungesicherte Änderungen. Sie gehen verloren."
+          }
+        }
+      }
+    },
+    "Quit" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beenden"
+          }
+        }
+      }
+    },
+    "Show Thumbnail" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miniatur zeigen"
+          }
+        }
+      }
+    },
+    "Off: only copy or save as set below, without a thumbnail" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus: nur kopieren bzw. sichern wie unten eingestellt, ohne Miniatur"
+          }
+        }
+      }
+    },
+    "1:1 (Square)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1:1 (Quadrat)"
+          }
+        }
+      }
+    },
+    "⇧ + click" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧ + Klick"
+          }
+        }
+      }
+    },
+    "Release ⇧" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧ loslassen"
+          }
+        }
+      }
+    },
+    "More Colors" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weitere Farben"
+          }
+        }
+      }
+    },
+    "Line width, line style and arrow heads" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strichstärke, Linienart und Pfeilspitzen"
+          }
+        }
+      }
+    },
+    "Required for screenshots and recording. After allowing it, quit and reopen Knippi." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nötig für Bildschirmfotos und Aufzeichnungen. Nach dem Erlauben Knippi beenden und neu öffnen."
           }
         }
       }

@@ -49,6 +49,11 @@ enum PreferencesTab: String, CaseIterable, Sendable {
 }
 
 struct PreferencesView: View {
+    /// Seitenleiste breit genug für die längste deutsche Bezeichnung („Bildschirmfotos“,
+    /// „Berechtigungen“) in einer Zeile; der Inhaltsbereich bleibt 499 pt breit.
+    static let sidebarWidth: CGFloat = 200
+    static let windowSize = CGSize(width: 700, height: 480)
+
     @State private var selectedTab: PreferencesTab
     let viewModel: PreferencesViewModel
     let updateManager: UpdateManager?
@@ -65,7 +70,7 @@ struct PreferencesView: View {
             Divider()
             content
         }
-        .frame(width: 680, height: 480)
+        .frame(width: Self.windowSize.width, height: Self.windowSize.height)
         .background(FamilyTheme.backgroundGradient)
         .onReceive(NotificationCenter.default.publisher(for: .openScreenshotSettings)) { notification in
             if let tab = notification.object as? PreferencesTab {
@@ -94,7 +99,7 @@ struct PreferencesView: View {
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 8)
-        .frame(width: 180)
+        .frame(width: Self.sidebarWidth)
         .background(FamilyTheme.backgroundMiddle)
     }
 
@@ -146,7 +151,9 @@ private struct SidebarButton: View {
                     .foregroundStyle(isSelected ? FamilyTheme.accent : FamilyTheme.textSecondary)
                 Text(tab.title)
                     .font(FamilyTheme.font(13))
-                Spacer()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                Spacer(minLength: 0)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 7)

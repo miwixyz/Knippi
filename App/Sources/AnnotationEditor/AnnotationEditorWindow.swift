@@ -209,7 +209,7 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
     }
 
     /// Includes text still open in the inline text editor (audit A14, 21.11.).
-    private var hasUnsavedWork: Bool {
+    var hasUnsavedWork: Bool {
         document.hasUnsavedChanges || AnnotationEditorCloseGuard.hasPendingText(in: contentView)
     }
 

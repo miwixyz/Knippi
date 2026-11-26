@@ -67,11 +67,16 @@ final class MetalPreviewRenderer: NSObject {
         rateObservation = player.observe(\.rate, options: [.new]) { [weak self] _, _ in
             Task { @MainActor in self?.wake() }
         }
-        if let item = player.currentItem {
-            timeJumpObserver = NotificationCenter.default.addObserver(
-                forName: AVPlayerItem.timeJumpedNotification, object: item, queue: .main
-            ) { [weak self] _ in
-                Task { @MainActor in self?.wake() }
+        // Any item of this player (it may be replaced later), filtered in the handler.
+        timeJumpObserver = NotificationCenter.default.addObserver(
+            forName: AVPlayerItem.timeJumpedNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            // ObjectIdentifier is Sendable; the item itself is not.
+            let jumped = (note.object as? AVPlayerItem).map(ObjectIdentifier.init)
+            Task { @MainActor in
+                guard let self, let jumped,
+                      self.player.currentItem.map(ObjectIdentifier.init) == jumped else { return }
+                self.wake()
             }
         }
     }

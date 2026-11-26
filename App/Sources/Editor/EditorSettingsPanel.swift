@@ -16,17 +16,20 @@ struct EditorSettingsPanel: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: FamilyTheme.Space.xl) {
                 Text("Effects")
-                    .font(.system(size: 16, weight: .semibold))
-                    .padding(.top, 4)
+                    .font(FamilyTheme.font(17, weight: .semibold, relativeTo: .title2))
+                    .foregroundStyle(FamilyTheme.textPrimary)
+                    .padding(.top, FamilyTheme.Space.xs)
 
                 backgroundSection
                 timelineEffectsSection
                 cursorSection
             }
-            .padding(16)
+            .padding(FamilyTheme.Space.l)
         }
+        .foregroundStyle(FamilyTheme.textPrimary)
+        .tint(FamilyTheme.accent)
     }
 
     // MARK: - Background Section
@@ -131,8 +134,8 @@ struct EditorSettingsPanel: View {
     private var colorPresetRow: some View {
         // Column-major-ish: presets fill rows left-to-right; the 8th cell
         // (bottom-right) is always the custom picker.
-        VStack(spacing: 10) {
-            HStack(spacing: 10) {
+        VStack(spacing: FamilyTheme.Space.s) {
+            HStack(spacing: FamilyTheme.Space.s) {
                 ForEach(0..<4, id: \.self) { i in
                     colorPresetButton(
                         Self.solidColorPresets[i].color,
@@ -140,7 +143,7 @@ struct EditorSettingsPanel: View {
                     )
                 }
             }
-            HStack(spacing: 10) {
+            HStack(spacing: FamilyTheme.Space.s) {
                 ForEach(4..<7, id: \.self) { i in
                     colorPresetButton(
                         Self.solidColorPresets[i].color,
@@ -160,19 +163,20 @@ struct EditorSettingsPanel: View {
             coordinator.project.backgroundStyle.solidColor = color
         } label: {
             VStack(spacing: 4) {
+                // Die Füllung ist die Nutzerfarbe; nur Rahmen und Schrift kommen aus der Familie.
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color(red: color.red, green: color.green, blue: color.blue))
                     .frame(width: 32, height: 22)
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
                             .strokeBorder(
-                                isSelected ? Color.accentColor : Color.white.opacity(0.15),
-                                lineWidth: isSelected ? 2 : 0.5
+                                isSelected ? FamilyTheme.accent : FamilyTheme.cardStroke,
+                                lineWidth: isSelected ? 2 : 0.8
                             )
                     )
                 Text(label)
-                    .font(.system(size: 9))
-                    .foregroundStyle(isSelected ? .primary : .tertiary)
+                    .font(FamilyTheme.font(9, weight: isSelected ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
             }
         }
         .buttonStyle(.plain)
@@ -207,26 +211,26 @@ struct EditorSettingsPanel: View {
                     .fill(
                         isCustom
                             ? AnyShapeStyle(Color(red: currentColor.red, green: currentColor.green, blue: currentColor.blue))
-                            : AnyShapeStyle(Color.white.opacity(0.05))
+                            : AnyShapeStyle(FamilyTheme.backgroundMiddle)
                     )
                     .frame(width: 32, height: 22)
                     .overlay(
                         Image(systemName: "plus")
                             .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(Color.white.opacity(0.45))
+                            .foregroundStyle(FamilyTheme.textSecondary)
                             .opacity(isCustom ? 0 : 1)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
                             .strokeBorder(
-                                isCustom ? Color.accentColor : Color.white.opacity(0.15),
-                                lineWidth: isCustom ? 2 : 0.5
+                                isCustom ? FamilyTheme.accent : FamilyTheme.cardStroke,
+                                lineWidth: isCustom ? 2 : 0.8
                             )
                     )
 
                 Text("Custom")
-                    .font(.system(size: 9))
-                    .foregroundStyle(isCustom ? .primary : .tertiary)
+                    .font(FamilyTheme.font(9, weight: isCustom ? .semibold : .regular))
+                    .foregroundStyle(isCustom ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
             }
         }
         .buttonStyle(.plain)
@@ -317,7 +321,7 @@ struct EditorSettingsPanel: View {
 
                 HStack {
                     Text("Add Effect")
-                        .font(.system(size: 13))
+                        .font(FamilyTheme.font(13))
                     Spacer()
                     addEffectMenu
                 }
@@ -328,11 +332,11 @@ struct EditorSettingsPanel: View {
 
                 HStack {
                     Text("Effects")
-                        .font(.system(size: 13))
+                        .font(FamilyTheme.font(13))
                     Spacer()
                     Text("\(coordinator.project.effectSegments.count + coordinator.timelineCuts.count)")
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .font(FamilyTheme.font(12, weight: .medium)).monospacedDigit()
+                        .foregroundStyle(FamilyTheme.textSecondary)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
@@ -348,10 +352,10 @@ struct EditorSettingsPanel: View {
                         coordinator.removeTrimRegion(id: cut.id)
                     } label: {
                         Label("Delete Cut", systemImage: "trash")
-                            .font(.system(size: 12))
+                            .font(FamilyTheme.font(12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(FamilyTheme.danger)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                 } else if let segment = coordinator.selectedEffectSegment {
@@ -365,18 +369,18 @@ struct EditorSettingsPanel: View {
                         coordinator.removeEffectSegment(id: segment.id)
                     } label: {
                         Label("Delete Effect", systemImage: "trash")
-                            .font(.system(size: 12))
+                            .font(FamilyTheme.font(12))
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(FamilyTheme.danger)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                 } else {
                     cardDivider
 
                     Text("Use Add Effect or double-click an effects lane.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.tertiary)
+                        .font(FamilyTheme.font(11))
+                        .foregroundStyle(FamilyTheme.textSecondary)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                 }
@@ -408,7 +412,7 @@ struct EditorSettingsPanel: View {
                 Image(systemName: "plus")
                     .font(.system(size: 10, weight: .medium))
                 Text("Add")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(FamilyTheme.font(11, weight: .medium))
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
@@ -416,21 +420,23 @@ struct EditorSettingsPanel: View {
         .menuStyle(.button)
         .buttonStyle(.bordered)
         .controlSize(.small)
+        // Never squeeze the label to "Hinzuf…" in the narrow side panel.
+        .fixedSize()
     }
 
     private func selectedCutControls(_ cut: TrimRegion) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Selected Cut")
-                .font(.system(size: 11))
-                .foregroundStyle(.tertiary)
+                .font(FamilyTheme.font(11))
+                .foregroundStyle(FamilyTheme.textSecondary)
 
             HStack {
                 Text("Removed")
-                    .font(.system(size: 13))
+                    .font(FamilyTheme.font(13))
                 Spacer()
                 Text(coordinator.formatTime(cut.duration))
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .font(FamilyTheme.font(12, weight: .medium)).monospacedDigit()
+                    .foregroundStyle(FamilyTheme.textSecondary)
             }
         }
         .padding(.horizontal, 14)
@@ -441,8 +447,8 @@ struct EditorSettingsPanel: View {
     private func selectedEffectControls(_ segment: RecordingEffectSegment) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("Selected \(segment.kind.displayName)")
-                .font(.system(size: 11))
-                .foregroundStyle(.tertiary)
+                .font(FamilyTheme.font(11))
+                .foregroundStyle(FamilyTheme.textSecondary)
         }
         .padding(.horizontal, 14)
         .padding(.top, 8)
@@ -479,14 +485,14 @@ struct EditorSettingsPanel: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .center) {
                 Text("Suggest zooms")
-                    .font(.system(size: 13))
+                    .font(FamilyTheme.font(13))
                 Spacer()
                 autoZoomButton
             }
 
             Text(autoZoomSubtext)
-                .font(.system(size: 11))
-                .foregroundStyle(.tertiary)
+                .font(FamilyTheme.font(11))
+                .foregroundStyle(FamilyTheme.textSecondary)
                 .animation(.easeInOut(duration: 0.2), value: lastAutoZoomRun)
         }
         .padding(.horizontal, 14)
@@ -521,17 +527,15 @@ struct EditorSettingsPanel: View {
                 Image(systemName: "wand.and.stars")
                     .font(.system(size: 10))
                 Text("Detect")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(FamilyTheme.font(11, weight: .medium))
             }
-            .foregroundStyle(Color.purple.opacity(0.9))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(Color.purple.opacity(0.12))
-            .clipShape(RoundedRectangle(cornerRadius: 5))
-            .overlay(
-                RoundedRectangle(cornerRadius: 5)
-                    .strokeBorder(Color.purple.opacity(0.25), lineWidth: 0.5)
-            )
+            // App-Akzent statt Lila (ein Akzent, kein Lila – Design-System).
+            .foregroundStyle(FamilyTheme.accent)
+            .padding(.horizontal, FamilyTheme.Space.s)
+            .padding(.vertical, FamilyTheme.Space.xs)
+            .background(Capsule().fill(FamilyTheme.accent.opacity(0.12)))
+            .overlay(Capsule().strokeBorder(FamilyTheme.accent.opacity(0.26), lineWidth: 0.8))
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .disabled(!coordinator.canAutoZoom)
@@ -584,34 +588,28 @@ struct EditorSettingsPanel: View {
     // MARK: - Reusable Components
 
     private func sectionLabel(_ title: LocalizedStringKey) -> some View {
+        // Wie `SettingGroup` in den Einstellungen.
         Text(title)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(.tertiary)
+            .font(FamilyTheme.font(11, weight: .semibold))
+            .foregroundStyle(FamilyTheme.textSecondary)
             .textCase(.uppercase)
             .tracking(0.8)
             .padding(.leading, 2)
     }
 
     private var cardDivider: some View {
-        Divider().background(Color.white.opacity(0.06))
+        Rectangle().fill(FamilyTheme.cardStroke).frame(height: 0.8)
     }
 
+    /// Feste Karte wie `SettingCard` in den Einstellungen (Regel G1: Inhalt, kein Glas).
     private func settingCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack(spacing: 0) {
-            content()
-        }
-        .background(Color.white.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-        )
+        SettingCard { content() }
     }
 
     private func settingToggleRow(_ label: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 13))
+                .font(FamilyTheme.font(13))
             Spacer()
             Toggle("", isOn: isOn)
                 .toggleStyle(.switch)
@@ -635,17 +633,17 @@ struct EditorSettingsPanel: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(label)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
+                    .font(FamilyTheme.font(12))
+                    .foregroundStyle(FamilyTheme.textSecondary)
                 Spacer()
                 if precision > 0 {
                     Text(String(format: "%.\(precision)f\(unit)", value.wrappedValue))
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.tertiary)
+                        .font(FamilyTheme.font(11, weight: .medium)).monospacedDigit()
+                        .foregroundStyle(FamilyTheme.textSecondary)
                 } else {
                     Text("\(Int(value.wrappedValue))\(unit)")
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.tertiary)
+                        .font(FamilyTheme.font(11, weight: .medium)).monospacedDigit()
+                        .foregroundStyle(FamilyTheme.textSecondary)
                 }
             }
             Slider(value: value, in: range, step: step)
@@ -662,7 +660,7 @@ struct EditorSettingsPanel: View {
     ) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 13))
+                .font(FamilyTheme.font(13))
             Spacer()
             Picker("", selection: selection) {
                 content()

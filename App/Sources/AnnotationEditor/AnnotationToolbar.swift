@@ -55,37 +55,49 @@ struct AnnotationToolbar: View {
         currentTool == .text || isEditingText
     }
 
+    /// How much of the editing area is shown inline. The toolbar picks the widest
+    /// level that fits (`ViewThatFits`); collapsed groups move into popovers.
+    private enum Density: CaseIterable { case full, compactColors, compactStyle, minimal }
+
+    @State private var showColorPopover = false
+    @State private var showStylePopover = false
+    @State private var toolbarWidth: CGFloat = 0
+
+    /// The five base colours that stay visible when the colour row collapses.
+    private static let baseColors: [AnnotationColor] = [.red, .orange, .yellow, .green, .blue]
+
     var body: some View {
         VStack(spacing: 6) {
-            HStack(spacing: 12) {
-                // Only the editing tools scroll. The actions stay pinned so
-                // Save/Copy/Close never slide out of reach on a display too
-                // narrow for the toolbar's full width (issue #236).
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        toolGroup
-                        toolbarDivider
-                        colorGroup
-                        toolbarDivider
-                        strokeGroup
-                        presetsMenu
-                        toolbarDivider
-                        cropGroup
-                        toolbarDivider
-                        undoGroup
-                    }
+            HStack(alignment: .top, spacing: 12) {
+                // Only the editing area adapts. Undo, Background and the actions stay
+                // pinned so Save/Copy/Close never slide out of reach (issue #236).
+                // No keyboard shortcuts live inside the adaptive part: ViewThatFits
+                // keeps its unused variants around, and a shortcut there could fire twice.
+                ViewThatFits(in: .horizontal) {
+                    editingArea(.full)
+                    editingArea(.compactColors)
+                    editingArea(.compactStyle)
+                    editingArea(.minimal)
+                    // Narrow windows (~900 pt): tools on top, colour/style/crop below.
+                    twoRowEditingArea
+                    // Last resort on very narrow windows: the two rows scroll.
+                    ScrollView(.horizontal, showsIndicators: false) { twoRowEditingArea }
                 }
-                Spacer(minLength: 0)
-                // Pinned like the actions: in a narrow editor the scrolling row hid
-                // them without any hint (Michael, 21.11.: "wo kann ich den Hintergrund ändern?").
+                .frame(maxWidth: .infinity, alignment: .leading)
+
                 HStack(spacing: 12) {
+                    undoGroup
+                    toolbarDivider
+                    // Pinned like the actions: in a narrow editor the scrolling row hid
+                    // them without any hint (Michael, 21.11.: "wo kann ich den Hintergrund ändern?").
                     findSensitiveButton
                     beautifyGroup
+                    toolbarDivider
+                    actionGroup
                 }
                 .fixedSize()
-                toolbarDivider
-                actionGroup
             }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { toolbarWidth = $0 }
 
             if isFontSizeMode {
                 textEffectsGroup
@@ -104,6 +116,123 @@ struct AnnotationToolbar: View {
         }
         .onChange(of: currentTool) { _, _ in
             NSCursor.arrow.set()
+        }
+    }
+
+    // MARK: - Adaptive editing area
+
+    @ViewBuilder
+    private func editingArea(_ density: Density) -> some View {
+        HStack(spacing: 12) {
+            toolGroup
+            toolbarDivider
+            switch density {
+            case .full:
+                colorGroup
+                toolbarDivider
+                strokeGroup
+            case .compactColors:
+                compactColorGroup(showsBaseColors: true)
+                toolbarDivider
+                strokeGroup
+            case .compactStyle:
+                compactColorGroup(showsBaseColors: true)
+                toolbarDivider
+                styleButton
+            case .minimal:
+                compactColorGroup(showsBaseColors: false)
+                toolbarDivider
+                styleButton
+            }
+            presetsMenu
+            toolbarDivider
+            cropGroup
+        }
+        .fixedSize()
+    }
+
+    private var twoRowEditingArea: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            toolGroup
+            HStack(spacing: 12) {
+                compactColorGroup(showsBaseColors: true)
+                toolbarDivider
+                styleButton
+                presetsMenu
+                toolbarDivider
+                cropGroup
+            }
+        }
+        .fixedSize()
+    }
+
+    /// Current colour, optionally the five base colours, and a button that opens
+    /// the full colour controls (all colours, custom colour, eyedropper, HEX).
+    private func compactColorGroup(showsBaseColors: Bool) -> some View {
+        HStack(spacing: 3) {
+            if showsBaseColors {
+                ForEach(Self.baseColors, id: \.self) { color in
+                    Button(action: { currentColor = color }) {
+                        Circle()
+                            .fill(Color(cgColor: color.cgColor))
+                            .frame(width: 19, height: 19)
+                            .overlay(Circle().stroke(currentColor == color ? FamilyTheme.accent : Color.clear, lineWidth: 2))
+                            .overlay(Circle().stroke(Color.black.opacity(0.24), lineWidth: 0.5))
+                            .padding(2)
+                            .background(Circle().fill(currentColor == color ? FamilyTheme.accent.opacity(0.12) : Color.clear))
+                    }
+                    .buttonStyle(.plain)
+                    .help(Text(color.displayName))
+                    .accessibilityLabel(Text(color.displayName))
+                    .accessibilityAddTraits(currentColor == color ? .isSelected : [])
+                }
+            }
+            Button(action: { showColorPopover.toggle() }) {
+                HStack(spacing: 2) {
+                    Circle()
+                        .fill(Color(nsColor: currentColor.nsColor))
+                        .frame(width: 19, height: 19)
+                        .overlay(Circle().stroke(Color.black.opacity(0.28), lineWidth: 0.5))
+                        .overlay(Circle().stroke(FamilyTheme.accent.opacity(0.55), lineWidth: 1.5).padding(-2))
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(toolbarIconForeground(isActive: showColorPopover))
+                }
+                .padding(.horizontal, 6)
+                .frame(height: 26)
+                .background(toolbarButtonBackground(isActive: showColorPopover))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .overlay(toolbarButtonStroke)
+            }
+            .buttonStyle(.plain)
+            .help(String(localized: "More Colors"))
+            .accessibilityLabel(Text(String(localized: "More Colors")))
+            .popover(isPresented: $showColorPopover, arrowEdge: .bottom) {
+                colorGroup
+                    .padding(FamilyTheme.Space.m)
+            }
+        }
+    }
+
+    /// Line width, stroke pattern, arrow heads and fill in one popover.
+    private var styleButton: some View {
+        Button(action: { showStylePopover.toggle() }) {
+            Label(String(localized: "Style"), systemImage: "slider.horizontal.3")
+                .labelStyle(.titleAndIcon)
+                .font(FamilyTheme.font(12, weight: .medium))
+                .foregroundStyle(toolbarIconForeground(isActive: showStylePopover))
+                .padding(.horizontal, 8)
+                .frame(height: 26)
+                .background(toolbarButtonBackground(isActive: showStylePopover))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .overlay(toolbarButtonStroke)
+        }
+        .buttonStyle(.plain)
+        .disabled(currentTool == .pixelate && (redactionMode == .solid || redactionMode == .erase))
+        .help(String(localized: "Line width, line style and arrow heads"))
+        .popover(isPresented: $showStylePopover, arrowEdge: .bottom) {
+            strokeGroup
+                .padding(FamilyTheme.Space.m)
         }
     }
 
@@ -150,7 +279,7 @@ struct AnnotationToolbar: View {
     private var textToolButton: some View {
         Button(action: { currentTool = .text }) {
             Text(verbatim: "Aa")
-                .font(.system(size: 13, weight: .semibold))
+                .font(FamilyTheme.font(13, weight: .semibold))
                 .foregroundStyle(toolbarIconForeground(isActive: currentTool == .text))
                 .frame(width: 30, height: 26)
                 .background(toolbarButtonBackground(isActive: currentTool == .text))
@@ -272,7 +401,7 @@ struct AnnotationToolbar: View {
     ) -> some View {
         Toggle(isOn: isOn) {
             Text(title)
-                .font(.system(size: 11, weight: .semibold))
+                .font(FamilyTheme.font(11, weight: .semibold))
                 .frame(minWidth: 46, minHeight: 20)
         }
         .toggleStyle(.button)
@@ -353,9 +482,14 @@ struct AnnotationToolbar: View {
         Button(action: { showBeautifyPanel.toggle() }) {
             // Icon plus word: the bare sparkles icon wasn't found (Michael, 21.11.:
             // "Hintergrund ändern finde ich gar nicht, Formate auch nicht").
-            Label(String(localized: "Background"), systemImage: showBeautifyPanel ? "sparkles.rectangle.stack.fill" : "sparkles")
-                .labelStyle(.titleAndIcon)
-                .font(.system(size: 12, weight: .medium))
+            // Below ~1000 pt the word gives way to the icon; the tooltip still names it.
+            Group {
+                let label = Label(String(localized: "Background"),
+                                  systemImage: showBeautifyPanel ? "sparkles.rectangle.stack.fill" : "sparkles")
+                if isNarrow { label.labelStyle(.iconOnly) } else { label.labelStyle(.titleAndIcon) }
+            }
+                .font(FamilyTheme.font(12, weight: .medium))
+                .frame(minWidth: 30)
                 .foregroundStyle(toolbarIconForeground(isActive: showBeautifyPanel))
                 .padding(.horizontal, 8)
                 .frame(height: 26)
@@ -365,7 +499,11 @@ struct AnnotationToolbar: View {
         }
         .buttonStyle(.plain)
         .help(String(localized: "Background and format (16:9, 1:1, 4:5)"))
+        .accessibilityLabel(Text(String(localized: "Background")))
     }
+
+    /// Measured width; 0 means "not measured yet" and counts as wide.
+    private var isNarrow: Bool { toolbarWidth > 0 && toolbarWidth < 1000 }
 
     private var undoGroup: some View {
         HStack(spacing: 4) {

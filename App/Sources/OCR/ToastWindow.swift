@@ -7,16 +7,24 @@ import SwiftUI
 final class ToastWindow: NSPanel {
     private var dismissTimer: Timer?
 
-    init(message: String, icon: String = "checkmark.circle.fill", iconColor: NSColor = .systemGreen, screen: NSScreen? = nil) {
+    /// Übergang für ältere Aufrufer mit `NSColor`-Systemfarben: `.systemGreen` → `success`,
+    /// `.systemYellow`/`.systemOrange` → `warning`, `.systemRed` → `danger` (FamilyTheme).
+    convenience init(message: String, icon: String = "checkmark.circle.fill", iconColor: NSColor, screen: NSScreen? = nil) {
+        self.init(message: message, icon: icon, tint: FamilyTheme.statusColor(for: iconColor), screen: screen)
+    }
+
+    init(message: String, icon: String = "checkmark.circle.fill", tint: Color = FamilyTheme.success, screen: NSScreen? = nil) {
         // The hosting view sizes the panel to its content, so center on that size.
-        let hostingView = NSHostingView(rootView: ToastView(message: message, icon: icon, iconColor: Color(nsColor: iconColor)))
+        // The view carries a transparent Floating.edge around the capsule for its shadow.
+        let hostingView = NSHostingView(rootView: ToastView(message: message, icon: icon, iconColor: tint))
         let windowWidth = hostingView.fittingSize.width
         let windowHeight = hostingView.fittingSize.height
 
         let targetScreen = screen ?? NSScreen.main ?? NSScreen.screens.first!
         let screenFrame = targetScreen.visibleFrame
         let x = screenFrame.midX - windowWidth / 2
-        let y = screenFrame.minY + 50
+        // Kapsel bleibt wie bisher ~62 pt über dem unteren Rand; das Fenster ist um den Schattenrand größer.
+        let y = screenFrame.minY + 62 - FamilyTheme.Floating.edge
 
         super.init(
             contentRect: NSRect(x: x, y: y, width: windowWidth, height: windowHeight),
@@ -81,16 +89,14 @@ private struct ToastView: View {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(iconColor)
+                .accessibilityHidden(true)
             Text(message)
                 .font(FamilyTheme.font(13, weight: .medium))
-                .foregroundStyle(.primary)
+                .foregroundStyle(FamilyTheme.textPrimary)
         }
         .fixedSize()
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(.ultraThinMaterial)
-        .clipShape(Capsule())
-        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-        .padding(12)
+        .familyFloatingSurface(in: Capsule())
     }
 }

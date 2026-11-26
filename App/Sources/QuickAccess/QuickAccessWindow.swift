@@ -7,7 +7,12 @@ import ShareKit
 
 @MainActor
 final class QuickAccessWindow: NSPanel {
-    private static let cornerRadius: CGFloat = 14
+    /// Sichtbare Kartengröße (Vorschaubild 268 × 142 + Bildunterschrift + Innenabstand).
+    static let cardSize = CGSize(width: 284, height: 200)
+    /// Transparenter Fensterrand für den Kartenschatten. Höchstens halber Stapelabstand
+    /// (12 pt, QuickAccessStackGeometry): sonst überlappen die Ränder gestapelter Karten
+    /// und ein Klick an die Kartenkante landet im Nachbarfenster.
+    static let edge: CGFloat = 6
     private static let dismissalEdgeInset: CGFloat = 8
 
     override var canBecomeKey: Bool { true }
@@ -70,17 +75,17 @@ final class QuickAccessWindow: NSPanel {
             height: thumbnail.height
         ))
 
-        let windowWidth: CGFloat = 288
-        let windowHeight: CGFloat = 200
-
+        // Die Karte ist 284 × 200 pt; das Fenster ist ringsum um Floating.edge größer, damit der
+        // Schatten der Karte nicht an der Fenstergrenze abgeschnitten wird. Die Stapel-Geometrie
+        // rechnet weiter mit der Kartengröße, sichtbar sitzt die Karte also wie bisher.
         let contentRect = QuickAccessStackGeometry.frame(
             position: settings.quickAccessPosition,
             screenFrame: targetScreen.frame,
             visibleFrame: targetScreen.visibleFrame,
-            windowSize: CGSize(width: windowWidth, height: windowHeight),
+            windowSize: Self.cardSize,
             stackIndex: 0,
             stackCount: 1
-        )
+        ).insetBy(dx: -Self.edge, dy: -Self.edge)
 
         super.init(
             contentRect: contentRect,
@@ -131,9 +136,8 @@ final class QuickAccessWindow: NSPanel {
         let hostingView = NSHostingView(rootView: view)
         hostingView.wantsLayer = true
         hostingView.layer?.backgroundColor = NSColor.clear.cgColor
-        hostingView.layer?.cornerRadius = Self.cornerRadius
-        hostingView.layer?.cornerCurve = .continuous
-        hostingView.layer?.masksToBounds = true
+        // Keine Ecken-Maske am Fenster: die Karte rundet sich selbst, der Schatten liegt
+        // im transparenten Rand und darf nicht beschnitten werden.
 
         self.contentView = hostingView
         self.contentView?.wantsLayer = true
@@ -286,7 +290,9 @@ final class QuickAccessWindow: NSPanel {
 
         cancelEntranceTransition()
 
-        let currentFrame = frame
+        // Move the visible card, not the window: the window has a transparent shadow margin
+        // (Floating.edge) that may lie off-screen. Fitting the window would nudge the card inward.
+        let currentFrame = frame.insetBy(dx: Self.edge, dy: Self.edge)
         var endFrame = currentFrame
         let screenFrame = targetScreen.frame
         switch anchoredPosition {
@@ -304,6 +310,7 @@ final class QuickAccessWindow: NSPanel {
             endFrame.origin.y -= min(distance, availableDistance)
         }
         endFrame = Self.frameFitted(endFrame, within: screenFrame)
+            .insetBy(dx: -Self.edge, dy: -Self.edge)
         guard isVisible, alphaValue > 0 else {
             finishCloseAnimation()
             return
@@ -406,10 +413,10 @@ final class QuickAccessWindow: NSPanel {
             position: anchoredPosition,
             screenFrame: targetScreen.frame,
             visibleFrame: targetScreen.visibleFrame,
-            windowSize: frame.size,
+            windowSize: Self.cardSize,
             stackIndex: index,
             stackCount: count
-        )
+        ).insetBy(dx: -Self.edge, dy: -Self.edge)
 
         if animated {
             NSAnimationContext.runAnimationGroup { ctx in

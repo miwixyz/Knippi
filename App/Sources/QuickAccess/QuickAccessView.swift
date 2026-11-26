@@ -76,28 +76,43 @@ struct QuickAccessView: View {
 
             // Caption at rest / chrome on hover share the same slot so the
             // panel does not resize while the user's pointer moves across it.
+            // While an upload failure is shown, the failure panel owns the bottom
+            // of the card: caption and chrome step aside so nothing overlaps.
             ZStack {
                 captionRow
-                    .opacity(isRevealed ? 0 : 1)
+                    .opacity(isRevealed || isFailed ? 0 : 1)
                 chromeStrip
-                    .opacity(isRevealed ? 1 : 0)
+                    .opacity(isRevealed && !isFailed ? 1 : 0)
+                    .allowsHitTesting(!isFailed)
             }
             .frame(height: 34)
         }
         .padding(8)
         .background(hiddenEscapeButton)
         .background(hiddenPinShortcutButton)
-        .background(
-            .ultraThinMaterial,
-            in: RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous)
-        )
+        .overlay(alignment: .bottom) {
+            if case .failed(let err) = visualState {
+                FailurePanel(error: err) {
+                    Task { await performUpload() }  // retry
+                } onDismiss: {
+                    visualState = .idle
+                }
+                .padding(8)
+                .transition(.opacity)
+            }
+        }
+        .familyTintedGlass(in: RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous)
                 .stroke(panelStroke, lineWidth: 0.5)
         )
-        .shadow(color: .black.opacity(0.24), radius: 18, y: 8)
-        .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+        // Schatten in der Ansicht, Fenster ringsum um QuickAccessWindow.edge größer. Kleiner als
+        // der allgemeine Floating-Schatten: Karten stapeln sich mit 12 pt Abstand, und zwei
+        // Ränder dürfen zusammen nicht breiter sein, sonst fängt der unsichtbare Rand einer
+        // Karte die Klicks für die Nachbarkarte ab (Radius + Versatz ≤ Rand).
+        .compositingGroup()
+        .shadow(color: FamilyTheme.Floating.shadowColor, radius: 4, y: 2)
         .offset(y: isRevealed ? -2 : 0)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.26), value: isRevealed)
         .onHover { hovering in
@@ -118,16 +133,12 @@ struct QuickAccessView: View {
         .focusable()
         .focusEffectDisabled()
         .focused($isFocused)
-        .overlay(alignment: .bottom) {
-            if case .failed(let err) = visualState {
-                FailureToast(error: err) {
-                    Task { await performUpload() }  // retry
-                } onDismiss: {
-                    visualState = .idle
-                }
-                .padding(.bottom, 8)
-            }
-        }
+        .padding(QuickAccessWindow.edge)
+    }
+
+    private var isFailed: Bool {
+        if case .failed = visualState { return true }
+        return false
     }
 
     private var panelStroke: Color {
@@ -158,10 +169,10 @@ struct QuickAccessView: View {
                 Button(action: onClose) {
                     Image(systemName: "xmark")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.primary.opacity(0.78))
+                        .foregroundStyle(FamilyTheme.textPrimary)
                         .frame(width: 24, height: 24)
-                        .background(.regularMaterial, in: Circle())
-                        .overlay(Circle().stroke(Color.primary.opacity(0.10), lineWidth: 0.5))
+                        .familyTintedGlass(in: Circle())
+                        .overlay(Circle().stroke(FamilyTheme.cardStroke, lineWidth: 0.5))
                 }
                 .buttonStyle(.plain)
                 .padding(7)
@@ -179,6 +190,7 @@ struct QuickAccessView: View {
             Label {
                 Text("Captured")
                     .font(FamilyTheme.font(13, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.textPrimary)
             } icon: {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 12, weight: .semibold))
@@ -186,8 +198,8 @@ struct QuickAccessView: View {
             }
             Spacer()
             Text(metaLine)
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundStyle(.secondary)
+                .font(FamilyTheme.font(10, weight: .medium).monospacedDigit())
+                .foregroundStyle(FamilyTheme.textSecondary)
                 .textCase(.uppercase)
         }
         .padding(.horizontal, 6)
@@ -327,7 +339,7 @@ struct QuickAccessView: View {
                     .frame(width: 28, height: 26)  // matches toolButton height
             case .succeeded:
                 toolButton(.linkCopied, icon: "checkmark.circle.fill", action: {})
-                    .foregroundStyle(.green)
+                    .foregroundStyle(FamilyTheme.success)
                     .disabled(true)
             }
         }
@@ -501,7 +513,7 @@ struct QuickAccessView: View {
         let toast = ToastWindow(
             message: String(localized: "Could not prepare the screenshot for sharing"),
             icon: "exclamationmark.triangle.fill",
-            iconColor: .systemOrange
+            tint: FamilyTheme.warning
         )
         shareFailureToast = toast
         toast.show(autoDismissAfter: 3)
@@ -596,7 +608,7 @@ struct QuickAccessView: View {
         let toast = ToastWindow(
             message: message,
             icon: succeeded ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
-            iconColor: succeeded ? .systemGreen : .systemOrange
+            tint: succeeded ? FamilyTheme.success : FamilyTheme.warning
         )
         linkDeletionToast = toast
         toast.show(autoDismissAfter: succeeded ? 3 : 8)
@@ -649,7 +661,7 @@ struct QuickAccessView: View {
 
     private func toolForeground(_ kind: HoverAction, isPrimary: Bool) -> Color {
         if isPrimary { return .white }
-        if kind == .linkCopied { return .green }
+        if kind == .linkCopied { return FamilyTheme.success }
         return Color.primary.opacity(hoveredAction == kind ? 0.96 : 0.78)
     }
 
@@ -736,32 +748,66 @@ struct QuickAccessView: View {
     }
 }
 
-// MARK: - Failure toast
+// MARK: - Failure panel
 
-private struct FailureToast: View {
+/// Fehlerzustand des Hochladens: schwebt über dem unteren Teil der Karte (Bildunterschrift und
+/// Leiste treten zurück), Text höchstens zwei Zeilen, voller Text als Tooltip, Status über `danger`.
+private struct FailurePanel: View {
     let error: ShareError
     let onRetry: () -> Void
     let onDismiss: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
-            Text(message)
-                .font(FamilyTheme.font(12))
-            Button(String(localized: "Retry"), action: onRetry)
-                .controlSize(.small)
-            Button {
-                onDismiss()
-            } label: {
-                Image(systemName: "xmark")
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.danger)
+                    .accessibilityHidden(true)
+                Text(message)
+                    .font(FamilyTheme.font(12))
+                    .foregroundStyle(FamilyTheme.textPrimary)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .help(message)
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(FamilyTheme.textSecondary)
+                        .frame(width: 20, height: 20)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(Text("Close"))
+                .accessibilityLabel(Text("Close"))
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("Close"))
+            HStack {
+                Spacer(minLength: 0)
+                // Eigene Kapsel statt .borderedProminent: der Systemknopf zeichnet in einem nicht
+                // aktiven Panel keine Füllung (am Snapshot gesehen). accentFill trägt Weiß ≥ 4,6 : 1.
+                Button(action: onRetry) {
+                    Label(String(localized: "Retry"), systemImage: "arrow.clockwise")
+                        .font(FamilyTheme.font(12, weight: .medium))
+                        .foregroundStyle(Color.white)
+                        .padding(.horizontal, 12)
+                        .frame(height: 26)
+                        .background(FamilyTheme.accentFill, in: Capsule())
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(.regularMaterial, in: Capsule())
+        .padding(10)
+        // Feste Fläche statt Glas: Die Karte ist schon Glas; Glas auf Glas ließ am Snapshot das
+        // Vorschaubild durch den Fehlertext scheinen (Design-System G1).
+        .background(FamilyTheme.card, in: RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous)
+                .stroke(FamilyTheme.cardStroke, lineWidth: 0.5)
+        )
+        .accessibilityElement(children: .contain)
     }
 
     private var message: String {

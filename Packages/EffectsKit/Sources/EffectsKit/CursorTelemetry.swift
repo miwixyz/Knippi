@@ -264,7 +264,9 @@ public final class CursorTelemetry: @unchecked Sendable {
 
         // Watchdog: periodically report the event count and check that the
         // tap is still enabled; re-enable if macOS silently disabled it.
-        let timer = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
+        // On the main queue, like start()/stop(): `stop()` clears `eventTap`, and a
+        // heartbeat on a global queue could read it mid-release (rare crash).
+        let timer = DispatchSource.makeTimerSource(queue: .main)
         timer.schedule(deadline: .now() + 1.0, repeating: 1.0)
         var lastTapCount = 0
         var lastNSCount = 0

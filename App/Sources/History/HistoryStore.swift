@@ -283,7 +283,10 @@ final class HistoryStore {
         if failed > 0 {
             show(String(localized: "Couldn't move the screenshot to the Trash."), isError: true)
         } else if !done.isEmpty {
-            show(String(localized: "Moved to Trash. Press ⌘Z to undo."), isError: false)
+            // ⌘Z only when an undo entry exists (the Trash may not say where the file went).
+            show(undoable.isEmpty ? String(localized: "Moved to Trash.")
+                                  : String(localized: "Moved to Trash. Press ⌘Z to undo."),
+                 isError: false)
         }
     }
 

@@ -207,6 +207,32 @@ enum FamilyTheme {
         static let xl: CGFloat = 24, xxl: CGFloat = 32
     }
 
+    /// Schwebende Fenster (Panel, HUD, Hinweis, Vorschaukarte): ein gemeinsamer Satz.
+    /// Halbtransparentes Glas → Fensterschatten aus (`hasShadow = false`), Schatten in der
+    /// Ansicht zeichnen und das Fenster ringsum um `edge` größer machen. `edge` muss größer
+    /// sein als `shadowRadius + shadowY`, sonst schneidet die Fenstergrenze den Schatten
+    /// rechteckig ab (Kalli-Tagesblatt-Muster, Design-System „Verbote“, 15.11.).
+    enum Floating {
+        static let radius: CGFloat = 14
+        static let edge: CGFloat = 24
+        static let shadowRadius: CGFloat = 10
+        static let shadowY: CGFloat = 5
+        static let shadowColor = Color(light: 0x1E2846, dark: 0x000000).opacity(0.22)
+    }
+
+    /// Übergang für alte Aufrufer mit `NSColor`-Systemfarben (Toasts): bildet sie auf die
+    /// Status-Tokens ab. Grün → `success`, Gelb/Orange → `warning`, Rot → `danger`.
+    #if canImport(AppKit) && !canImport(UIKit)
+    static func statusColor(for color: NSColor) -> Color {
+        switch color {
+        case .systemGreen: success
+        case .systemYellow, .systemOrange: warning
+        case .systemRed: danger
+        default: Color(nsColor: color)
+        }
+    }
+    #endif
+
     /// Hintergrundverlauf „Schiefer“: kühles Blaugrau. Fest, nicht transparent.
     static var backgroundGradient: LinearGradient {
         LinearGradient(colors: [backgroundTop, backgroundMiddle, backgroundBottom],
@@ -241,6 +267,18 @@ extension View {
     /// Entspricht der Vorschau (Fläche mit ca. 80 % Deckkraft über Unschärfe).
     func familyTintedGlass<S: Shape>(in shape: S) -> some View {
         background(shape.fill(FamilyTheme.glassTint)).familyGlass(in: shape)
+    }
+
+    /// Schwebende Fläche der Familie: getöntes Glas, feiner Rand, weicher Schatten,
+    /// ringsum `Floating.edge` transparenter Rand für den Schatten. Das Fenster muss
+    /// um 2 × `edge` größer sein als die Fläche und `hasShadow = false` haben.
+    func familyFloatingSurface<S: Shape>(in shape: S) -> some View {
+        familyTintedGlass(in: shape)
+            .overlay { shape.stroke(FamilyTheme.cardStroke.opacity(0.9), lineWidth: 0.5) }
+            .compositingGroup()
+            .shadow(color: FamilyTheme.Floating.shadowColor,
+                    radius: FamilyTheme.Floating.shadowRadius, y: FamilyTheme.Floating.shadowY)
+            .padding(FamilyTheme.Floating.edge)
     }
 
     /// Glas-Element (Kapsel, runder Knopf, schwebende Leiste). NUR für Bedienelemente,

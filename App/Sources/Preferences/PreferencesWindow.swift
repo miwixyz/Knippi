@@ -30,15 +30,15 @@ final class PreferencesWindow {
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 680, height: 480),
+            contentRect: NSRect(origin: .zero, size: PreferencesView.windowSize),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
         window.identifier = DockPresenceController.windowIdentifier
         window.title = String(localized: "Knippi Settings")
-        window.minSize = NSSize(width: 680, height: 480)
-        window.maxSize = NSSize(width: 680, height: 480)
+        window.minSize = PreferencesView.windowSize
+        window.maxSize = PreferencesView.windowSize
         window.isReleasedWhenClosed = false
         window.center()
 

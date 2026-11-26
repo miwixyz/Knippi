@@ -22,10 +22,10 @@ struct BlurRegionOverlay: View {
                         .gesture(moveGesture(segmentID: segment.id, rect: rect, size: proxy.size))
 
                     RoundedRectangle(cornerRadius: 4)
-                        .strokeBorder(Color.accentColor, lineWidth: 2)
+                        .strokeBorder(FamilyTheme.accent, lineWidth: 2)
                         .background(
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.accentColor.opacity(0.08))
+                                .fill(FamilyTheme.accent.opacity(0.08))
                         )
                         .allowsHitTesting(false)
 
@@ -87,9 +87,9 @@ struct BlurRegionOverlay: View {
         size: CGSize
     ) -> some View {
         Circle()
-            .fill(Color.white)
+            .fill(FamilyTheme.card)
             .frame(width: handleSize, height: handleSize)
-            .overlay(Circle().strokeBorder(Color.accentColor, lineWidth: 2))
+            .overlay(Circle().strokeBorder(FamilyTheme.accent, lineWidth: 2))
             .position(position(for: corner, rect: rect, size: size))
             .gesture(
                 DragGesture(minimumDistance: 1)

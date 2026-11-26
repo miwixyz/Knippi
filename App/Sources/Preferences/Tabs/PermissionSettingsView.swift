@@ -22,7 +22,10 @@ struct PermissionSettingsView: View {
                     permissionRow(
                         kind: .screenRecording,
                         title: "Screen Recording",
-                        subtitle: "Required for screenshots and recording",
+                        // macOS reports a fresh grant to a running app only after a restart.
+                        subtitle: viewModel.screenRecordingGranted
+                            ? "Required for screenshots and recording"
+                            : "Required for screenshots and recording. After allowing it, quit and reopen Knippi.",
                         isGranted: viewModel.screenRecordingGranted
                     )
                     if FeatureFlags.screenRecording || FeatureFlags.scrollingCapture {

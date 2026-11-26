@@ -131,7 +131,7 @@ struct HistoryView: View {
         }
     }
 
-    /// Keys on the grid: Space Quick Look, Delete to the Trash, Esc clears the choice,
+    /// Keys on the grid: Space Quick Look, Delete to the Trash, Esc clears the choice (or closes the window without one),
     /// ⌘A chooses all, ⌘Z puts the last move to the Trash back, ⌘C or Return copies the choice.
     private func handleKey(_ press: KeyPress) -> KeyPress.Result {
         let command = press.modifiers.contains(.command)
@@ -148,8 +148,12 @@ struct HistoryView: View {
             store.moveToTrash(store.selectedItems)
             return .handled
         case .escape:
-            guard !store.selected.isEmpty else { return .ignored }
-            store.clearSelection()
+            if store.selected.isEmpty {
+                // Nothing chosen: Esc closes the history window (the grid has focus, so it is the key window).
+                NSApp.keyWindow?.performClose(nil)
+            } else {
+                store.clearSelection()
+            }
             return .handled
         default:
             if command, press.characters == "a" { store.selectAll(); return .handled }

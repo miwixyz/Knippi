@@ -8,32 +8,37 @@ struct EditorPlaybackControls: View {
     @Bindable var coordinator: EditorCoordinator
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Play/Pause
+        HStack(spacing: FamilyTheme.Space.m) {
+            // Play/Pause: runder Knopf im Akzent (Hauptbedienung der Wiedergabe).
             Button(action: { coordinator.togglePlayback() }) {
                 Image(systemName: coordinator.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 14, weight: .medium))
-                    .frame(width: 30, height: 26)
-                    .contentShape(Rectangle())
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.onAccent)
+                    .frame(width: 28, height: 28)
+                    .background(Circle().fill(FamilyTheme.accentFill))
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .keyboardShortcut(.space, modifiers: [])
 
             // Time display
             Text(coordinator.formatTime(coordinator.currentTime))
-                .font(.system(size: 12, weight: .medium, design: .monospaced))
-                .foregroundStyle(.secondary)
+                .font(FamilyTheme.font(12, weight: .medium))
+                .monospacedDigit()
+                .foregroundStyle(FamilyTheme.textPrimary)
 
             Text("/")
-                .font(.system(size: 11))
-                .foregroundStyle(.tertiary)
+                .font(FamilyTheme.font(11))
+                .foregroundStyle(FamilyTheme.textSecondary)
 
             Text(coordinator.formatTime(coordinator.project.effectiveDuration))
-                .font(.system(size: 12, weight: .medium, design: .monospaced))
-                .foregroundStyle(.tertiary)
+                .font(FamilyTheme.font(12, weight: .medium))
+                .monospacedDigit()
+                .foregroundStyle(FamilyTheme.textSecondary)
 
-            Divider()
-                .frame(height: 18)
+            Rectangle()
+                .fill(FamilyTheme.cardStroke)
+                .frame(width: 0.8, height: 20)
 
             Menu {
                 Button {
@@ -56,6 +61,7 @@ struct EditorPlaybackControls: View {
             } label: {
                 Label("Add Effect", systemImage: "plus")
                     .labelStyle(.titleAndIcon)
+                    .font(FamilyTheme.font(12, weight: .medium))
             }
             .menuStyle(.button)
             .buttonStyle(.bordered)
@@ -64,34 +70,40 @@ struct EditorPlaybackControls: View {
             Spacer()
 
             if coordinator.isExporting {
-                VStack(alignment: .trailing, spacing: 4) {
+                VStack(alignment: .trailing, spacing: FamilyTheme.Space.xs) {
                     Text(coordinator.exportStatusMessage ?? "Exporting…")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .font(FamilyTheme.font(11, weight: .medium))
+                        .foregroundStyle(FamilyTheme.textSecondary)
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: FamilyTheme.Space.s) {
                         ProgressView(value: coordinator.exportProgress)
                             .progressViewStyle(.linear)
+                            .tint(FamilyTheme.accent)
                             .frame(width: 160)
                             .controlSize(.small)
                         Text("\(Int(coordinator.exportProgress * 100))%")
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .font(FamilyTheme.font(11))
+                            .monospacedDigit()
+                            .foregroundStyle(FamilyTheme.textSecondary)
                             .frame(width: 36, alignment: .trailing)
                     }
                 }
             } else {
-                Button(action: { exportToFile() }) {
-                    Label("Save", systemImage: "square.and.arrow.down")
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
-
                 Button(action: { exportToClipboard() }) {
                     Label("Copy", systemImage: "doc.on.doc")
+                        .font(FamilyTheme.font(12, weight: .medium))
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.regular)
+
+                // Hauptaktion rechts außen (macOS-Muster), Füllung aus accentFill.
+                Button(action: { exportToFile() }) {
+                    Label("Save", systemImage: "square.and.arrow.down")
+                        .font(FamilyTheme.font(12, weight: .semibold))
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(FamilyTheme.accentFill)
+                .controlSize(.regular)
             }
         }
     }

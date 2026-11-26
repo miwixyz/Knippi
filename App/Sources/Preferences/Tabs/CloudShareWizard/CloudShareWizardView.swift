@@ -11,13 +11,21 @@ struct CloudShareWizardView: View {
     @Bindable var viewModel: PreferencesViewModel
     let onComplete: () -> Void
 
-    @State private var model = CloudShareWizardModel()
+    @State private var model: CloudShareWizardModel
     @Environment(\.dismiss) private var dismiss
+
+    /// `model` nur für Render-Tests vorgeben (Schritt direkt zeigen); die App nutzt den Standard.
+    init(viewModel: PreferencesViewModel, onComplete: @escaping () -> Void,
+         model: CloudShareWizardModel = CloudShareWizardModel()) {
+        self.viewModel = viewModel
+        self.onComplete = onComplete
+        _model = State(initialValue: model)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider().background(Color.white.opacity(0.08))
+            WizardDivider()
 
             ZStack {
                 // Cross-fade between steps
@@ -27,57 +35,41 @@ struct CloudShareWizardView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Divider().background(Color.white.opacity(0.08))
+            WizardDivider()
             footer
         }
         .frame(width: 640, height: 560)
-        .background(
-            ZStack {
-                // Subtle gradient overlay on top of the sheet's vibrancy
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.10, green: 0.10, blue: 0.12),
-                        Color(red: 0.06, green: 0.06, blue: 0.08)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .opacity(0.92)
-            }
-        )
-        .preferredColorScheme(.dark)
-        .environment(\.colorScheme, .dark)
+        // Fester Fensterkörper aus dem Familien-Verlauf (Regel G1), Hell und Dunkel folgen dem System.
+        .background(FamilyTheme.backgroundGradient)
+        .foregroundStyle(FamilyTheme.textPrimary)
         .animation(.easeInOut(duration: 0.18), value: model.step)
     }
 
     // MARK: Header (title bar surrogate)
 
     private var header: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: FamilyTheme.Space.s) {
             Text(String(localized: "Cloud Share Setup"))
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.primary.opacity(0.85))
+                .font(FamilyTheme.font(.headline))
+                .foregroundStyle(FamilyTheme.textPrimary)
             Spacer()
             Button {
                 onComplete()
             } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.7))
-                    .frame(width: 22, height: 22)
-                    .background(
-                        Circle().fill(Color.white.opacity(0.08))
-                    )
-                    .overlay(
-                        Circle().stroke(Color.white.opacity(0.12), lineWidth: 0.5)
-                    )
+                    .foregroundStyle(FamilyTheme.textSecondary)
+                    .frame(width: 24, height: 24)
+                    .background(Circle().fill(FamilyTheme.card))
+                    .overlay(Circle().strokeBorder(FamilyTheme.cardStroke, lineWidth: 0.8))
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .help(String(localized: "Close"))
             .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 11)
+        .padding(.horizontal, FamilyTheme.Space.l)
+        .padding(.vertical, FamilyTheme.Space.m)
     }
 
     // MARK: Body content
@@ -95,7 +87,7 @@ struct CloudShareWizardView: View {
                 case .done:       DoneStep(model: model, onComplete: onComplete)
                 }
             }
-            .padding(24)
+            .padding(FamilyTheme.Space.xl)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -103,31 +95,32 @@ struct CloudShareWizardView: View {
     // MARK: Footer (progress + actions)
 
     private var footer: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: FamilyTheme.Space.m) {
             ProgressDots(current: model.step.rawValue, total: CloudShareWizardModel.WizardStep.allCases.count)
             Text("\(model.step.rawValue + 1) of \(CloudShareWizardModel.WizardStep.allCases.count)")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.white.opacity(0.45))
+                .font(FamilyTheme.font(11, weight: .medium))
+                .foregroundStyle(FamilyTheme.textSecondary)
                 .monospacedDigit()
             Spacer()
 
             if model.step != .welcome && model.step != .done {
-                Button(String(localized: "Back")) {
+                Button {
                     model.goBack()
+                } label: {
+                    Text(String(localized: "Back"))
+                        .font(FamilyTheme.font(13, weight: .medium))
+                        .frame(minWidth: 64)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.white.opacity(0.7))
-                .font(.system(size: 13, weight: .medium))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
+                .buttonStyle(.bordered)
+                .controlSize(.large)
                 // No .cancelAction here — the close (X) button owns Escape.
                 // Two cancelAction shortcuts in the same scene have undefined behavior.
             }
 
             primaryActionButton
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+        .padding(.horizontal, FamilyTheme.Space.xl)
+        .padding(.vertical, FamilyTheme.Space.m)
     }
 
     @ViewBuilder
@@ -153,7 +146,6 @@ struct CloudShareWizardView: View {
                     title: String(localized: "Next"),
                     isEnabled: false  // disabled until test succeeds
                 ) {}
-                .opacity(0.5)
             }
         case .done:
             WizardPrimaryButton(
@@ -492,16 +484,16 @@ private struct WelcomeStep: View {
     @Bindable var model: CloudShareWizardModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            HStack(alignment: .center, spacing: 14) {
-                IconBadge(systemName: "icloud.and.arrow.up.fill",
-                          gradient: [Color(red: 0.45, green: 0.30, blue: 0.95), Color(red: 0.30, green: 0.20, blue: 0.85)])
-                VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: FamilyTheme.Space.xl) {
+            HStack(alignment: .center, spacing: FamilyTheme.Space.l) {
+                IconBadge(systemName: "icloud.and.arrow.up.fill")
+                VStack(alignment: .leading, spacing: FamilyTheme.Space.xs) {
                     Text(String(localized: "Set up Cloud Share"))
-                        .font(.system(size: 24, weight: .bold))
+                        .font(FamilyTheme.font(22, weight: .semibold, relativeTo: .title))
+                        .foregroundStyle(FamilyTheme.textPrimary)
                     Text(String(localized: "Step 1 — Introduction"))
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.45))
+                        .font(FamilyTheme.font(11, weight: .semibold))
+                        .foregroundStyle(FamilyTheme.textSecondary)
                         .textCase(.uppercase)
                         .tracking(0.8)
                 }
@@ -509,12 +501,12 @@ private struct WelcomeStep: View {
             }
 
             Text(.init(String(localized: "Knippi uploads to **your own cloud storage** — never our servers. You bring the bucket, you own the files, you keep the bill. We just hand you the share link.")))
-                .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.78))
+                .font(FamilyTheme.font(13))
+                .foregroundStyle(FamilyTheme.textPrimary)
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
 
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
                 CheckBullet(
                     title: String(localized: "Yours forever."),
                     detail: String(localized: "Files live in your account. Cancel Knippi, keep your screenshots.")
@@ -528,12 +520,13 @@ private struct WelcomeStep: View {
                     detail: String(localized: "Paste four keys, test, done.")
                 )
             }
-            .padding(.top, 4)
+            .padding(FamilyTheme.Space.l)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .familyCard(radius: FamilyTheme.Radius.tile)
 
             Spacer(minLength: 8)
 
             InfoCard(
-                tint: Color(red: 0.30, green: 0.55, blue: 0.95),
                 icon: "info.circle.fill",
                 text: String(localized: "Already have credentials? You'll be done in under a minute.")
             )
@@ -547,21 +540,19 @@ private struct ProviderStep: View {
     @Bindable var model: CloudShareWizardModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
+        VStack(alignment: .leading, spacing: FamilyTheme.Space.xl) {
             StepHeader(
                 stepLabel: String(localized: "Step 2 — Provider"),
                 title: String(localized: "Choose a storage provider"),
                 subtitle: String(localized: "Choose where Knippi uploads screenshots. Files stay in your own storage account and Knippi copies the public share link.")
             )
 
-            VStack(spacing: 10) {
+            VStack(spacing: FamilyTheme.Space.s) {
                 ProviderCard(
                     badge: "R2",
-                    badgeColor: Color(red: 0.96, green: 0.45, blue: 0.10),
                     name: String(localized: "Cloudflare R2"),
                     sub: String(localized: "10 GB free · $0 egress · S3-compatible"),
                     pillText: String(localized: "RECOMMENDED"),
-                    pillColor: Color(red: 0.20, green: 0.78, blue: 0.40),
                     selected: model.provider == .r2,
                     enabled: true
                 ) {
@@ -569,11 +560,9 @@ private struct ProviderStep: View {
                 }
                 ProviderCard(
                     badge: "S3",
-                    badgeColor: Color(red: 0.62, green: 0.40, blue: 0.20),
                     name: String(localized: "Amazon S3"),
                     sub: String(localized: "AWS buckets and S3-compatible endpoints"),
                     pillText: nil,
-                    pillColor: Color.white.opacity(0.20),
                     selected: model.provider == .s3,
                     enabled: true
                 ) {
@@ -581,11 +570,9 @@ private struct ProviderStep: View {
                 }
                 ProviderCard(
                     badge: "COS",
-                    badgeColor: Color(red: 0.25, green: 0.55, blue: 0.95),
                     name: String(localized: "Tencent COS"),
                     sub: String(localized: "Tencent Cloud object storage"),
                     pillText: nil,
-                    pillColor: Color.white.opacity(0.20),
                     selected: model.provider == .tencentCOS,
                     enabled: true
                 ) {
@@ -593,11 +580,9 @@ private struct ProviderStep: View {
                 }
                 ProviderCard(
                     badge: "OSS",
-                    badgeColor: Color(red: 0.95, green: 0.36, blue: 0.18),
                     name: String(localized: "Aliyun OSS"),
                     sub: String(localized: "Alibaba Cloud object storage"),
                     pillText: nil,
-                    pillColor: Color.white.opacity(0.20),
                     selected: model.provider == .aliyunOSS,
                     enabled: true
                 ) {
@@ -629,7 +614,7 @@ private struct GetKeysStep: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: FamilyTheme.Space.l) {
             StepHeader(
                 stepLabel: String(localized: "Step 3 — Provider"),
                 title: String(format: String(localized: "Prepare %@ credentials"), model.providerDisplayName),
@@ -639,47 +624,31 @@ private struct GetKeysStep: View {
             VStack(spacing: 0) {
                 ForEach(Array(steps.enumerated()), id: \.offset) { idx, item in
                     if idx > 0 {
-                        Divider().background(Color.white.opacity(0.08))
+                        WizardDivider().padding(.leading, 52)
                     }
                     NumberedStepRow(number: idx + 1, title: item.title, detail: item.detail)
                 }
             }
-            .background(Color.white.opacity(0.04))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-            )
+            .familyCard(radius: FamilyTheme.Radius.tile)
 
             HStack {
                 Spacer()
+                // Zweitaktion: Die Hauptaktion („Weiter“) sitzt in der Fußleiste.
                 Button {
                     NSWorkspace.shared.open(providerURL)
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: FamilyTheme.Space.s) {
                         Image(systemName: "safari")
                             .font(.system(size: 12, weight: .semibold))
                         Text(String(localized: "Open Provider Dashboard"))
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(FamilyTheme.font(13, weight: .semibold))
                         Image(systemName: "arrow.up.right")
                             .font(.system(size: 10, weight: .bold))
                     }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 9)
-                    .background(
-                        LinearGradient(
-                            colors: [Color(red: 0.30, green: 0.55, blue: 0.98), Color(red: 0.20, green: 0.45, blue: 0.92)],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 7))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 7)
-                            .stroke(Color.white.opacity(0.18), lineWidth: 0.5)
-                    )
+                    .foregroundStyle(FamilyTheme.accent)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.bordered)
+                .controlSize(.large)
             }
         }
     }
@@ -709,9 +678,10 @@ private struct GetKeysStep: View {
             // Visually upgrade the inline code spans
             for run in result.runs where run.inlinePresentationIntent?.contains(.code) == true {
                 let range = run.range
-                result[range].font = .system(size: 12.5, weight: .medium, design: .monospaced)
-                result[range].foregroundColor = Color(red: 0.85, green: 0.92, blue: 1.0)
-                result[range].backgroundColor = Color.white.opacity(0.10)
+                // Code/IDs bewusst Monospace (Design-System, Abschnitt Schrift).
+                result[range].font = .system(size: 12, weight: .medium, design: .monospaced)
+                result[range].foregroundColor = FamilyTheme.accent
+                result[range].backgroundColor = FamilyTheme.accent.opacity(0.10)
             }
             return result
         }
@@ -731,14 +701,14 @@ private struct CredentialsStep: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: FamilyTheme.Space.l) {
             StepHeader(
                 stepLabel: String(localized: "Step 4 — Credentials"),
                 title: String(localized: "Paste your credentials"),
                 subtitle: String(localized: "These are stored in macOS Keychain on this Mac and never sent anywhere except your bucket.")
             )
 
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
                 if model.provider == .r2 {
                     FieldGroup(
                         label: model.regionLabel,
@@ -854,13 +824,13 @@ private struct CredentialsStep: View {
             Spacer(minLength: 8)
 
             // Trust footer
-            HStack(spacing: 8) {
+            HStack(spacing: FamilyTheme.Space.s) {
                 Image(systemName: "lock.shield.fill")
                     .font(.system(size: 11))
-                    .foregroundStyle(Color(red: 0.40, green: 0.85, blue: 0.55))
+                    .foregroundStyle(FamilyTheme.success)
                 Text(String(localized: "Stored in Keychain · Encrypted at rest · Never leaves this device"))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.55))
+                    .font(FamilyTheme.font(11, weight: .medium))
+                    .foregroundStyle(FamilyTheme.textSecondary)
             }
         }
     }
@@ -876,7 +846,7 @@ private struct URLPrefixStep: View {
     @State private var currentTestTask: Task<Void, Never>?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: FamilyTheme.Space.l) {
             StepHeader(
                 stepLabel: String(localized: "Step 5 — Public URL"),
                 title: String(localized: "Public URL & test"),
@@ -907,26 +877,22 @@ private struct URLPrefixStep: View {
             }
 
             // Live preview
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: FamilyTheme.Space.s) {
                 Text(String(localized: "Final share link will look like"))
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.45))
+                    .font(FamilyTheme.font(11, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.textSecondary)
                     .textCase(.uppercase)
                     .tracking(0.6)
+                // Link bewusst Monospace (Design-System: Code/IDs).
                 Text(previewLink)
                     .font(.system(size: 12, weight: .regular, design: .monospaced))
-                    .foregroundStyle(.white.opacity(model.urlPrefix.isEmpty ? 0.35 : 0.85))
+                    .foregroundStyle(model.urlPrefix.isEmpty ? FamilyTheme.textSecondary : FamilyTheme.textPrimary)
                     .lineLimit(2)
                     .truncationMode(.middle)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, FamilyTheme.Space.m)
+                    .padding(.vertical, FamilyTheme.Space.s)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.white.opacity(0.04))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .wizardField()
             }
 
             // Test result panel
@@ -967,40 +933,35 @@ private struct URLPrefixStep: View {
             }
 
         case .validating(let phase):
-            HStack(spacing: 10) {
+            HStack(spacing: FamilyTheme.Space.m) {
                 ProgressView()
                     .controlSize(.small)
-                    .tint(.white)
+                    .tint(FamilyTheme.accent)
                 Text(phase)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .font(FamilyTheme.font(12, weight: .medium))
+                    .foregroundStyle(FamilyTheme.textPrimary)
                     .id(phase)
                     .transition(.opacity)
                 Spacer()
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(Color.white.opacity(0.05))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.white.opacity(0.10), lineWidth: 0.5)
-            )
+            .padding(.horizontal, FamilyTheme.Space.l)
+            .padding(.vertical, FamilyTheme.Space.m)
+            .wizardField()
             .animation(.easeInOut(duration: 0.2), value: phase)
 
         case .success(let dt):
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
+                HStack(spacing: FamilyTheme.Space.m) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(Color(red: 0.30, green: 0.85, blue: 0.50))
+                        .foregroundStyle(FamilyTheme.success)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(String(localized: "Connection works."))
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.95))
+                            .font(FamilyTheme.font(13, weight: .semibold))
+                            .foregroundStyle(FamilyTheme.textPrimary)
                         Text(String(format: String(localized: "Round-trip in %.1fs · Test file written and removed cleanly."), dt))
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.6))
+                            .font(FamilyTheme.font(11))
+                            .foregroundStyle(FamilyTheme.textSecondary)
                     }
                     Spacer()
                     TestButton(
@@ -1013,28 +974,23 @@ private struct URLPrefixStep: View {
                     }
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(Color(red: 0.12, green: 0.30, blue: 0.18).opacity(0.45))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(red: 0.30, green: 0.85, blue: 0.50).opacity(0.40), lineWidth: 0.5)
-            )
+            .padding(.horizontal, FamilyTheme.Space.l)
+            .padding(.vertical, FamilyTheme.Space.m)
+            .wizardNotice(tint: FamilyTheme.success)
 
         case .failure(let err):
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
+                HStack(alignment: .top, spacing: FamilyTheme.Space.m) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 18))
-                        .foregroundStyle(Color(red: 0.95, green: 0.55, blue: 0.20))
-                    VStack(alignment: .leading, spacing: 4) {
+                        .foregroundStyle(FamilyTheme.warning)
+                    VStack(alignment: .leading, spacing: FamilyTheme.Space.xs) {
                         Text(humanize(err).headline)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.95))
+                            .font(FamilyTheme.font(13, weight: .semibold))
+                            .foregroundStyle(FamilyTheme.textPrimary)
                         Text(humanize(err).detail)
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.65))
+                            .font(FamilyTheme.font(11))
+                            .foregroundStyle(FamilyTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer()
@@ -1051,14 +1007,9 @@ private struct URLPrefixStep: View {
                     }
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(Color(red: 0.30, green: 0.15, blue: 0.10).opacity(0.50))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(red: 0.95, green: 0.55, blue: 0.20).opacity(0.40), lineWidth: 0.5)
-            )
+            .padding(.horizontal, FamilyTheme.Space.l)
+            .padding(.vertical, FamilyTheme.Space.m)
+            .wizardNotice(tint: FamilyTheme.warning)
         }
     }
 
@@ -1096,44 +1047,28 @@ private struct DoneStep: View {
     let onComplete: () -> Void
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: FamilyTheme.Space.xl) {
             Spacer()
             ZStack {
                 Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                Color(red: 0.30, green: 0.85, blue: 0.50).opacity(0.30),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 4,
-                            endRadius: 80
-                        )
-                    )
-                    .frame(width: 160, height: 160)
+                    .fill(FamilyTheme.success.opacity(0.12))
+                    .frame(width: 136, height: 136)
+                    .overlay(Circle().strokeBorder(FamilyTheme.success.opacity(0.26), lineWidth: 0.8))
                 Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 80, weight: .regular))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.45, green: 0.95, blue: 0.60),
-                                Color(red: 0.20, green: 0.78, blue: 0.42)
-                            ],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                    )
+                    .font(.system(size: 72, weight: .regular))
+                    .foregroundStyle(FamilyTheme.success)
             }
 
             Text(String(localized: "Cloud Share is ready"))
-                .font(.system(size: 22, weight: .bold))
+                .font(FamilyTheme.font(22, weight: .semibold, relativeTo: .title))
+                .foregroundStyle(FamilyTheme.textPrimary)
 
             Text(String(localized: "Next time you capture a screenshot, click the cloud icon in Quick Access — your share link will be on your clipboard, ready to paste in Slack or Discord."))
-                .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.70))
+                .font(FamilyTheme.font(13))
+                .foregroundStyle(FamilyTheme.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(3)
-                .padding(.horizontal, 24)
+                .padding(.horizontal, FamilyTheme.Space.xl)
                 .fixedSize(horizontal: false, vertical: true)
 
             Button {
@@ -1143,25 +1078,18 @@ private struct DoneStep: View {
                     AppDelegate.shared?.captureCoordinator?.captureArea()
                 }
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: FamilyTheme.Space.s) {
                     Image(systemName: "camera.viewfinder")
                         .font(.system(size: 12, weight: .semibold))
                     Text(String(localized: "Take a test capture"))
-                        .font(.system(size: 12, weight: .medium))
+                        .font(FamilyTheme.font(12, weight: .medium))
                     Image(systemName: "arrow.right")
                         .font(.system(size: 10, weight: .bold))
                 }
-                .foregroundStyle(.white.opacity(0.75))
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(Color.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 7))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 7)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
-                )
+                .foregroundStyle(FamilyTheme.accent)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.bordered)
+            .controlSize(.large)
 
             Spacer()
         }
@@ -1177,47 +1105,64 @@ private struct StepHeader: View {
     let subtitle: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: FamilyTheme.Space.s) {
             Text(stepLabel)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.45))
+                .font(FamilyTheme.font(11, weight: .semibold))
+                .foregroundStyle(FamilyTheme.textSecondary)
                 .textCase(.uppercase)
                 .tracking(0.8)
             Text(title)
-                .font(.system(size: 22, weight: .bold))
+                .font(FamilyTheme.font(22, weight: .semibold, relativeTo: .title))
+                .foregroundStyle(FamilyTheme.textPrimary)
             Text(subtitle)
-                .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.70))
+                .font(FamilyTheme.font(13))
+                .foregroundStyle(FamilyTheme.textSecondary)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
 
+/// Feine Trennlinie in der Kartenrand-Farbe (statt Weiß-Transparenz, die im Hellen verschwindet).
+private struct WizardDivider: View {
+    var body: some View {
+        Rectangle().fill(FamilyTheme.cardStroke).frame(height: 0.8)
+    }
+}
+
+private extension View {
+    /// Feste Feldfläche: Karte, Rand, Radius „Feld“ (14).
+    func wizardField() -> some View {
+        let shape = RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous)
+        return background(FamilyTheme.card, in: shape)
+            .overlay(shape.strokeBorder(FamilyTheme.cardStroke, lineWidth: 0.8))
+    }
+
+    /// Hinweisfläche der Familie: Ton 12 % Fläche + 26 % Rand, Radius 14.
+    func wizardNotice(tint: Color) -> some View {
+        let shape = RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous)
+        // Feste Karte darunter, damit der Ton nicht vom Verlauf abhängt.
+        return background {
+            shape.fill(FamilyTheme.card)
+                .overlay(shape.fill(tint.opacity(0.12)))
+                .overlay(shape.strokeBorder(tint.opacity(0.26), lineWidth: 0.8))
+        }
+    }
+}
+
+/// Symbol-Kachel (Akzent 14 %, Symbol im Akzent) statt eigenem Farbverlauf.
 private struct IconBadge: View {
     let systemName: String
-    let gradient: [Color]
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: gradient,
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 64, height: 64)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
-                )
-                .shadow(color: gradient.first?.opacity(0.35) ?? .clear, radius: 12, y: 5)
-            Image(systemName: systemName)
-                .font(.system(size: 28, weight: .semibold))
-                .foregroundStyle(.white)
-        }
+        RoundedRectangle(cornerRadius: FamilyTheme.Radius.tile, style: .continuous)
+            .fill(FamilyTheme.accent.opacity(0.14))
+            .frame(width: 64, height: 64)
+            .overlay {
+                Image(systemName: systemName)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.accent)
+            }
     }
 }
 
@@ -1226,60 +1171,53 @@ private struct CheckBullet: View {
     let detail: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 11) {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.20, green: 0.78, blue: 0.42).opacity(0.20))
-                    .frame(width: 22, height: 22)
-                Image(systemName: "checkmark")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color(red: 0.40, green: 0.95, blue: 0.55))
-            }
+        HStack(alignment: .top, spacing: FamilyTheme.Space.m) {
+            Circle()
+                .fill(FamilyTheme.success.opacity(0.14))
+                .frame(width: 24, height: 24)
+                .overlay {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(FamilyTheme.success)
+                }
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.92))
+                    .font(FamilyTheme.font(13, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.textPrimary)
                 Text(detail)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.white.opacity(0.65))
+                    .font(FamilyTheme.font(12))
+                    .foregroundStyle(FamilyTheme.textSecondary)
             }
         }
     }
 }
 
+/// Hinweisfläche im App-Akzent.
 private struct InfoCard: View {
-    let tint: Color
     let icon: String
     let text: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: FamilyTheme.Space.s) {
             Image(systemName: icon)
                 .font(.system(size: 13))
-                .foregroundStyle(tint.opacity(0.95))
+                .foregroundStyle(FamilyTheme.accent)
             Text(text)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.white.opacity(0.80))
+                .font(FamilyTheme.font(12, weight: .medium))
+                .foregroundStyle(FamilyTheme.textPrimary)
             Spacer()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(tint.opacity(0.10))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(tint.opacity(0.30), lineWidth: 0.5)
-        )
+        .padding(.horizontal, FamilyTheme.Space.m)
+        .padding(.vertical, FamilyTheme.Space.m)
+        .wizardNotice(tint: FamilyTheme.accent)
     }
 }
 
 private struct ProviderCard: View {
     let badge: String
-    let badgeColor: Color
     let name: String
     let sub: String
     let pillText: String?
-    let pillColor: Color
     let selected: Bool
     let enabled: Bool
     let onTap: () -> Void
@@ -1287,58 +1225,46 @@ private struct ProviderCard: View {
     @State private var hovered = false
 
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: FamilyTheme.Radius.tile, style: .continuous)
         Button(action: onTap) {
-            HStack(spacing: 14) {
-                // Square badge
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(badgeColor)
-                        .frame(width: 44, height: 44)
-                    Text(badge)
-                        .font(.system(size: 14, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.white)
-                }
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
-                )
+            HStack(spacing: FamilyTheme.Space.m) {
+                // Kürzel-Kachel: neutral im App-Akzent statt Markenfarben (keine bunten Kacheln).
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(FamilyTheme.accent.opacity(selected ? 0.20 : 0.10))
+                    .frame(width: 44, height: 44)
+                    .overlay {
+                        Text(badge)
+                            .font(FamilyTheme.font(13, weight: .bold))
+                            .foregroundStyle(FamilyTheme.accent)
+                    }
 
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: FamilyTheme.Space.xs) {
+                    HStack(spacing: FamilyTheme.Space.s) {
                         Text(name)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.95))
+                            .font(FamilyTheme.font(14, weight: .semibold))
+                            .foregroundStyle(FamilyTheme.textPrimary)
                         if let pillText {
-                            StatusPill(text: pillText, color: pillColor)
+                            StatusPill(text: pillText)
                         }
                     }
                     Text(sub)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.white.opacity(0.55))
+                        .font(FamilyTheme.font(11))
+                        .foregroundStyle(FamilyTheme.textSecondary)
                 }
                 Spacer()
 
-                if selected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color(red: 0.30, green: 0.55, blue: 0.98))
-                }
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 18))
+                    .foregroundStyle(selected ? FamilyTheme.accent : FamilyTheme.cardStroke)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(selected ? Color.white.opacity(0.06) : (hovered && enabled ? Color.white.opacity(0.05) : Color.white.opacity(0.03)))
-            )
+            .padding(.horizontal, FamilyTheme.Space.l)
+            .padding(.vertical, FamilyTheme.Space.m)
+            .background(shape.fill(hovered && enabled && !selected ? FamilyTheme.backgroundTop : FamilyTheme.card))
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(
-                        selected
-                            ? Color(red: 0.30, green: 0.55, blue: 0.98).opacity(0.85)
-                            : Color.white.opacity(0.10),
-                        lineWidth: selected ? 1.5 : 0.5
-                    )
+                shape.strokeBorder(selected ? FamilyTheme.accent : FamilyTheme.cardStroke,
+                                   lineWidth: selected ? 1.5 : 0.8)
             )
+            .contentShape(shape)
         }
         .buttonStyle(.plain)
         .opacity(enabled ? 1.0 : 0.50)
@@ -1347,20 +1273,19 @@ private struct ProviderCard: View {
     }
 }
 
+/// Kleines Etikett („Empfohlen“): Akzent-Umriss, kein zweiter Farbton.
 private struct StatusPill: View {
     let text: String
-    let color: Color
 
     var body: some View {
         Text(text)
-            .font(.system(size: 9, weight: .heavy, design: .rounded))
-            .foregroundStyle(.white.opacity(0.95))
+            .font(FamilyTheme.font(9, weight: .bold))
+            .foregroundStyle(FamilyTheme.accent)
             .tracking(0.6)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, FamilyTheme.Space.s)
             .padding(.vertical, 2)
-            .background(
-                Capsule().fill(color.opacity(0.85))
-            )
+            .background(Capsule().fill(FamilyTheme.accent.opacity(0.10)))
+            .overlay(Capsule().strokeBorder(FamilyTheme.accent.opacity(0.35), lineWidth: 0.8))
     }
 }
 
@@ -1370,42 +1295,31 @@ private struct NumberedStepRow: View {
     let detail: AttributedString
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: FamilyTheme.Space.m) {
             // Number badge
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.14),
-                                Color.white.opacity(0.06)
-                            ],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                    )
-                    .frame(width: 26, height: 26)
-                Text("\(number)")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.85))
-            }
-            .overlay(
-                Circle().stroke(Color.white.opacity(0.12), lineWidth: 0.5)
-            )
+            Circle()
+                .fill(FamilyTheme.accent.opacity(0.14))
+                .frame(width: 24, height: 24)
+                .overlay {
+                    Text("\(number)")
+                        .font(FamilyTheme.font(12, weight: .bold))
+                        .foregroundStyle(FamilyTheme.accent)
+                }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: FamilyTheme.Space.xs) {
                 Text(title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.95))
+                    .font(FamilyTheme.font(13, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.textPrimary)
                 Text(detail)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.white.opacity(0.70))
+                    .font(FamilyTheme.font(12))
+                    .foregroundStyle(FamilyTheme.textSecondary)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.horizontal, FamilyTheme.Space.l)
+        .padding(.vertical, FamilyTheme.Space.m)
     }
 }
 
@@ -1416,29 +1330,29 @@ private struct FieldGroup<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 5) {
+        VStack(alignment: .leading, spacing: FamilyTheme.Space.s) {
+            HStack(spacing: FamilyTheme.Space.xs) {
                 if let icon {
                     Image(systemName: icon)
                         .font(.system(size: 10))
-                        .foregroundStyle(.white.opacity(0.55))
+                        .foregroundStyle(FamilyTheme.textSecondary)
                 }
                 Text(label)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.62))
+                    .font(FamilyTheme.font(11, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.textSecondary)
                     .textCase(.uppercase)
                     .tracking(0.6)
             }
             content
             if let error {
-                HStack(alignment: .top, spacing: 5) {
+                HStack(alignment: .top, spacing: FamilyTheme.Space.xs) {
                     Image(systemName: "exclamationmark.circle.fill")
                         .font(.system(size: 10))
-                        .foregroundStyle(Color(red: 0.95, green: 0.50, blue: 0.45))
+                        .foregroundStyle(FamilyTheme.danger)
                         .padding(.top, 1)
                     Text(error)
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color(red: 0.95, green: 0.65, blue: 0.60))
+                        .font(FamilyTheme.font(11))
+                        .foregroundStyle(FamilyTheme.danger)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -1460,16 +1374,12 @@ private struct MonoTextField: View {
             }
         }
         .textFieldStyle(.plain)
+        // Schlüssel/IDs bewusst Monospace (Design-System: Code und IDs).
         .font(.system(size: 13, weight: .regular, design: .monospaced))
-        .foregroundStyle(.white.opacity(0.95))
-        .padding(.horizontal, 10)
-        .padding(.vertical, 9)
-        .background(Color.white.opacity(0.05))
-        .overlay(
-            RoundedRectangle(cornerRadius: 7)
-                .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 7))
+        .foregroundStyle(FamilyTheme.textPrimary)
+        .padding(.horizontal, FamilyTheme.Space.m)
+        .padding(.vertical, FamilyTheme.Space.s)
+        .wizardField()
     }
 }
 
@@ -1489,27 +1399,23 @@ private struct SecretField: View {
             }
             .textFieldStyle(.plain)
             .font(.system(size: 13, weight: .regular, design: .monospaced))
-            .foregroundStyle(.white.opacity(0.95))
-            .padding(.leading, 10)
-            .padding(.vertical, 9)
+            .foregroundStyle(FamilyTheme.textPrimary)
+            .padding(.leading, FamilyTheme.Space.m)
+            .padding(.vertical, FamilyTheme.Space.s)
 
             Button {
                 isRevealed.toggle()
             } label: {
                 Image(systemName: isRevealed ? "eye.slash.fill" : "eye.fill")
                     .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.55))
+                    .foregroundStyle(FamilyTheme.textSecondary)
                     .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help(isRevealed ? String(localized: "Hide secret") : String(localized: "Reveal secret"))
         }
-        .background(Color.white.opacity(0.05))
-        .overlay(
-            RoundedRectangle(cornerRadius: 7)
-                .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 7))
+        .wizardField()
     }
 }
 
@@ -1523,39 +1429,25 @@ private struct TestButton: View {
     let action: () -> Void
 
     var body: some View {
+        switch style {
+        case .primary:
+            button.buttonStyle(.borderedProminent).tint(FamilyTheme.accentFill)
+        case .secondary:
+            button.buttonStyle(.bordered)
+        }
+    }
+
+    private var button: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
+            HStack(spacing: FamilyTheme.Space.s) {
                 Image(systemName: icon)
                     .font(.system(size: 12, weight: .semibold))
                 Text(label)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(FamilyTheme.font(13, weight: .semibold))
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(background)
-            .clipShape(RoundedRectangle(cornerRadius: 7))
-            .overlay(
-                RoundedRectangle(cornerRadius: 7)
-                    .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
-            )
         }
-        .buttonStyle(.plain)
-        .opacity(enabled ? 1.0 : 0.4)
+        .controlSize(.large)
         .disabled(!enabled)
-    }
-
-    @ViewBuilder
-    private var background: some View {
-        switch style {
-        case .primary:
-            LinearGradient(
-                colors: [Color(red: 0.30, green: 0.55, blue: 0.98), Color(red: 0.20, green: 0.45, blue: 0.92)],
-                startPoint: .top, endPoint: .bottom
-            )
-        case .secondary:
-            Color.white.opacity(0.10)
-        }
     }
 }
 
@@ -1567,49 +1459,34 @@ private struct WizardPrimaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(minWidth: 86)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.30, green: 0.55, blue: 0.98),
-                            Color(red: 0.20, green: 0.45, blue: 0.92)
-                        ],
-                        startPoint: .top, endPoint: .bottom
-                    )
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 7))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 7)
-                        .stroke(Color.white.opacity(0.18), lineWidth: 0.5)
-                )
+                .font(FamilyTheme.font(13, weight: .semibold))
+                .frame(minWidth: 80)
         }
-        .buttonStyle(.plain)
-        .opacity(isEnabled ? 1.0 : 0.4)
+        .buttonStyle(.borderedProminent)
+        .tint(FamilyTheme.accentFill)
+        .controlSize(.large)
         .disabled(!isEnabled)
         .keyboardShortcut(.defaultAction)
     }
 }
 
+/// Schritt-Anzeige: aktueller Schritt im Akzent (breiter), erledigte im Akzent gedämpft.
 private struct ProgressDots: View {
     let current: Int
     let total: Int
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: FamilyTheme.Space.s) {
             ForEach(0..<total, id: \.self) { i in
-                Circle()
-                    .fill(i == current ? Color(red: 0.30, green: 0.55, blue: 0.98) : Color.white.opacity(0.18))
-                    .frame(width: i == current ? 8 : 6, height: i == current ? 8 : 6)
-                    .overlay(
-                        Circle().stroke(Color.white.opacity(0.10), lineWidth: 0.5)
-                    )
+                Capsule()
+                    .fill(i == current ? FamilyTheme.accent
+                          : i < current ? FamilyTheme.accent.opacity(0.40) : FamilyTheme.cardStroke)
+                    .frame(width: i == current ? 20 : 8, height: 8)
                     .animation(.easeInOut(duration: 0.2), value: current)
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(current + 1) of \(total)"))
     }
 }
 

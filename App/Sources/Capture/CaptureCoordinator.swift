@@ -40,6 +40,9 @@ final class CaptureCoordinator {
     private var scrollCaptureOverlay: ScrollCaptureOverlay?
     private var selfTimerHUD: SelfTimerHUD?
     private var toastWindow: ToastWindow?
+    /// The last capture put on the clipboard and the clipboard's change count right after.
+    /// Lets an editor save swap in the edited (e.g. redacted) image while nothing else was copied since.
+    private var lastCaptureClipboardCopy: (image: CGImage, pasteboard: NSPasteboard, changeCount: Int)?
 
     var isCaptureSelectionActive: Bool {
         isSelectionFlowStarting
@@ -63,6 +66,16 @@ final class CaptureCoordinator {
             shareCoordinator = rebuildShareCoordinator?()
         }
         return shareCoordinator
+    }
+
+    /// Cloud Share was used before it was set up: say so and open the settings on its tab.
+    private func showCloudShareNotSetUp() {
+        showToast(
+            String(localized: "Cloud Share is not set up yet. Set it up in Settings → Cloud Share."),
+            icon: "exclamationmark.triangle.fill",
+            iconColor: .systemOrange
+        )
+        NotificationCenter.default.post(name: .openScreenshotSettings, object: PreferencesTab.cloudShare)
     }
 
     /// Cloud Share is configured, but its credentials can't be read right now.
@@ -408,16 +421,15 @@ final class CaptureCoordinator {
         case .overwrite:
             return overwriteOriginalFile(rendered, at: originalURL)
         case .copy:
-            saveRenderedImage(rendered, sourceAppName: sourceAppName, sourceWindowTitle: sourceWindowTitle, date: date)
-            return true
+            // A failed save keeps the editor open so the annotations aren't lost.
+            return saveRenderedImage(rendered, sourceAppName: sourceAppName, sourceWindowTitle: sourceWindowTitle, date: date) != nil
         case .ask:
             let choice = saveChoicePrompt?(originalURL) ?? promptSaveChoice(for: originalURL)
             switch choice {
             case .overwrite:
                 return overwriteOriginalFile(rendered, at: originalURL)
             case .saveAsCopy:
-                saveRenderedImage(rendered, sourceAppName: sourceAppName, sourceWindowTitle: sourceWindowTitle, date: date)
-                return true
+                return saveRenderedImage(rendered, sourceAppName: sourceAppName, sourceWindowTitle: sourceWindowTitle, date: date) != nil
             case .cancel:
                 return false
             }
@@ -456,6 +468,8 @@ final class CaptureCoordinator {
         }
         do {
             try data.write(to: url, options: .atomic)
+            // The history index drops the text it read from the old file (e.g. before redacting).
+            NotificationCenter.default.post(name: .screenshotFileReplaced, object: url)
             return true
         } catch {
             showToast(
@@ -481,10 +495,7 @@ final class CaptureCoordinator {
                 return
             }
             logDiagnostic("Cloud Share shortcut blocked: coordinator not configured")
-            NotificationCenter.default.post(
-                name: .openScreenshotSettings,
-                object: PreferencesTab.cloudShare
-            )
+            showCloudShareNotSetUp()
             return
         }
 
@@ -1957,16 +1968,13 @@ final class CaptureCoordinator {
                 showCloudCredentialsUnreadable()
             } else {
                 logDiagnostic("Cloud Share capture completed but coordinator is nil")
-                Self.postNotification(
-                    title: String(localized: "Cloud share failed"),
-                    body: String(localized: "Cloud Share is not configured.")
-                )
+                showCloudShareNotSetUp()
             }
         case .default where settings.afterCaptureMode == .silent:
             let shouldAutoUpload = !automated && settings.cloudShareAutoUploadEnabled && shareCoordinator != nil
             let saveResult = applySilentPostCaptureActions(outputResult, entryID: entryID, automated: automated)
-            if case .success = saveResult, !automated {
-                showToast(String(localized: "Saved"))
+            if case .success(let savedURL) = saveResult, !automated {
+                showSavedToast(savedURL)
             }
             if shouldAutoUpload, let coord = shareCoordinator {
                 Task {
@@ -2082,6 +2090,7 @@ final class CaptureCoordinator {
                     pasteboard: pasteboard
                 )
             }
+            self.showSavedToast(savedFileURL, screen: window.targetScreen)
             self.dismissQuickAccessWindow(window)
         }
         window.onSaveAs = { [weak self, weak window] in
@@ -2277,6 +2286,7 @@ final class CaptureCoordinator {
                     // Save failed (the failure toast is already shown): keep the editor open
                     // so the annotations aren't lost.
                     guard let savedURL else { return false }
+                    self.replaceCaptureOnClipboard(original: result.image, with: rendered, savedURL: savedURL)
                     if replaceableFile != nil {
                         replaceableFile = SavedScreenshotFile(url: savedURL)
                     }
@@ -2475,7 +2485,7 @@ final class CaptureCoordinator {
         pasteboard: NSPasteboard = .general
     ) -> Bool {
         let temporaryFileStore = QuickAccessDragFileStore()
-        return ScreenshotClipboard.copy(
+        let copied = ScreenshotClipboard.copy(
             result.image,
             content: settings.screenshotClipboardContent,
             imageFormat: settings.screenshotClipboardFormat,
@@ -2495,6 +2505,34 @@ final class CaptureCoordinator {
                 template: self.settings.screenshotFilenameTemplate
             )
         }
+        if copied {
+            lastCaptureClipboardCopy = (result.image, pasteboard, pasteboard.changeCount)
+        }
+        return copied
+    }
+
+    /// After an editor save: if the clipboard still holds this capture (nothing copied since),
+    /// put the edited image there, so an unredacted copy doesn't stay on the clipboard.
+    private func replaceCaptureOnClipboard(original: CGImage, with rendered: CGImage, savedURL: URL) {
+        guard let last = lastCaptureClipboardCopy,
+              last.image === original,
+              last.pasteboard.changeCount == last.changeCount else { return }
+        let copied = ScreenshotClipboard.copy(
+            rendered,
+            content: settings.screenshotClipboardContent,
+            imageFormat: settings.screenshotClipboardFormat,
+            pasteboard: last.pasteboard
+        ) {
+            if FileManager.default.isReadableFile(atPath: savedURL.path) { return savedURL }
+            return try QuickAccessDragFileStore().fileURL(
+                for: rendered,
+                id: UUID(),
+                output: self.settings.screenshotOutputOptions,
+                template: self.settings.screenshotFilenameTemplate
+            )
+        }
+        // Repeated saves keep the clipboard on the newest edit.
+        lastCaptureClipboardCopy = copied ? (original, last.pasteboard, last.pasteboard.changeCount) : nil
     }
 
     @discardableResult
@@ -2707,6 +2745,11 @@ final class CaptureCoordinator {
         ) {
         case .success(let outcome):
             if outcome.replacedOriginal {
+                // The history index drops the text it read from the replaced (e.g. unredacted) file.
+                NotificationCenter.default.post(name: .screenshotFileReplaced, object: outcome.url)
+                if let original, original.url != outcome.url {
+                    NotificationCenter.default.post(name: .screenshotFileReplaced, object: original.url)
+                }
                 showToast(String(localized: "Saved – original replaced"))
             } else if let replaceError = outcome.replaceError {
                 // Not replaceable (read-only, locked, other format) or the replace failed:
@@ -2729,6 +2772,15 @@ final class CaptureCoordinator {
 
     private func copyRenderedImage(_ image: CGImage) {
         copyRenderedScreenshotToClipboard(image)
+    }
+
+    /// "Saved to Pictures/Knippi": names the folder the file actually went to.
+    /// The toast has no buttons, so there is no "Show in Finder" here.
+    private func showSavedToast(_ url: URL, screen: NSScreen? = nil) {
+        let folder = url.deletingLastPathComponent().standardizedFileURL.path
+        let home = NSHomeDirectory()
+        let shown = folder.hasPrefix(home + "/") ? String(folder.dropFirst(home.count + 1)) : folder
+        showToast(String(localized: "Saved to \(shown)"), screen: screen)
     }
 
     private func showToast(

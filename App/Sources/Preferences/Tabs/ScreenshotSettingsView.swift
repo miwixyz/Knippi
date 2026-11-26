@@ -23,7 +23,7 @@ struct ScreenshotSettingsView: View {
 
             SettingGroup(title: "After Capture") {
                 SettingCard {
-                    SettingRow(label: "After capture", sublabel: afterCaptureDescription) {
+                    SettingRow(label: "Behavior", sublabel: afterCaptureDescription) {
                         Picker("", selection: $viewModel.afterCaptureMode) {
                             Text("Show preview").tag(AfterCaptureMode.preview)
                             Text("Open editor").tag(AfterCaptureMode.editor)
@@ -36,7 +36,14 @@ struct ScreenshotSettingsView: View {
                     // The mode is the source of truth: the per-step toggles only apply to "Show preview"
                     // ("Open editor" skips them, "Silent" always copies and saves).
                     if viewModel.afterCaptureMode == .preview {
-                        SettingRow(label: "Show Preview", sublabel: "Display thumbnail with quick actions", showDivider: true) {
+                        // Kein Doppel zum Modus: Im Modus „Vorschau zeigen“ schaltet dieser Schalter nur
+                        // die Miniatur ab; Kopieren und Sichern laufen dann still nach den Schaltern unten
+                        // (CaptureCoordinator, Fall .default). „Still“ dagegen kopiert und sichert immer.
+                        SettingRow(
+                            label: "Show Thumbnail",
+                            sublabel: "Off: only copy or save as set below, without a thumbnail",
+                            showDivider: true
+                        ) {
                             Toggle("", isOn: $viewModel.screenshotShowPreview)
                                 .toggleStyle(.switch)
                                 .controlSize(.small)
@@ -313,7 +320,7 @@ struct ScreenshotSettingsView: View {
                     ForEach(Array(aspectRatios.enumerated()), id: \.element.id) { index, preset in
                         let isHidden = viewModel.hiddenBuiltinPresets.contains(preset)
                         SettingRow(
-                            label: LocalizedStringKey(preset.displayName),
+                            label: "\(Self.presetLabel(preset))",
                             showDivider: index > 0
                         ) {
                             Toggle("", isOn: Binding(
@@ -335,7 +342,7 @@ struct ScreenshotSettingsView: View {
                     ForEach(Array(CapturePreset.builtinFixedSizes.enumerated()), id: \.element.id) { index, preset in
                         let isHidden = viewModel.hiddenBuiltinPresets.contains(preset)
                         SettingRow(
-                            label: LocalizedStringKey(preset.displayName),
+                            label: "\(Self.presetLabel(preset))",
                             showDivider: true
                         ) {
                             Toggle("", isOn: Binding(
@@ -356,14 +363,14 @@ struct ScreenshotSettingsView: View {
                     // Custom presets
                     ForEach(viewModel.customCapturePresets) { preset in
                         SettingRow(
-                            label: LocalizedStringKey(preset.displayName),
+                            label: "\(preset.displayName)",
                             showDivider: true
                         ) {
                             Button {
                                 viewModel.customCapturePresets.removeAll { $0.id == preset.id }
                             } label: {
                                 Image(systemName: "minus.circle.fill")
-                                    .foregroundStyle(.red)
+                                    .foregroundStyle(FamilyTheme.danger)
                             }
                             .buttonStyle(.plain)
                         }
@@ -384,6 +391,16 @@ struct ScreenshotSettingsView: View {
         .sheet(isPresented: $showingAddPreset) {
             addPresetSheet
         }
+    }
+
+    /// Anzeigename einer eingebauten Vorgabe. Der Name „Square“ stammt aus SharedKit
+    /// (`CapturePreset.builtinAspectRatios`) und wäre sonst unübersetzt; eigene Vorgaben
+    /// zeigen den Namen, den der Nutzer eingegeben hat.
+    static func presetLabel(_ preset: CapturePreset) -> String {
+        if case .aspectRatio(1, 1, .some("Square")) = preset {
+            return String(localized: "1:1 (Square)", comment: "Built-in capture preset, square aspect ratio")
+        }
+        return preset.displayName
     }
 
     private var afterCaptureDescription: LocalizedStringKey {

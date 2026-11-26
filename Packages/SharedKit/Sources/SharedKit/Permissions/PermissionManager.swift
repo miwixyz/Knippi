@@ -56,17 +56,14 @@ public final class PermissionManager {
         // -3801 funktioniert, war ein Messfehler — CGDisplayCreateImage lieferte
         // ohne Freigabe nur das Schreibtischbild (keine Fenster, keine Menüleiste).
         // Das -3801 von SCShareableContent war korrekt.
-        if CGPreflightScreenCaptureAccess() {
-            screenRecordingGranted = true
-            return
-        }
-        do {
-            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-            screenRecordingGranted = true
-        } catch {
-            screenRecordingGranted = false
+        // 2026-11-26: Keine Nachprüfung per SCShareableContent mehr. Ohne Freigabe zeigt
+        // dieser Aufruf jedes Mal den macOS-Dialog „… möchte den Bildschirm aufnehmen“ –
+        // beim Öffnen der Einstellungen und bei jedem Zurückkehren in die App. Die
+        // Statusabfrage reicht (siehe Korrektur oben).
+        screenRecordingGranted = CGPreflightScreenCaptureAccess()
+        if !screenRecordingGranted {
             Logger(subsystem: "dev.mwlr.knippi", category: "permissions")
-                .error("Screen recording check failed: \(String(describing: error), privacy: .public)")
+                .info("Screen recording permission not granted (preflight)")
         }
     }
 

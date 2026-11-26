@@ -58,11 +58,15 @@ final class SelfTimerHUD {
 
         showSelectionBorder(rect: selectionRect, screen: screen)
 
+        // Die Kachel ist 108 pt; das Fenster ist ringsum um Floating.edge größer, damit der Schatten
+        // nicht an der Fenstergrenze abgeschnitten wird. Gespeichert wird weiter die Kachelposition.
         let size = NSSize(width: 108, height: 108)
+        let edge = FamilyTheme.Floating.edge
         let origin = Self.resolveOrigin(savedPosition: savedPosition, screen: screen, hudSize: size)
+        let windowSize = NSSize(width: size.width + 2 * edge, height: size.height + 2 * edge)
 
         let panel = SelfTimerPanel(
-            contentRect: NSRect(origin: origin, size: size),
+            contentRect: NSRect(origin: NSPoint(x: origin.x - edge, y: origin.y - edge), size: windowSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -81,10 +85,10 @@ final class SelfTimerHUD {
             hudSize: size,
             onCancel: { [weak self] in self?.cancelByUser() },
             onDragEnded: { [weak self] newOrigin in
-                self?.positionPersist?(newOrigin)
+                self?.positionPersist?(CGPoint(x: newOrigin.x + edge, y: newOrigin.y + edge))
             }
         ))
-        host.frame = NSRect(origin: .zero, size: size)
+        host.frame = NSRect(origin: .zero, size: windowSize)
         panel.contentView = host
         self.panel = panel
 
@@ -338,13 +342,16 @@ private struct SelfTimerHUDView: View {
     var body: some View {
         ZStack {
             // Backdrop: rounded square with vibrancy + thin inner edge.
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(.regularMaterial)
+            // Getöntes Familien-Glas, Kachelradius; Schatten passt in den transparenten Rand.
+            Color.clear
+                .familyTintedGlass(in: RoundedRectangle(cornerRadius: FamilyTheme.Radius.tile, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+                    RoundedRectangle(cornerRadius: FamilyTheme.Radius.tile, style: .continuous)
+                        .stroke(FamilyTheme.cardStroke, lineWidth: 0.5)
                 )
-                .shadow(color: Color.black.opacity(0.18), radius: 20, x: 0, y: 8)
+                .compositingGroup()
+                .shadow(color: FamilyTheme.Floating.shadowColor,
+                        radius: FamilyTheme.Floating.shadowRadius, y: FamilyTheme.Floating.shadowY)
 
             // Progress ring + digit.
             TimelineView(.animation) { context in
@@ -372,7 +379,7 @@ private struct SelfTimerHUDView: View {
                                 .foregroundStyle(.primary.opacity(0.6))
                         } else {
                             Text("\(viewModel.remaining)")
-                                .font(.system(size: 44, weight: .semibold, design: .rounded))
+                                .font(FamilyTheme.font(44, weight: .light))
                                 .monospacedDigit()
                                 .foregroundStyle(.primary)
                                 .contentTransition(.numericText(countsDown: true))
@@ -384,6 +391,7 @@ private struct SelfTimerHUDView: View {
         }
         .frame(width: hudSize.width, height: hudSize.height)
         .overlay(WindowDragHandle(onTap: onCancel, onDragEnded: onDragEnded))
+        .padding(FamilyTheme.Floating.edge)
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering }
         }

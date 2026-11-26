@@ -5,9 +5,13 @@ import RecordingKit
 
 @MainActor
 final class RecordingControlsWindow: NSPanel {
+    /// Sichtbare Leiste; das Fenster ist ringsum um `Floating.edge` größer (Schattenrand).
+    static let barSize = CGSize(width: 264, height: 52)
+
     init(recordingFrame: CGRect, screen: NSScreen, recorder: ScreenRecorder, onTogglePause: @escaping () -> Void, onStop: @escaping () -> Void, onRestart: @escaping () -> Void, onDelete: @escaping () -> Void) {
-        let width: CGFloat = 250
-        let height: CGFloat = 52
+        let width = Self.barSize.width
+        let height = Self.barSize.height
+        let edge = FamilyTheme.Floating.edge
 
         let screenFrame = screen.visibleFrame
         var x = recordingFrame.midX - width / 2
@@ -23,7 +27,7 @@ final class RecordingControlsWindow: NSPanel {
         y = max(screenFrame.minY + 8, min(y, screenFrame.maxY - height - 8))
 
         super.init(
-            contentRect: NSRect(x: x, y: y, width: width, height: height),
+            contentRect: NSRect(x: x - edge, y: y - edge, width: width + 2 * edge, height: height + 2 * edge),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -32,6 +36,7 @@ final class RecordingControlsWindow: NSPanel {
         self.level = .floating
         self.isOpaque = false
         self.backgroundColor = .clear
+        // Halbtransparentes Glas: Schatten zeichnet die Ansicht im transparenten Rand.
         self.hasShadow = false
         self.collectionBehavior = [.canJoinAllSpaces, .transient]
         self.isMovableByWindowBackground = true
@@ -51,62 +56,56 @@ private struct RecordingControlsView: View {
     let onRestart: () -> Void
     let onDelete: () -> Void
 
+    private var isPaused: Bool { recorder.state == .paused }
+
     var body: some View {
         HStack(spacing: 12) {
             Button(action: onStop) {
                 Image(systemName: "stop.fill")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.red.opacity(0.95))
+                    .foregroundStyle(FamilyTheme.danger)
                     .frame(width: 28, height: 28)
-                    .background(.red.opacity(0.14))
-                    .clipShape(Circle())
+                    .background(FamilyTheme.danger.opacity(0.14), in: Circle())
             }
             .buttonStyle(.plain)
             .help("Stop recording")
             .accessibilityLabel(String(localized: "Stop recording"))
 
-            // While paused the time turns grey, so the pause is visible at a glance.
-            Text(formatTime(recorder.elapsedTime))
-                .font(.system(size: 14, weight: .semibold, design: .monospaced))
-                .foregroundStyle(recorder.state == .paused ? Color.white.opacity(0.45) : Color.red.opacity(0.95))
-                .frame(minWidth: 52, alignment: .leading)
-                .accessibilityValue(recorder.state == .paused ? String(localized: "Paused") : "")
+            // Pausiert: Zeit in Sekundärtext (≥ 4,5 : 1 auf der Glastönung) plus Pause-Symbol,
+            // damit die Farbe nicht das einzige Signal ist. Läuft: Zeit in `danger` mit Punkt.
+            HStack(spacing: 5) {
+                Image(systemName: isPaused ? "pause.fill" : "circle.fill")
+                    .font(.system(size: isPaused ? 10 : 7, weight: .bold))
+                    .frame(width: 10)
+                    .accessibilityHidden(true)
+                Text(formatTime(recorder.elapsedTime))
+                    .font(FamilyTheme.font(14, weight: .semibold).monospacedDigit())
+            }
+            .foregroundStyle(isPaused ? FamilyTheme.textSecondary : FamilyTheme.danger)
+            .frame(minWidth: 58, alignment: .leading)
+            .accessibilityElement(children: .combine)
+            .accessibilityValue(isPaused ? String(localized: "Paused") : "")
 
-            Divider().frame(height: 18)
+            Rectangle().fill(FamilyTheme.cardStroke).frame(width: 1, height: 18)
 
             Button(action: onTogglePause) {
-                Image(systemName: recorder.state == .paused ? "play.fill" : "pause.fill")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.white)
-                    .frame(width: 28, height: 28)
-                    .background(.white.opacity(0.08))
-                    .clipShape(Circle())
+                barIcon(isPaused ? "play.fill" : "pause.fill")
             }
             .buttonStyle(.plain)
-            .help(recorder.state == .paused ? "Resume recording" : "Pause recording")
-            .accessibilityLabel(recorder.state == .paused
+            .help(isPaused ? "Resume recording" : "Pause recording")
+            .accessibilityLabel(isPaused
                 ? String(localized: "Resume recording")
                 : String(localized: "Pause recording"))
 
             Button(action: onRestart) {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.92))
-                    .frame(width: 28, height: 28)
-                    .background(.white.opacity(0.08))
-                    .clipShape(Circle())
+                barIcon("arrow.counterclockwise")
             }
             .buttonStyle(.plain)
             .help("Restart recording")
             .accessibilityLabel(String(localized: "Restart recording"))
 
             Button(action: onDelete) {
-                Image(systemName: "trash")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.72))
-                    .frame(width: 28, height: 28)
-                    .background(.white.opacity(0.05))
-                    .clipShape(Circle())
+                barIcon("trash", secondary: true)
             }
             .buttonStyle(.plain)
             .help("Delete recording")
@@ -114,13 +113,18 @@ private struct RecordingControlsView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(.black.opacity(0.78))
-        .clipShape(Capsule())
-        .overlay(
-            Capsule()
-                .stroke(.white.opacity(0.08), lineWidth: 0.5)
-        )
-        .shadow(color: .black.opacity(0.35), radius: 12, y: 4)
+        .frame(width: RecordingControlsWindow.barSize.width, height: RecordingControlsWindow.barSize.height)
+        .familyFloatingSurface(in: Capsule())
+    }
+
+    /// Runder Leistenknopf: feste, leicht abgesetzte Fläche (kein Glas auf Glas).
+    private func barIcon(_ name: String, secondary: Bool = false) -> some View {
+        Image(systemName: name)
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(secondary ? FamilyTheme.textSecondary : FamilyTheme.textPrimary)
+            .frame(width: 28, height: 28)
+            .background(FamilyTheme.textPrimary.opacity(0.08), in: Circle())
+            .contentShape(Circle())
     }
 
     private func formatTime(_ seconds: TimeInterval) -> String {
