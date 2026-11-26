@@ -7,7 +7,6 @@ import SwiftUI
 @MainActor
 final class CaptureAllInOneToolbarWindow {
     private static let minimumSelectionSize = CGSize(width: 24, height: 24)
-    private static let toolbarCornerRadius: CGFloat = 16
 
     private var selectionOverlayWindow: NSPanel?
     private weak var selectionOverlayView: AllInOneSelectionOverlayView?
@@ -163,7 +162,9 @@ final class CaptureAllInOneToolbarWindow {
         panel.level = frozenImage == nil ? .screenSaver + 1 : .screenSaver + 3
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        // Glas-Kapseln werfen ihren eigenen Schatten; ein Fensterschatten zeichnete sonst
+        // ein Rechteck um die durchsichtige Fläche.
+        panel.hasShadow = false
         panel.hidesOnDeactivate = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
 
@@ -215,9 +216,6 @@ final class CaptureAllInOneToolbarWindow {
         ))
         hostingView.wantsLayer = true
         hostingView.layer?.backgroundColor = NSColor.clear.cgColor
-        hostingView.layer?.cornerRadius = Self.toolbarCornerRadius
-        hostingView.layer?.cornerCurve = .continuous
-        hostingView.layer?.masksToBounds = true
         panel.contentView = hostingView
 
         toolbarWindow = panel
@@ -642,30 +640,22 @@ private final class CaptureAllInOneToolbarState {
     var isCompact = false
     var showsOverflow = false
 
+    /// Höhe der senkrechten Leiste aus zwei Glas-Inseln (Aufnahmearten + Vorlage, Aktionen).
     var preferredRailHeight: CGFloat {
-        let gap: CGFloat = 7
-        let verticalPadding: CGFloat = 20
-        let rowHeight: CGFloat = 38
-        let presetHeight: CGFloat = 42
-        let dividerHeight: CGFloat = 5
-
-        var itemHeights: [CGFloat] = []
+        typealias L = CaptureAllInOneToolbarView
+        func island(_ heights: [CGFloat]) -> CGFloat {
+            2 * L.railIslandPadding + heights.reduce(0, +) + CGFloat(max(0, heights.count - 1)) * L.railRowGap
+        }
+        var height = 2 * L.railOuterPadding
         if !isCompact || showsOverflow {
-            itemHeights += Array(repeating: rowHeight, count: 6)
-            if FeatureFlags.scrollingCapture { itemHeights.append(rowHeight) }
-            if FeatureFlags.screenRecording { itemHeights.append(rowHeight) }
-            itemHeights.append(dividerHeight)
-            itemHeights.append(presetHeight)
+            var modes = Array(repeating: L.railRowHeight, count: 6)
+            if FeatureFlags.scrollingCapture { modes.append(L.railRowHeight) }
+            if FeatureFlags.screenRecording { modes.append(L.railRowHeight) }
+            modes.append(L.railPresetHeight)
+            height += island(modes) + L.railIslandGap
         }
-        itemHeights += Array(repeating: rowHeight, count: 4)
-        if isCompact {
-            itemHeights.append(dividerHeight)
-            itemHeights.append(rowHeight)
-        }
-
-        return verticalPadding
-            + itemHeights.reduce(0, +)
-            + CGFloat(max(0, itemHeights.count - 1)) * gap
+        height += island(Array(repeating: L.railRowHeight, count: isCompact ? 5 : 4))
+        return height
     }
 
     init(selectionRect: CGRect, presets: [CapturePreset], activePreset: CapturePreset) {
@@ -677,7 +667,7 @@ private final class CaptureAllInOneToolbarState {
 }
 
 private struct CaptureAllInOneToolbarView: View {
-    private enum ModeAction: Hashable {
+    private enum ModeAction: Hashable, CaseIterable {
         case area, fullscreen, window, scrolling, timer, ocr, color, recording
     }
 
@@ -705,133 +695,136 @@ private struct CaptureAllInOneToolbarView: View {
 
     @State private var hoveredMode: ModeAction?
     @State private var hoveredUtility: UtilityAction?
+    @State private var appeared = false
+    @Namespace private var hoverPill
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        if isSideRail {
-            sideRail
-        } else {
-            horizontalBar
-        }
-    }
-
-    private var horizontalBar: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 3) {
-                modeButton(.area, icon: "viewfinder", title: "Area", action: onArea)
-                modeButton(.fullscreen, icon: "display", title: "Fullscreen", action: onFullscreen)
-                modeButton(.window, icon: "macwindow", title: "Window", action: onWindow)
-                if FeatureFlags.scrollingCapture {
-                    modeButton(.scrolling, icon: "arrow.down.to.line.compact", title: "Scrolling", action: onScrolling)
-                }
-                modeButton(.timer, icon: "timer", title: "Timer", action: onTimer)
-                modeButton(.ocr, textIcon: "Aa", title: "OCR", action: onOCR)
-                modeButton(.color, icon: "eyedropper", title: "Color", action: onColor)
-                if FeatureFlags.screenRecording {
-                    modeButton(.recording, icon: "video", title: "Recording", action: onRecording)
-                }
-            }
-
-            divider
-
-            HStack(spacing: 8) {
-                dimensionPill
-                presetMenu
-                iconButton("doc.on.doc", kind: .copy, help: "Copy Image and Close", action: onCopy)
-                iconButton("square.and.arrow.down", kind: .save, help: "Save selected area", action: onSave)
-                iconButton("pin", kind: .pin, help: "Pin selected area", action: onPin)
-                iconButton("xmark", kind: .cancel, help: "Cancel", action: onCancel)
+        Group {
+            if isSideRail {
+                sideRail
+            } else {
+                horizontalBar
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(toolbarBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color.white.opacity(0.16), lineWidth: 0.5)
-        )
-        .environment(\.colorScheme, .dark)
+        // Gleitende Akzent-Pille folgt dem Zeiger von Knopf zu Knopf.
+        .familyAnimation(FamilyTheme.Motion.select, value: hoveredMode)
+        .familyAnimation(FamilyTheme.Motion.select, value: hoveredUtility)
+        .captureAppear(appeared, reduceMotion: reduceMotion)
+        .onAppear {
+            if let forced = CaptureSurfacesDebug.hoveredModeIndex, ModeAction.allCases.indices.contains(forced) {
+                hoveredMode = ModeAction.allCases[forced]
+            }
+            withAnimation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.appear) { appeared = true }
+        }
         .onHover { hovering in
             if hovering {
                 NSCursor.arrow.set()
             }
         }
+    }
+
+    // Glas-Umbau Phase 3: schwebende Liquid-Glass-Kapseln wie die Editor-Leiste statt eines
+    // dunklen Streifens. Links die Aufnahmearten, rechts Maße/Vorlage und die Aktionen.
+    private var horizontalBar: some View {
+        GlassEffectContainer(spacing: 10) {
+            HStack(spacing: 10) {
+                HStack(spacing: 2) {
+                    modeButton(.area, icon: "viewfinder", title: "Area", action: onArea)
+                    modeButton(.fullscreen, icon: "display", title: "Fullscreen", action: onFullscreen)
+                    modeButton(.window, icon: "macwindow", title: "Window", action: onWindow)
+                    if FeatureFlags.scrollingCapture {
+                        modeButton(.scrolling, icon: "arrow.down.to.line.compact", title: "Scrolling", action: onScrolling)
+                    }
+                    modeButton(.timer, icon: "timer", title: "Timer", action: onTimer)
+                    modeButton(.ocr, textIcon: "Aa", title: "OCR", action: onOCR)
+                    modeButton(.color, icon: "eyedropper", title: "Color", action: onColor)
+                    if FeatureFlags.screenRecording {
+                        modeButton(.recording, icon: "video", title: "Recording", action: onRecording)
+                    }
+                }
+                .captureGlassPill(readable: true)
+
+                HStack(spacing: 4) {
+                    dimensionPill
+                    presetMenu
+                }
+                .captureGlassPill(readable: true)
+
+                HStack(spacing: 4) {
+                    iconButton("doc.on.doc", kind: .copy, help: "Copy Image and Close", isPrimary: true, action: onCopy)
+                    iconButton("square.and.arrow.down", kind: .save, help: "Save selected area", action: onSave)
+                    iconButton("pin", kind: .pin, help: "Pin selected area", action: onPin)
+                    iconButton("xmark", kind: .cancel, help: "Cancel", action: onCancel)
+                }
+                .captureGlassPill(readable: true)
+            }
+            .fixedSize()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var sideRail: some View {
-        VStack(spacing: 7) {
-            if !state.isCompact || state.showsOverflow {
-                railActionButton(.area, icon: "viewfinder", title: "Area", label: String(localized: "Area"), action: onArea)
-                railActionButton(.fullscreen, icon: "display", title: "Fullscreen", label: String(localized: "Full"), action: onFullscreen)
-                railActionButton(.window, icon: "macwindow", title: "Window", label: String(localized: "Window"), action: onWindow)
-                if FeatureFlags.scrollingCapture {
-                    railActionButton(.scrolling, icon: "arrow.down.to.line.compact", title: "Scrolling", label: String(localized: "Scroll"), action: onScrolling)
+        GlassEffectContainer(spacing: Self.railIslandGap) {
+            VStack(spacing: Self.railIslandGap) {
+                if !state.isCompact || state.showsOverflow {
+                    VStack(spacing: Self.railRowGap) {
+                        railActionButton(.area, icon: "viewfinder", title: "Area", label: String(localized: "Area"), action: onArea)
+                        railActionButton(.fullscreen, icon: "display", title: "Fullscreen", label: String(localized: "Full"), action: onFullscreen)
+                        railActionButton(.window, icon: "macwindow", title: "Window", label: String(localized: "Window"), action: onWindow)
+                        if FeatureFlags.scrollingCapture {
+                            railActionButton(.scrolling, icon: "arrow.down.to.line.compact", title: "Scrolling", label: String(localized: "Scroll"), action: onScrolling)
+                        }
+                        railActionButton(.timer, icon: "timer", title: "Timer", label: String(localized: "Timer"), action: onTimer)
+                        railActionButton(.ocr, textIcon: "Aa", title: "OCR", label: String(localized: "OCR"), action: onOCR)
+                        railActionButton(.color, icon: "eyedropper", title: "Color", label: String(localized: "Color"), action: onColor)
+                        if FeatureFlags.screenRecording {
+                            railActionButton(.recording, icon: "video", title: "Recording", label: String(localized: "Record"), action: onRecording)
+                        }
+                        railPresetMenu
+                    }
+                    .railIsland()
+                    .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .bottom)))
                 }
-                railActionButton(.timer, icon: "timer", title: "Timer", label: String(localized: "Timer"), action: onTimer)
-                railActionButton(.ocr, textIcon: "Aa", title: "OCR", label: String(localized: "OCR"), action: onOCR)
-                railActionButton(.color, icon: "eyedropper", title: "Color", label: String(localized: "Color"), action: onColor)
-                if FeatureFlags.screenRecording {
-                    railActionButton(.recording, icon: "video", title: "Recording", label: String(localized: "Record"), action: onRecording)
+
+                VStack(spacing: Self.railRowGap) {
+                    railIconButton("doc.on.doc", kind: .copy, help: "Copy Image and Close", label: String(localized: "Copy"), isPrimary: true, action: onCopy)
+                    railIconButton("square.and.arrow.down", kind: .save, help: "Save selected area", label: String(localized: "Save"), action: onSave)
+                    railIconButton("pin", kind: .pin, help: "Pin selected area", label: String(localized: "Pin"), action: onPin)
+                    railIconButton("xmark", kind: .cancel, help: "Cancel", label: String(localized: "Close"), action: onCancel)
+                    if state.isCompact {
+                        railIconButton(
+                            state.showsOverflow ? "chevron.up" : "ellipsis",
+                            kind: .overflow,
+                            help: state.showsOverflow ? "Hide actions" : "More actions",
+                            label: state.showsOverflow ? String(localized: "Less") : String(localized: "More"),
+                            action: toggleOverflow
+                        )
+                    }
                 }
-
-                railDivider
-            }
-
-            if !state.isCompact || state.showsOverflow {
-                railPresetMenu
-            }
-
-            railIconButton("doc.on.doc", kind: .copy, help: "Copy Image and Close", label: String(localized: "Copy"), action: onCopy)
-            railIconButton("square.and.arrow.down", kind: .save, help: "Save selected area", label: String(localized: "Save"), action: onSave)
-            railIconButton("pin", kind: .pin, help: "Pin selected area", label: String(localized: "Pin"), action: onPin)
-            railIconButton("xmark", kind: .cancel, help: "Cancel", label: String(localized: "Close"), action: onCancel)
-
-            if state.isCompact {
-                railDivider
-                railIconButton(
-                    state.showsOverflow ? "chevron.up" : "ellipsis",
-                    kind: .overflow,
-                    help: state.showsOverflow ? "Hide actions" : "More actions",
-                    label: state.showsOverflow ? String(localized: "Less") : String(localized: "More"),
-                    action: toggleOverflow
-                )
+                .railIsland()
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 10)
+        .padding(Self.railOuterPadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(toolbarBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color.white.opacity(0.16), lineWidth: 0.5)
-        )
-        .environment(\.colorScheme, .dark)
-        .animation(.spring(response: 0.20, dampingFraction: 0.88), value: state.showsOverflow)
-        .onHover { hovering in
-            if hovering {
-                NSCursor.arrow.set()
-            }
+        .familyAnimation(FamilyTheme.Motion.select, value: state.showsOverflow)
+    }
+
+    // Maße der senkrechten Leiste – `CaptureAllInOneToolbarState.preferredRailHeight` rechnet damit.
+    nonisolated static let railRowHeight: CGFloat = 38
+    nonisolated static let railPresetHeight: CGFloat = 40
+    nonisolated static let railRowGap: CGFloat = 4
+    nonisolated static let railIslandPadding: CGFloat = 6
+    nonisolated static let railIslandGap: CGFloat = 8
+    nonisolated static let railOuterPadding: CGFloat = 4
+
+    /// Akzent-Pille hinter dem Knopf unter dem Zeiger; eine einzige, sie gleitet weiter.
+    @ViewBuilder
+    private func hoverPillBackground(isHovered: Bool) -> some View {
+        if isHovered {
+            CaptureAccentPill()
+                .matchedGeometryEffect(id: "hoverPill", in: hoverPill)
         }
-    }
-
-    private var toolbarBackground: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(.thinMaterial)
-    }
-
-    private var divider: some View {
-        Rectangle()
-            .fill(Color.white.opacity(0.13))
-            .frame(width: 1, height: 44)
-    }
-
-    private var railDivider: some View {
-        Rectangle()
-            .fill(Color.white.opacity(0.13))
-            .frame(width: 42, height: 1)
-            .padding(.vertical, 2)
     }
 
     private var presetMenu: some View {
@@ -852,24 +845,18 @@ private struct CaptureAllInOneToolbarView: View {
                 }
             }
         } label: {
-            HStack(spacing: 6) {
-                Text(presetLabel)
-                    .font(.system(size: 12, weight: .semibold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(.secondary)
-            }
-            .foregroundStyle(.white)
-            .frame(width: 74, height: 36)
-            .background(Color.white.opacity(0.11), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-            )
+            // Ein einziger Text: ein Menü-Etikett aus Text + Bild stellt das Bild sonst nach vorn.
+            Text("\(presetLabel)  \(Image(systemName: "chevron.down"))")
+                .font(FamilyTheme.font(12, weight: .semibold))
+                .foregroundStyle(FamilyTheme.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
         }
         .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        // Menü-Etiketten zeichnen keine eigene Fläche – Größe und Hover liegen außen.
+        .frame(width: 74, height: 44)
+        .captureHoverLift()
         .help("Capture preset")
     }
 
@@ -887,27 +874,18 @@ private struct CaptureAllInOneToolbarView: View {
                 }
             }
         } label: {
-            HStack(spacing: 4) {
-                Text(railPresetLabel)
-                    .font(.system(size: 11, weight: .semibold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.68)
-                    .frame(maxWidth: .infinity)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 8, weight: .heavy))
-                    .foregroundStyle(.white.opacity(0.72))
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 8)
-            .frame(width: 60, height: 42)
-            .background(Color.white.opacity(0.13), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-            )
+            Text("\(railPresetLabel) \(Image(systemName: "chevron.down"))")
+                .font(FamilyTheme.font(11, weight: .semibold))
+                .foregroundStyle(FamilyTheme.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.68)
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
+        .padding(.horizontal, 7)
+        .frame(width: 60, height: Self.railPresetHeight)
+        .background(Capsule().fill(FamilyTheme.textPrimary.opacity(0.07)))
+        .captureHoverLift()
         .help(localizedPresetDisplayName(state.activePreset))
     }
 
@@ -965,19 +943,17 @@ private struct CaptureAllInOneToolbarView: View {
     }
 
     private var dimensionPill: some View {
-        Text("\(state.width) x \(state.height)")
-        .font(.system(size: 14, weight: .semibold, design: .monospaced))
-        .foregroundStyle(.white)
+        Text(verbatim: "\(state.width) × \(state.height)")
+        .font(.system(size: 14, weight: .semibold).monospacedDigit())
+        .foregroundStyle(FamilyTheme.textPrimary)
+        .contentTransition(.numericText())
+        .familyAnimation(.snappy(duration: 0.18), value: state.width &* 100_003 &+ state.height)
         .lineLimit(1)
         .minimumScaleFactor(0.82)
         .fixedSize(horizontal: true, vertical: false)
         .padding(.horizontal, 12)
-        .frame(minWidth: 116, minHeight: 36)
-        .background(Color.white.opacity(0.11), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-        )
+        .frame(minWidth: 116, minHeight: 44)
+        .background(Capsule().fill(FamilyTheme.textPrimary.opacity(0.07)))
         .help("Selected area size")
     }
 
@@ -988,32 +964,37 @@ private struct CaptureAllInOneToolbarView: View {
         title: LocalizedStringKey,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
-            VStack(spacing: 5) {
+        let isHovered = hoveredMode == kind
+        return Button(action: action) {
+            VStack(spacing: 3) {
                 Group {
                     if let textIcon {
                         Text(verbatim: textIcon)
-                            .font(.system(size: 15, weight: .bold))
+                            .font(FamilyTheme.font(14, weight: .bold))
                     } else if let icon {
                         Image(systemName: icon)
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
                     }
                 }
-                .frame(height: 20)
+                .frame(height: 19)
 
                 Text(title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(FamilyTheme.font(10, weight: .semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.72)
             }
-            .foregroundStyle(.white)
-            .frame(width: 78, height: 54)
-            .background(modeBackground(kind), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .foregroundStyle(isHovered ? Color.white : FamilyTheme.textPrimary)
+            .frame(width: 64, height: 44)
+            .background { hoverPillBackground(isHovered: isHovered) }
+            .contentShape(Capsule())
+            .scaleEffect(isHovered && !reduceMotion ? 1.04 : 1)
         }
         .buttonStyle(.plain)
-        .onHover { hoveredMode = $0 ? kind : nil }
+        .onHover { hovering in
+            if hovering { hoveredMode = kind } else if hoveredMode == kind { hoveredMode = nil }
+        }
         .help(title)
+        .accessibilityLabel(Text(title))
     }
 
     private func railActionButton(
@@ -1024,68 +1005,76 @@ private struct CaptureAllInOneToolbarView: View {
         label: String,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
-            VStack(spacing: hoveredMode == kind ? 1 : 0) {
+        let isHovered = hoveredMode == kind
+        return Button(action: action) {
+            VStack(spacing: isHovered ? 1 : 0) {
                 Group {
                     if let textIcon {
                         Text(verbatim: textIcon)
-                            .font(.system(size: 15, weight: .bold))
+                            .font(FamilyTheme.font(14, weight: .bold))
                     } else if let icon {
                         Image(systemName: icon)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 15, weight: .semibold))
                     }
                 }
-                .frame(height: hoveredMode == kind ? 17 : 38)
+                .frame(height: isHovered ? 17 : Self.railRowHeight)
 
-                if hoveredMode == kind {
+                if isHovered {
                     Text(label)
-                        .font(.system(size: 8.5, weight: .semibold))
+                        .font(FamilyTheme.font(8.5, weight: .bold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.68)
                         .transition(.opacity)
                 }
             }
-            .foregroundStyle(.white)
-            .frame(width: 60, height: 38)
-            .background(modeBackground(kind), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+            .foregroundStyle(isHovered ? Color.white : FamilyTheme.textPrimary)
+            .frame(width: 60, height: Self.railRowHeight)
+            .background { hoverPillBackground(isHovered: isHovered) }
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .onHover { hoveredMode = $0 ? kind : nil }
+        .onHover { hovering in
+            if hovering { hoveredMode = kind } else if hoveredMode == kind { hoveredMode = nil }
+        }
         .help(title)
+        .accessibilityLabel(Text(title))
     }
 
-    private func modeBackground(_ kind: ModeAction) -> Color {
-        hoveredMode == kind ? Color.white.opacity(0.12) : Color.white.opacity(0.001)
-    }
-
+    /// Aktionsknopf der waagerechten Leiste: rund, Glas-neutral; Kopieren ist der Hauptknopf
+    /// (Akzent, wie „Sichern“ im Editor). Zeiger darauf: gleitende Akzent-Pille plus Tastenkürzel.
     private func iconButton(
         _ systemName: String,
         kind: UtilityAction,
         help: LocalizedStringKey,
+        isPrimary: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
+        let isHovered = hoveredUtility == kind
+        return Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 36, height: 36)
-                .background(utilityBackground(kind), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-                )
-                .overlay(alignment: .topTrailing) {
-                    if hoveredUtility == kind, let shortcut = utilityShortcut(for: kind) {
+                .foregroundStyle(isPrimary || isHovered ? Color.white : FamilyTheme.textPrimary)
+                .frame(width: isPrimary ? 56 : 44, height: 44)
+                .background {
+                    if isPrimary { CaptureAccentPill(glow: isHovered) }
+                    else { hoverPillBackground(isHovered: isHovered) }
+                }
+                .contentShape(Capsule())
+                .scaleEffect(isHovered && !reduceMotion ? 1.05 : 1)
+                .overlay(alignment: .top) {
+                    if isHovered, let shortcut = utilityShortcut(for: kind) {
                         UtilityShortcutBadge(text: shortcut)
-                            .offset(x: 5, y: -5)
-                            .transition(.opacity)
+                            .offset(y: -9)
+                            .transition(.opacity.combined(with: .offset(y: 3)))
                     }
                 }
         }
         .buttonStyle(.plain)
-        .onHover { hoveredUtility = $0 ? kind : nil }
+        .onHover { hovering in
+            if hovering { hoveredUtility = kind } else if hoveredUtility == kind { hoveredUtility = nil }
+        }
         .help(utilityHelp(for: kind, fallback: help))
+        .accessibilityLabel(Text(help))
     }
 
     private func railIconButton(
@@ -1093,44 +1082,45 @@ private struct CaptureAllInOneToolbarView: View {
         kind: UtilityAction,
         help: LocalizedStringKey,
         label: String,
+        isPrimary: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
-            VStack(spacing: hoveredUtility == kind ? 1 : 0) {
+        let isHovered = hoveredUtility == kind
+        return Button(action: action) {
+            VStack(spacing: isHovered ? 1 : 0) {
                 Image(systemName: systemName)
                     .font(.system(size: 15, weight: .semibold))
-                    .frame(height: hoveredUtility == kind ? 17 : 38)
+                    .frame(height: isHovered ? 17 : Self.railRowHeight)
 
-                if hoveredUtility == kind {
+                if isHovered {
                     Text(label)
-                        .font(.system(size: 8.5, weight: .semibold))
+                        .font(FamilyTheme.font(8.5, weight: .bold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.68)
                         .transition(.opacity)
                 }
             }
-            .foregroundStyle(.white)
-            .frame(width: 60, height: 38)
-            .background(utilityBackground(kind), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-            )
+            .foregroundStyle(isPrimary || isHovered ? Color.white : FamilyTheme.textPrimary)
+            .frame(width: 60, height: Self.railRowHeight)
+            .background {
+                if isPrimary { CaptureAccentPill(glow: isHovered) }
+                else { hoverPillBackground(isHovered: isHovered) }
+            }
+            .contentShape(Capsule())
             .overlay(alignment: .topTrailing) {
-                if hoveredUtility == kind, let shortcut = utilityShortcut(for: kind) {
+                if isHovered, let shortcut = utilityShortcut(for: kind) {
                     UtilityShortcutBadge(text: shortcut)
-                        .offset(x: 5, y: -5)
+                        .offset(x: 6, y: -6)
                         .transition(.opacity)
                 }
             }
         }
         .buttonStyle(.plain)
-        .onHover { hoveredUtility = $0 ? kind : nil }
+        .onHover { hovering in
+            if hovering { hoveredUtility = kind } else if hoveredUtility == kind { hoveredUtility = nil }
+        }
         .help(utilityHelp(for: kind, fallback: help))
-    }
-
-    private func utilityBackground(_ kind: UtilityAction) -> Color {
-        hoveredUtility == kind ? Color.white.opacity(0.18) : Color.white.opacity(0.11)
+        .accessibilityLabel(Text(label))
     }
 
     private func utilityShortcut(for kind: UtilityAction) -> String? {
@@ -1192,14 +1182,32 @@ private struct UtilityShortcutBadge: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 8.5, weight: .bold, design: .monospaced))
-            .foregroundStyle(.white)
+            .font(.system(size: 8.5, weight: .bold, design: .rounded))
+            .foregroundStyle(FamilyTheme.textPrimary)
             .lineLimit(1)
-            .padding(.horizontal, 4)
-            .frame(height: 14)
-            .background(Color.black.opacity(0.62), in: Capsule())
-            .overlay(Capsule().stroke(Color.white.opacity(0.22), lineWidth: 0.5))
+            .padding(.horizontal, 5)
+            .frame(height: 15)
+            // Feste Fläche, kein Glas auf Glas.
+            .background(Capsule().fill(FamilyTheme.card))
+            .overlay(Capsule().stroke(FamilyTheme.cardStroke, lineWidth: 0.6))
+            .shadow(color: FamilyTheme.Floating.shadowColor, radius: 3, y: 1)
             .allowsHitTesting(false)
+    }
+}
+
+/// Messhilfe (nur Testkopie, gesetzt von `SichttestHooks`): zeigt die Hover-Optik ohne Zeiger.
+@MainActor
+enum CaptureSurfacesDebug {
+    /// Index der Aufnahmeart (Reihenfolge wie in der Leiste), die als „überfahren“ erscheint.
+    static var hoveredModeIndex: Int?
+}
+
+private extension View {
+    /// Senkrechte Glas-Insel der Seitenleiste.
+    func railIsland() -> some View {
+        padding(CaptureAllInOneToolbarView.railIslandPadding)
+            .familyLiquidGlass(in: RoundedRectangle(cornerRadius: 25, style: .continuous),
+                               tint: FamilyTheme.glassReadableTint)
     }
 }
 
@@ -1269,11 +1277,15 @@ final class AllInOneSelectionOverlayView: NSView {
         self.minSelectionSize = minSelectionSize
         self.activePreset = activePreset
         super.init(frame: frame)
+        _ = chrome.install(in: self)
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
         setAccessibilityLabel("Selection size")
         updateAccessibilityValue(postNotification: false)
     }
+
+    /// Maßanzeige als Glas-Kapsel (Phase 3); Abdunklung und Rahmen bleiben gezeichnet.
+    private let chrome = CaptureOverlayChromeModel()
 
     required init?(coder: NSCoder) { fatalError() }
 
@@ -1752,46 +1764,17 @@ final class AllInOneSelectionOverlayView: NSView {
     }
 
     private func drawDimensionHUD(in context: CGContext, selectionRect: CGRect) {
-        let text = CaptureSelectionChromeLayout.dimensionText(for: selectionRect.size) as NSString
-        let font = NSFont.safeMonospacedDigitSystemFont(ofSize: 12, weight: .semibold)
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: font,
-            .foregroundColor: NSColor.white,
-        ]
-        let textSize = text.size(withAttributes: attributes)
-        let horizontalPadding: CGFloat = 8
-        let verticalPadding: CGFloat = 5
-        let hudSize = CGSize(
-            width: textSize.width + horizontalPadding * 2,
-            height: textSize.height + verticalPadding * 2
-        )
+        let text = CaptureSelectionChromeLayout.dimensionText(for: selectionRect.size)
+        // Feste Breite für bis zu vier Stellen je Maß, damit die Kapsel beim Ziehen ruhig bleibt.
+        let hudSize = CaptureOverlayChromeModel.capsuleSize(
+            for: text.count < 11 ? "8888 × 8888" : text, horizontalPadding: 10, height: 24)
         let origin = CaptureSelectionChromeLayout.dimensionHUDOrigin(
             selectionRect: selectionRect,
             hudSize: hudSize,
             in: bounds
         )
-        let hudRect = CGRect(origin: origin, size: hudSize)
-        let hudPath = CGPath(
-            roundedRect: hudRect,
-            cornerWidth: 6,
-            cornerHeight: 6,
-            transform: nil
-        )
-
-        context.saveGState()
-        context.setFillColor(NSColor.black.withAlphaComponent(0.72).cgColor)
-        context.addPath(hudPath)
-        context.fillPath()
-        context.setStrokeColor(NSColor.white.withAlphaComponent(0.18).cgColor)
-        context.setLineWidth(0.5)
-        context.addPath(hudPath)
-        context.strokePath()
-        context.restoreGState()
-
-        text.draw(
-            at: CGPoint(x: origin.x + horizontalPadding, y: origin.y + verticalPadding),
-            withAttributes: attributes
-        )
+        chrome.set([.init(id: "dimension", text: text, style: .metric, frame: CGRect(origin: origin, size: hudSize))],
+                   viewHeight: bounds.height)
     }
 }
 

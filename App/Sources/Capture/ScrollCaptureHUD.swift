@@ -216,8 +216,11 @@ final class ScrollCaptureOverlay {
             controlsSize: CGSize(width: 460, height: ScrollCaptureOverlayPlacement.defaultControlsSize.height)
         )
 
+        // Glas-Kapsel mit eigenem Schatten: Fenster ringsum um Floating.edge größer, kein
+        // Fensterschatten (sonst Rechteck bzw. abgeschnittener Schatten, Familien-Regel).
+        let edge = FamilyTheme.Floating.edge
         let panel = NSPanel(
-            contentRect: controlsRect,
+            contentRect: controlsRect.insetBy(dx: -edge, dy: -edge),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -225,7 +228,7 @@ final class ScrollCaptureOverlay {
         panel.level = .floating
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        panel.hasShadow = false
         panel.hidesOnDeactivate = false
 
         let hostingView = NSHostingView(rootView: ScrollCaptureControlsView(
@@ -297,7 +300,8 @@ final class ScrollCaptureBorderView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
         let rect = bounds.insetBy(dx: 3, dy: 3)
-        ctx.setStrokeColor((isWarning ? NSColor.systemOrange : NSColor.systemBlue).withAlphaComponent(0.9).cgColor)
+        // Ein Akzent je App (Petrol statt Systemblau); Warnung bleibt orange.
+        ctx.setStrokeColor((isWarning ? NSColor.systemOrange : NSColor(FamilyTheme.accentFill)).withAlphaComponent(0.9).cgColor)
         ctx.setLineWidth(isWarning ? 4 : 2.5)
         ctx.setLineDash(phase: dashPhase, lengths: [6, 4])
         ctx.stroke(rect)
@@ -338,68 +342,115 @@ struct ScrollCaptureControlsView: View {
     let onCancel: () -> Void
     let onDone: () -> Void
 
+    @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    // Glas-Umbau Phase 3: schwebende Glas-Kapsel. Hauptaktion (Start/Fertig) als leuchtende
+    // Akzent-Pille, Nebenaktionen leise; während der Aufnahme ein Akzent-Ring mit der Höhe.
     var body: some View {
-        HStack(spacing: 12) {
-            controlButton(
-                icon: "xmark",
-                label: String(localized: "Cancel"),
-                color: .white.opacity(0.15),
-                action: onCancel
-            )
+        HStack(spacing: 6) {
+            controlButton(icon: "xmark", label: String(localized: "Cancel"), isPrimary: false, action: onCancel)
 
             if viewModel.isCapturing {
-                controlButton(
-                    icon: "checkmark",
-                    label: String(localized: "Done"),
-                    color: FamilyTheme.accentFill,
-                    action: onDone
-                )
-                // The preview panel is missing when the selection fills the
-                // screen, so the warning must show here, next to the buttons.
-                if viewModel.isTrackingLost {
-                    Label(String(localized: "Too fast – scroll back a little"),
-                          systemImage: "exclamationmark.triangle.fill")
-                        .font(FamilyTheme.font(12, weight: .semibold))
-                        .foregroundStyle(FamilyTheme.warning)
-                        .lineLimit(2)
-                }
+                progressStatus
+                controlButton(icon: "checkmark", label: String(localized: "Done"), isPrimary: true, action: onDone)
             } else {
-                controlButton(
-                    icon: "arrow.down.to.line",
-                    label: String(localized: "Auto Scroll"),
-                    color: .white.opacity(0.15),
-                    action: onAutoStart
-                )
-                controlButton(
-                    icon: "play.fill",
-                    label: String(localized: "Start Capture"),
-                    // Hauptaktion: accentFill trägt weiße Schrift (≥ 4,6 : 1), Grün nur 2,2 : 1.
-                    color: FamilyTheme.accentFill,
-                    action: onStart
-                )
+                controlButton(icon: "arrow.down.to.line", label: String(localized: "Auto Scroll"),
+                              isPrimary: false, action: onAutoStart)
+                // Hauptaktion: accentFill trägt weiße Schrift (≥ 4,6 : 1), Grün nur 2,2 : 1.
+                controlButton(icon: "play.fill", label: String(localized: "Start Capture"),
+                              isPrimary: true, action: onStart)
             }
         }
-        .padding(8)
-        .familyTintedGlass(in: RoundedRectangle(cornerRadius: FamilyTheme.Floating.radius, style: .continuous))
-        .environment(\.colorScheme, .dark)
+        .captureGlassPill(readable: true)
+        .familyAnimation(FamilyTheme.Motion.select, value: viewModel.isCapturing)
+        .familyAnimation(FamilyTheme.Motion.select, value: viewModel.isTrackingLost)
+        .captureAppear(appeared, reduceMotion: reduceMotion)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(FamilyTheme.Floating.edge)
+        .onAppear {
+            withAnimation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.appear) { appeared = true }
+        }
     }
 
-    private func controlButton(icon: String, label: String, color: Color, action: @escaping () -> Void) -> some View {
+    /// Läuft: Akzent-Ring dreht sich, daneben Höhe und Bildzahl (Ziffern weich).
+    /// Zu schnell gescrollt: Warnung an derselben Stelle (die Vorschau fehlt, wenn die
+    /// Auswahl den Bildschirm füllt – deshalb hier neben den Knöpfen).
+    @ViewBuilder
+    private var progressStatus: some View {
+        if viewModel.isTrackingLost {
+            Label(String(localized: "Too fast – scroll back a little"), systemImage: "exclamationmark.triangle.fill")
+                .font(FamilyTheme.font(12, weight: .semibold))
+                .foregroundStyle(FamilyTheme.warning)
+                .lineLimit(1)
+                .padding(.horizontal, 8)
+                .transition(.opacity)
+        } else {
+            HStack(spacing: 8) {
+                ScrollCaptureActivityRing(isActive: viewModel.frameCount > 0)
+                    .frame(width: 18, height: 18)
+                Text(viewModel.frameCount == 0 ? viewModel.statusText : "\(viewModel.currentHeight) px")
+                    .font(FamilyTheme.font(12, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(FamilyTheme.textPrimary)
+                    .contentTransition(.numericText())
+                    .familyAnimation(.snappy(duration: 0.2), value: viewModel.currentHeight)
+                    .lineLimit(1)
+                if viewModel.frameCount > 0 {
+                    Text(String(localized: "\(viewModel.frameCount) frames"))
+                        .font(FamilyTheme.font(11, weight: .medium).monospacedDigit())
+                        .foregroundStyle(FamilyTheme.textSecondary)
+                        .contentTransition(.numericText())
+                        .familyAnimation(.snappy(duration: 0.2), value: viewModel.frameCount)
+                }
+            }
+            .padding(.horizontal, 8)
+            .transition(.opacity)
+        }
+    }
+
+    private func controlButton(icon: String, label: String, isPrimary: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 11, weight: .bold))
                 Text(label)
-                    .font(FamilyTheme.font(13, weight: .medium))
+                    .font(FamilyTheme.font(13, weight: .semibold))
                     .fixedSize()
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(color)
-            .clipShape(Capsule())
+            .foregroundStyle(isPrimary ? Color.white : FamilyTheme.textPrimary)
+            .padding(.horizontal, 14)
+            .frame(height: 32)
+            .background {
+                if isPrimary {
+                    CaptureAccentPill()
+                } else {
+                    Capsule().fill(FamilyTheme.textPrimary.opacity(0.07))
+                }
+            }
+            .captureHoverLift()
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// Akzent-Ring der Scroll-Aufnahme: dreht sich, solange Bilder ankommen (ohne
+/// „Bewegung reduzieren“); sonst ein ruhiger, voller Ring.
+private struct ScrollCaptureActivityRing: View {
+    let isActive: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(paused: !isActive || reduceMotion)) { context in
+            let angle = context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1.2) / 1.2 * 360
+            ZStack {
+                Circle().stroke(FamilyTheme.accent.opacity(0.22), lineWidth: 2.5)
+                Circle()
+                    .trim(from: 0, to: isActive && !reduceMotion ? 0.3 : 1)
+                    .stroke(FamilyTheme.accent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                    .rotationEffect(.degrees(isActive && !reduceMotion ? angle : -90))
+            }
+        }
+        .accessibilityHidden(true)
     }
 }
 
@@ -436,6 +487,8 @@ struct ScrollCapturePreviewView: View {
                 Text(viewModel.statusText)
                     .font(FamilyTheme.font(10, weight: .medium).monospacedDigit())
                     .foregroundStyle(FamilyTheme.textSecondary)
+                    .contentTransition(.numericText())
+                    .familyAnimation(.snappy(duration: 0.2), value: viewModel.currentHeight)
                     .lineLimit(1)
                 Spacer()
             }

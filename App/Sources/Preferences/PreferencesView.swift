@@ -85,6 +85,7 @@ struct PreferencesView: View {
     @State private var navigation: PreferencesNavigation
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.colorScheme) private var colorScheme
     let viewModel: PreferencesViewModel
     let updateManager: UpdateManager?
 
@@ -108,13 +109,20 @@ struct PreferencesView: View {
                 if !reduceTransparency && contrast != .increased {
                     // Weiches Akzent-Licht hinter der Insel und ein kühler Gegenpol unten rechts:
                     // das Glas hat etwas zum Brechen, die Fläche bekommt Tiefe statt grau auf grau.
+                    // Hell kräftiger (Phase 3): dort wirkte die Insel milchig, das Licht kam kaum durch.
+                    let light = colorScheme == .light
                     Ellipse()
-                        .fill(FamilyTheme.accent.opacity(0.42))
-                        .frame(width: 280, height: 380)
-                        .blur(radius: 80)
-                        .offset(x: -60, y: 110)
+                        .fill(FamilyTheme.accent.opacity(light ? 0.66 : 0.46))
+                        .frame(width: 280, height: 500)
+                        .blur(radius: light ? 60 : 80)
+                        .offset(x: -50, y: 50)
                     Ellipse()
-                        .fill(FamilyTheme.iris.opacity(0.22))
+                        .fill(FamilyTheme.iris.opacity(light ? 0.46 : 0.30))
+                        .frame(width: 260, height: 260)
+                        .blur(radius: 70)
+                        .offset(x: 20, y: 400)
+                    Ellipse()
+                        .fill(FamilyTheme.iris.opacity(light ? 0.26 : 0.24))
                         .frame(width: 420, height: 300)
                         .blur(radius: 100)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
@@ -125,6 +133,7 @@ struct PreferencesView: View {
             .ignoresSafeArea()
         }
         .ignoresSafeArea()
+        .onAppear { SichttestHooksGlas2.preferencesAppeared(viewModel: viewModel) }
         .frame(minWidth: Self.windowSize.width, idealWidth: Self.windowSize.width, maxWidth: .infinity,
                minHeight: Self.windowSize.height, idealHeight: Self.windowSize.height, maxHeight: .infinity)
     }
@@ -161,7 +170,7 @@ struct PreferencesSidebarView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .familyLiquidGlass(in: shape)
+        .floatingGlassIsland(in: shape)
         .focusable()
         .focused($isFocused)
         .focusEffectDisabled()

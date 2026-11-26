@@ -77,7 +77,8 @@ final class PinnedScreenshotWindow: NSPanel {
         level = .floating
         isOpaque = false
         backgroundColor = .clear
-        hasShadow = true
+        // Weicher Schatten kommt aus `PinnedScreenshotShadowWindow` (Familien-Regel), nicht vom Fenster.
+        hasShadow = false
         hidesOnDeactivate = false
         isMovableByWindowBackground = false
         collectionBehavior = [.canJoinAllSpaces]
@@ -166,7 +167,21 @@ final class PinnedScreenshotWindow: NSPanel {
 
     @objc private func setOpacity(_ sender: NSMenuItem) {
         guard let value = sender.representedObject as? Double else { return }
+        setPinOpacity(value)
+    }
+
+    /// Deckkraft aus Kontextmenü oder Glas-Kapsel.
+    var onOpacityChanged: ((Double) -> Void)?
+
+    func setPinOpacity(_ value: Double) {
         alphaValue = value
+        onOpacityChanged?(value)
+    }
+
+    /// Zeiger über dem Bild (für die Glas-Kapsel mit den Aktionen).
+    var onHoverChanged: ((Bool) -> Void)? {
+        get { screenshotView.onHoverChanged }
+        set { screenshotView.onHoverChanged = newValue }
     }
 
     /// 100 % is the capture's own size in points, so the zoom readout matches it.

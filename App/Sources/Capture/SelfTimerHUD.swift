@@ -329,7 +329,8 @@ final class SelfTimerViewModel {
 
 // MARK: - SwiftUI view
 
-private struct SelfTimerHUDView: View {
+/// Intern statt privat: die Sichttest-Testkopie zeigt die Kachel ohne echten Countdown.
+struct SelfTimerHUDView: View {
     let viewModel: SelfTimerViewModel
     let hudSize: NSSize
     let onCancel: () -> Void
@@ -338,62 +339,61 @@ private struct SelfTimerHUDView: View {
     let onDragEnded: (CGPoint) -> Void
 
     @State private var isHovering = false
+    @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    // Glas-Umbau Phase 3: schwebende Liquid-Glass-Kachel, Countdown groß mit weichem
+    // Ziffernwechsel, Fortschritt als leuchtender Ring im Akzent. Überfahren zeigt „Abbrechen“.
     var body: some View {
         ZStack {
-            // Backdrop: rounded square with vibrancy + thin inner edge.
-            // Getöntes Familien-Glas, Kachelradius; Schatten passt in den transparenten Rand.
-            Color.clear
-                .familyTintedGlass(in: RoundedRectangle(cornerRadius: FamilyTheme.Radius.tile, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: FamilyTheme.Radius.tile, style: .continuous)
-                        .stroke(FamilyTheme.cardStroke, lineWidth: 0.5)
-                )
-                .compositingGroup()
-                .shadow(color: FamilyTheme.Floating.shadowColor,
-                        radius: FamilyTheme.Floating.shadowRadius, y: FamilyTheme.Floating.shadowY)
-
             // Progress ring + digit.
-            TimelineView(.animation) { context in
+            TimelineView(.animation(paused: reduceMotion)) { context in
                 let elapsed = context.date.timeIntervalSince(viewModel.startDate)
-                let progress = max(0, min(1, 1 - elapsed / viewModel.totalDuration))
+                // Bei „Bewegung reduzieren“ springt der Ring je Sekunde statt zu fließen.
+                let shown = reduceMotion ? Double(viewModel.totalDuration) - Double(viewModel.remaining) : elapsed
+                let progress = max(0, min(1, 1 - shown / viewModel.totalDuration))
 
                 ZStack {
                     Circle()
-                        .stroke(Color.primary.opacity(0.12), lineWidth: 3)
-                        .frame(width: 80, height: 80)
+                        .stroke(FamilyTheme.accent.opacity(0.18), lineWidth: 4)
+                        .frame(width: 82, height: 82)
 
                     Circle()
                         .trim(from: 0, to: progress)
-                        .stroke(
-                            Color.primary.opacity(0.85),
-                            style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                        )
-                        .frame(width: 80, height: 80)
+                        .stroke(FamilyTheme.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                        .frame(width: 82, height: 82)
                         .rotationEffect(.degrees(-90))
+                        .shadow(color: FamilyTheme.accent.opacity(0.55), radius: 5)
 
                     Group {
                         if isHovering {
                             Image(systemName: "xmark")
-                                .font(.system(size: 28, weight: .semibold))
-                                .foregroundStyle(.primary.opacity(0.6))
+                                .font(.system(size: 26, weight: .semibold))
+                                .foregroundStyle(FamilyTheme.textSecondary)
                         } else {
                             Text("\(viewModel.remaining)")
-                                .font(FamilyTheme.font(44, weight: .light))
+                                .font(FamilyTheme.font(46, weight: .semibold))
                                 .monospacedDigit()
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(FamilyTheme.textPrimary)
                                 .contentTransition(.numericText(countsDown: true))
                         }
                     }
-                    .transition(.opacity)
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
                 }
             }
         }
         .frame(width: hudSize.width, height: hudSize.height)
+        .familyLiquidGlass(in: RoundedRectangle(cornerRadius: 30, style: .continuous),
+                           tint: FamilyTheme.glassReadableTint)
+        .scaleEffect(isHovering && !reduceMotion ? 1.03 : 1)
+        .captureAppear(appeared, reduceMotion: reduceMotion)
         .overlay(WindowDragHandle(onTap: onCancel, onDragEnded: onDragEnded))
         .padding(FamilyTheme.Floating.edge)
         .onHover { hovering in
-            withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering }
+            withAnimation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.hover) { isHovering = hovering }
+        }
+        .onAppear {
+            withAnimation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.appear) { appeared = true }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Self-timer countdown"))

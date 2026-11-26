@@ -98,9 +98,11 @@ final class CaptureOverlayView: NSView {
     private let selectionInnerStrokeColor = NSColor.white.withAlphaComponent(0.30)
     private let windowHighlightColor = NSColor.systemBlue.withAlphaComponent(0.3)
     private let windowBorderColor = NSColor.systemBlue
-    private let dimensionFont = NSFont.safeMonospacedSystemFont(ofSize: 12, weight: .medium)
-    private let dimensionBgColor = NSColor.black.withAlphaComponent(0.7)
-    private let dimensionTextColor = NSColor.white
+    /// Glas-Kapseln für Maße, Koordinaten, Hinweise und Lupenbeschriftung (Phase 3).
+    /// Abdunklung, Rahmen und Fadenkreuz bleiben gezeichnet und neutral.
+    /// Intern statt privat: der Offscreen-Render der Snapshot-Tests liest die Kapseln.
+    let chrome = CaptureOverlayChromeModel()
+    private var pendingChrome: [CaptureOverlayChromeModel.Item] = []
 
     // MARK: - Context menu
 
@@ -125,6 +127,7 @@ final class CaptureOverlayView: NSView {
         self.allowsMultiWindowSelection = allowsMultiWindowSelection
         self.activePreset = self.presetsDisabled ? .freeform : settings.capturePreset
         super.init(frame: frame)
+        _ = chrome.install(in: self)
         addTrackingArea(NSTrackingArea(
             rect: bounds,
             options: [.mouseMoved, .activeAlways, .inVisibleRect],
@@ -346,6 +349,7 @@ final class CaptureOverlayView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         guard let context = NSGraphicsContext.current?.cgContext else { return }
 
+        pendingChrome = []
         switch mode {
         case .area:
             drawAreaMode(in: context)
@@ -354,6 +358,15 @@ final class CaptureOverlayView: NSView {
         case .colorPicker:
             drawColorPickerMode(in: context)
         }
+        chrome.set(pendingChrome, viewHeight: bounds.height)
+    }
+
+    /// Trägt eine Glas-Kapsel für diesen Zeichendurchgang ein.
+    private func addChrome(
+        _ id: String, text: String, style: CaptureOverlayChromeModel.Item.Style,
+        frame: CGRect, fontSize: CGFloat = 12
+    ) {
+        pendingChrome.append(.init(id: id, text: text, style: style, frame: frame, fontSize: fontSize))
     }
 
     // MARK: - Colour Picker / Loupe
@@ -375,15 +388,24 @@ final class CaptureOverlayView: NSView {
         guard let image = frozenBackground else { return }
         let pixel = imagePixel(for: point, in: image)
         let color = sampleColor(in: image, atPixel: pixel)
-        PixelLoupeView.draw(
+        let label = color.map { settings.colorFormat.string(for: $0) }
+        // Pixel bleiben gezeichnet (echt), die Beschriftung darunter ist eine Glas-Kapsel.
+        let labelRect = PixelLoupeView.draw(
             image: image,
             centerPixel: pixel,
             cursor: point,
             bounds: bounds,
             color: color,
-            label: color.map { settings.colorFormat.string(for: $0) },
+            label: label,
+            drawsLabel: false,
             in: context
         )
+        if let label {
+            let style: CaptureOverlayChromeModel.Item.Style = color.map {
+                .swatch(red: Double($0.r) / 255, green: Double($0.g) / 255, blue: Double($0.b) / 255)
+            } ?? .metric
+            addChrome("loupeLabel", text: label, style: style, frame: labelRect, fontSize: 11)
+        }
     }
 
     /// Whether area mode shows the loupe next to the crosshair.
@@ -538,54 +560,17 @@ final class CaptureOverlayView: NSView {
         guard !presetsDisabled else { return }
 
         let presetName = activePreset.displayName
-        let hintText = "   R to change"
-        let fullText = "\(presetName)\(hintText)"
-
-        let presetFont = NSFont.safeSystemFont(ofSize: 12, weight: .semibold)
-        let hintFont = NSFont.safeSystemFont(ofSize: 12, weight: .regular)
-
-        let presetAttrs: [NSAttributedString.Key: Any] = [
-            .font: presetFont,
-            .foregroundColor: NSColor.white
-        ]
-        let hintAttrs: [NSAttributedString.Key: Any] = [
-            .font: hintFont,
-            .foregroundColor: NSColor.white.withAlphaComponent(0.6)
-        ]
-
-        let presetStr = NSAttributedString(string: presetName, attributes: presetAttrs)
-        let hintStr = NSAttributedString(string: hintText, attributes: hintAttrs)
-        let combined = NSMutableAttributedString(attributedString: presetStr)
-        combined.append(hintStr)
-
-        let textSize = combined.size()
-        let hPadding: CGFloat = 14
-        let vPadding: CGFloat = 7
-        let badgeWidth = textSize.width + hPadding * 2
-        let badgeHeight = textSize.height + vPadding * 2
-
-        let badgeX = (bounds.width - badgeWidth) / 2
+        let hintText = String(localized: "R to change")
+        let size = CaptureOverlayChromeModel.capsuleSize(
+            for: "\(presetName)  \(hintText)", monospaced: false, horizontalPadding: 14, height: 30)
+        let badgeX = (bounds.width - size.width) / 2
         let badgeY = CaptureDisplayGeometry.presetBadgeY(
             viewHeight: bounds.height,
-            badgeHeight: badgeHeight,
+            badgeHeight: size.height,
             safeAreaTopInset: safeAreaTopInset
         )
-
-        let bgRect = CGRect(x: badgeX, y: badgeY, width: badgeWidth, height: badgeHeight)
-        let pillRadius = badgeHeight / 2
-
-        // Dark pill background
-        context.saveGState()
-        context.setFillColor(NSColor.black.withAlphaComponent(0.75).cgColor)
-        let pillPath = CGPath(roundedRect: bgRect, cornerWidth: pillRadius, cornerHeight: pillRadius, transform: nil)
-        context.addPath(pillPath)
-        context.fillPath()
-        context.restoreGState()
-
-        // Draw text
-        let textX = badgeX + hPadding
-        let textY = badgeY + (badgeHeight - textSize.height) / 2
-        combined.draw(at: NSPoint(x: textX, y: textY))
+        addChrome("presetBadge", text: presetName, style: .hint(secondary: hintText),
+                  frame: CGRect(x: badgeX, y: badgeY, width: size.width, height: size.height))
     }
 
     private func drawWindowSelectionMode(in context: CGContext) {
@@ -685,44 +670,20 @@ final class CaptureOverlayView: NSView {
     }
 
     private func drawBottomHintBadge(text: String, in context: CGContext) {
-        let font = NSFont.safeSystemFont(ofSize: 13, weight: .medium)
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: font,
-            .foregroundColor: dimensionTextColor
-        ]
-        let size = (text as NSString).size(withAttributes: attributes)
-        let paddingH: CGFloat = 12
-        let paddingV: CGFloat = 8
-        let badgeWidth = size.width + paddingH * 2
-        let badgeHeight = size.height + paddingV * 2
-
+        let size = CaptureOverlayChromeModel.capsuleSize(
+            for: text, fontSize: 13, monospaced: false, horizontalPadding: 16, height: 32)
         let visibleRect = visibleScreenRectInViewCoordinates()
-        let badgeX = visibleRect.midX - badgeWidth / 2
+        let badgeX = visibleRect.midX - size.width / 2
         let badgeY = visibleRect.minY + 24
-        let bgRect = CGRect(x: badgeX, y: badgeY, width: badgeWidth, height: badgeHeight)
-
-        context.setFillColor(dimensionBgColor.cgColor)
-        let path = CGPath(roundedRect: bgRect, cornerWidth: 8, cornerHeight: 8, transform: nil)
-        context.addPath(path)
-        context.fillPath()
-
-        let textPoint = NSPoint(
-            x: badgeX + paddingH,
-            y: badgeY + (badgeHeight - size.height) / 2
-        )
-        (text as NSString).draw(at: textPoint, withAttributes: attributes)
+        addChrome("bottomHint", text: text, style: .hint(secondary: nil),
+                  frame: CGRect(x: badgeX, y: badgeY, width: size.width, height: size.height), fontSize: 13)
     }
 
     private func drawWindowLabel(name: String, for rect: CGRect, in context: CGContext) {
-        let font = NSFont.safeSystemFont(ofSize: 13, weight: .medium)
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: font,
-            .foregroundColor: dimensionTextColor
-        ]
-        let size = (name as NSString).size(withAttributes: attributes)
-        let padding: CGFloat = 8
-        let labelWidth = size.width + padding * 2
-        let labelHeight = size.height + padding
+        let size = CaptureOverlayChromeModel.capsuleSize(
+            for: name, fontSize: 13, monospaced: false, horizontalPadding: 12, height: 28)
+        let labelWidth = min(size.width, max(80, (visibleScreenRectInViewCoordinates().width) - 16))
+        let labelHeight = size.height
 
         let visibleRect = visibleScreenRectInViewCoordinates()
         let minLabelX = visibleRect.minX + 8
@@ -742,14 +703,8 @@ final class CaptureOverlayView: NSView {
             labelY = min(max(preferredAboveY, minLabelY), maxLabelY)
         }
 
-        let bgRect = CGRect(x: labelX, y: labelY, width: labelWidth, height: labelHeight)
-        context.setFillColor(dimensionBgColor.cgColor)
-        let path = CGPath(roundedRect: bgRect, cornerWidth: 6, cornerHeight: 6, transform: nil)
-        context.addPath(path)
-        context.fillPath()
-
-        let textPoint = NSPoint(x: labelX + padding, y: labelY + (labelHeight - size.height) / 2)
-        (name as NSString).draw(at: textPoint, withAttributes: attributes)
+        addChrome("windowLabel", text: name, style: .hint(secondary: nil),
+                  frame: CGRect(x: labelX, y: labelY, width: labelWidth, height: labelHeight), fontSize: 13)
     }
 
     private func visibleScreenRectInViewCoordinates() -> CGRect {
@@ -804,66 +759,28 @@ final class CaptureOverlayView: NSView {
     }
 
     private func drawDimensionLabel(for rect: CGRect, in context: CGContext) {
-        let text = "\(Int(rect.width)) x \(Int(rect.height))"
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: dimensionFont,
-            .foregroundColor: dimensionTextColor
-        ]
-        let size = (text as NSString).size(withAttributes: attributes)
-        let padding: CGFloat = 6
-        let textLabelWidth = size.width + padding * 2
-        let labelHeight = size.height + padding
+        // Feste Breite für bis zu vier Stellen je Maß: Die Kapsel springt beim Ziehen nicht,
+        // die Ziffern wechseln weich (numericText).
+        let text = "\(Int(rect.width)) × \(Int(rect.height))"
+        let mainSize = CaptureOverlayChromeModel.capsuleSize(
+            for: text.count < 11 ? "8888 × 8888" : text, horizontalPadding: 10, height: 24)
 
-        // Calculate badge dimensions if needed
-        var badgeWidth: CGFloat = 0
-        var badgeText: String? = nil
-        var badgeColor: NSColor = .systemBlue
-
-        if let badge = activePreset.badgeText {
-            badgeText = badge
-            badgeColor = activePreset.isFixedSize ? .systemGreen : .systemBlue
-            let badgeFont = NSFont.safeMonospacedSystemFont(ofSize: 10, weight: .semibold)
-            let badgeAttrs: [NSAttributedString.Key: Any] = [.font: badgeFont]
-            let badgeSize = (badge as NSString).size(withAttributes: badgeAttrs)
-            badgeWidth = badgeSize.width + 8
-        }
-
-        let gap: CGFloat = badgeText != nil ? 6 : 0
-        let totalWidth = textLabelWidth + gap + badgeWidth
+        let badge = activePreset.badgeText
+        let badgeSize = badge.map {
+            CaptureOverlayChromeModel.capsuleSize(for: $0, fontSize: 11, horizontalPadding: 8, height: 24)
+        } ?? .zero
+        let gap: CGFloat = badge != nil ? 6 : 0
+        let totalWidth = mainSize.width + gap + badgeSize.width
 
         let labelX = rect.midX - totalWidth / 2
-        let labelY = rect.minY - labelHeight - 8
+        let labelY = rect.minY - mainSize.height - 8
 
-        // Draw main dimension pill
-        let bgRect = CGRect(x: labelX, y: labelY, width: textLabelWidth, height: labelHeight)
-        context.setFillColor(dimensionBgColor.cgColor)
-        let path = CGPath(roundedRect: bgRect, cornerWidth: 4, cornerHeight: 4, transform: nil)
-        context.addPath(path)
-        context.fillPath()
-
-        let textPoint = NSPoint(x: labelX + padding, y: labelY + (labelHeight - size.height) / 2)
-        (text as NSString).draw(at: textPoint, withAttributes: attributes)
-
-        // Draw preset badge pill
-        if let badge = badgeText {
-            let badgeFont = NSFont.safeMonospacedSystemFont(ofSize: 10, weight: .semibold)
-            let badgeTextAttrs: [NSAttributedString.Key: Any] = [
-                .font: badgeFont,
-                .foregroundColor: NSColor.white
-            ]
-            let badgeX = labelX + textLabelWidth + gap
-            let bRect = CGRect(x: badgeX, y: labelY, width: badgeWidth, height: labelHeight)
-            context.setFillColor(badgeColor.cgColor)
-            let bPath = CGPath(roundedRect: bRect, cornerWidth: 4, cornerHeight: 4, transform: nil)
-            context.addPath(bPath)
-            context.fillPath()
-
-            let badgeTextSize = (badge as NSString).size(withAttributes: badgeTextAttrs)
-            let btPoint = NSPoint(
-                x: badgeX + (badgeWidth - badgeTextSize.width) / 2,
-                y: labelY + (labelHeight - badgeTextSize.height) / 2
-            )
-            (badge as NSString).draw(at: btPoint, withAttributes: badgeTextAttrs)
+        addChrome("dimension", text: text, style: .metric,
+                  frame: CGRect(x: labelX, y: labelY, width: mainSize.width, height: mainSize.height))
+        if let badge {
+            addChrome("dimensionBadge", text: badge, style: .accent,
+                      frame: CGRect(x: labelX + mainSize.width + gap, y: labelY,
+                                    width: badgeSize.width, height: badgeSize.height))
         }
     }
 
@@ -905,30 +822,14 @@ final class CaptureOverlayView: NSView {
         let x = Int(point.x)
         let y = Int(bounds.height - point.y) // flip to screen coordinates
         let text = "\(x), \(y)"
-        let font = NSFont.safeMonospacedSystemFont(ofSize: 11, weight: .regular)
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: font,
-            .foregroundColor: NSColor.white.withAlphaComponent(0.8)
-        ]
-        let size = (text as NSString).size(withAttributes: attributes)
-        let padding: CGFloat = 4
-        let labelWidth = size.width + padding * 2
-        let labelHeight = size.height + padding
+        let size = CaptureOverlayChromeModel.capsuleSize(
+            for: "8888, 8888", fontSize: 11, horizontalPadding: 8, height: 22)
 
         // Position to the bottom-right of the cursor
         let labelX = point.x + 24
-        let labelY = point.y - labelHeight - 8
-
-        // Background pill
-        let bgRect = CGRect(x: labelX, y: labelY, width: labelWidth, height: labelHeight)
-        context.setFillColor(dimensionBgColor.cgColor)
-        let path = CGPath(roundedRect: bgRect, cornerWidth: 4, cornerHeight: 4, transform: nil)
-        context.addPath(path)
-        context.fillPath()
-
-        // Text
-        let textPoint = NSPoint(x: labelX + padding, y: labelY + (labelHeight - size.height) / 2)
-        (text as NSString).draw(at: textPoint, withAttributes: attributes)
+        let labelY = point.y - size.height - 8
+        addChrome("coordinate", text: text, style: .metric,
+                  frame: CGRect(x: labelX, y: labelY, width: size.width, height: size.height), fontSize: 11)
     }
 
     // MARK: - Window Hit Testing

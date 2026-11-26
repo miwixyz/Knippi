@@ -787,3 +787,86 @@ extension VisualSnapshotTests {
         return url
     }
 }
+
+// MARK: - Glas-Umbau Phase 3: Bereichsauswahl (26.11.)
+
+extension VisualSnapshotTests {
+
+    /// Bereichsauswahl über einem Testbild: vor dem Ziehen (Koordinaten + Vorlagen-Hinweis),
+    /// beim Ziehen (Maße mit Seitenverhältnis-Marke) und Farbwähler (Lupe mit Beschriftung).
+    /// Abdunklung, Rahmen und Fadenkreuz bleiben gezeichnet, die Beschriftungen sind Glas-Kapseln.
+    /// Offscreen gerendert: echtes Liquid Glass zeigt nur das Fenster auf dem Bildschirm.
+    func test30CaptureSelectionOverlay() throws {
+        let size = CGSize(width: 900, height: 560)
+        let backdrop = Self.testImage(width: 1800, height: 1120)
+        let cases: [(String, (CaptureOverlayView, AppSettings) throws -> Void)] = [
+            ("capture-overlay-idle", { view, settings in
+                settings.showMagnifier = false
+                view.setMode(.area)
+                view.mouseMoved(with: try Self.mouseEvent(.mouseMoved, at: NSPoint(x: 520, y: 300)))
+            }),
+            ("capture-overlay-drag", { view, settings in
+                view.setMode(.area)
+                view.mouseDown(with: try Self.mouseEvent(.leftMouseDown, at: NSPoint(x: 160, y: 470)))
+                view.mouseDragged(with: try Self.mouseEvent(.leftMouseDragged, at: NSPoint(x: 640, y: 200)))
+            }),
+            ("capture-overlay-color", { view, settings in
+                settings.showMagnifier = true
+                view.frozenBackground = backdrop
+                view.setMode(.colorPicker)
+                // Auf der Schrift „Rechnung …“, damit die Lupe echte Pixel zeigt.
+                view.mouseMoved(with: try Self.mouseEvent(.mouseMoved, at: NSPoint(x: 232, y: 381)))
+            }),
+        ]
+        for (name, configure) in cases {
+            for look in Look.allCases {
+                let suite = "dev.mwlr.knippi.snapshots.overlay.\(UUID().uuidString)"
+                defer { UserDefaults.standard.removePersistentDomain(forName: suite) }
+                let settings = AppSettings(defaults: try XCTUnwrap(UserDefaults(suiteName: suite)))
+                settings.capturePresetsEnabled = true
+                // Vorlage 16:9: zeigt Hinweis-Kapsel („R zum Wechseln“) und Akzent-Marke an den Maßen.
+                settings.capturePreset = .aspectRatio(width: 16, height: 9, name: nil)
+                let view = CaptureOverlayView(frame: NSRect(origin: .zero, size: size), settings: settings,
+                                              safeAreaTopInset: 0)
+                try configure(view, settings)
+                view.restoreCursorIfNeeded()
+
+                // 1) Bildschirm + gezeichnetes Overlay (Abdunklung, Rahmen, Fadenkreuz, Lupe).
+                let rep = try XCTUnwrap(NSBitmapImageRep(
+                    bitmapDataPlanes: nil, pixelsWide: Int(size.width * 2), pixelsHigh: Int(size.height * 2),
+                    bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                    colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+                rep.size = size
+                // Overlay erst auf eine eigene, durchsichtige Ebene: es stanzt die Auswahl mit
+                // `.clear` aus, das würde sonst den Bildschirm darunter mit löschen.
+                let overlayRep = try XCTUnwrap(rep.copy() as? NSBitmapImageRep)
+                let overlayContext = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: overlayRep))
+                NSGraphicsContext.saveGraphicsState()
+                NSGraphicsContext.current = overlayContext
+                look.appearance.performAsCurrentDrawingAppearance { view.draw(view.bounds) }
+                NSGraphicsContext.restoreGraphicsState()
+
+                let context = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: rep))
+                NSGraphicsContext.saveGraphicsState()
+                NSGraphicsContext.current = context
+                context.cgContext.draw(backdrop, in: CGRect(origin: .zero, size: size))
+                if let overlay = overlayRep.cgImage { context.cgContext.draw(overlay, in: CGRect(origin: .zero, size: size)) }
+                // 2) Glas-Kapseln darüber (SwiftUI; offscreen ohne echte Lichtbrechung).
+                let renderer = ImageRenderer(content: CaptureOverlayChromeView(model: view.chrome)
+                    .frame(width: size.width, height: size.height)
+                    .environment(\.colorScheme, look.scheme))
+                renderer.scale = 2
+                var chrome: CGImage?
+                look.appearance.performAsCurrentDrawingAppearance { chrome = renderer.cgImage }
+                if let chrome { context.cgContext.draw(chrome, in: CGRect(origin: .zero, size: size)) }
+                NSGraphicsContext.restoreGraphicsState()
+                write(rep, name: name, look: look)
+            }
+        }
+    }
+
+    private static func mouseEvent(_ type: NSEvent.EventType, at location: NSPoint) throws -> NSEvent {
+        try XCTUnwrap(NSEvent.mouseEvent(with: type, location: location, modifierFlags: [], timestamp: 0,
+                                         windowNumber: 0, context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
+    }
+}

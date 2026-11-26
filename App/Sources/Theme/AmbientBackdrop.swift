@@ -40,21 +40,26 @@ struct AmbientBackdrop: View {
     private func mesh(phase: Double) -> some View {
         let dx = Float(sin(phase)) * 0.08
         let dy = Float(cos(phase)) * 0.06
+        // Randpunkte wandern leicht gegenläufig mit: der Verlauf atmet, statt nur in der Mitte zu kreisen.
+        let ex = Float(cos(phase)) * 0.05
         let dark = colorScheme == .dark
         let accent = FamilyTheme.accent
-        let glowColor = accent.opacity((dark ? 0.32 : 0.22) * glow)
-        let coolColor = Color(hex: dark ? 0x2A3350 : 0xC9D3EA).opacity(0.9)
+        let glowColor = accent.opacity((dark ? 0.46 : 0.26) * glow)
+        // Glas-Umbau Phase 3: dunkel ein satteres Indigo (vorher wirkte der Verlauf flach),
+        // hell ein kühleres, etwas farbigeres Blau statt Grau.
+        let coolColor = Color(hex: dark ? 0x2C3A6E : 0xBFCDF0).opacity(dark ? 0.95 : 0.9)
+        let irisColor = FamilyTheme.iris.opacity(dark ? 0.34 : 0.20).mix(with: base[2], by: 0.4)
         return MeshGradient(
             width: 3, height: 3,
             points: [
-                [0, 0], [0.5, 0], [1, 0],
-                [0, 0.5], [0.5 + dx, 0.5 + dy], [1, 0.5],
-                [0, 1], [0.5, 1], [1, 1],
+                [0, 0], [0.5 + ex, 0], [1, 0],
+                [0, 0.5 - ex], [0.5 + dx, 0.5 + dy], [1, 0.5 + ex],
+                [0, 1], [0.5 - ex, 1], [1, 1],
             ],
             colors: [
                 base[0], base[0], coolColor,
                 base[1], glowColor.mix(with: base[1], by: 0.35), base[1],
-                coolColor, base[2], base[2],
+                coolColor, base[2], irisColor,
             ],
             smoothsColors: true
         )

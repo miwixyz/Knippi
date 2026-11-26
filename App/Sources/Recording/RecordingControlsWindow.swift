@@ -68,6 +68,7 @@ private struct RecordingControlsView: View {
                     .foregroundStyle(FamilyTheme.danger)
                     .frame(width: 28, height: 28)
                     .background(FamilyTheme.danger.opacity(0.14), in: Circle())
+                    .captureHoverLift(in: Circle())
             }
             .buttonStyle(.plain)
             .help("Stop recording")
@@ -141,6 +142,8 @@ private struct RecordingControlsView: View {
             .frame(width: 28, height: 28)
             .background(FamilyTheme.textPrimary.opacity(0.08), in: Circle())
             .contentShape(Circle())
+            // Hover hebt an wie in den übrigen Glas-Leisten.
+            .captureHoverLift(in: Circle())
     }
 
     private func formatTime(_ seconds: TimeInterval) -> String {

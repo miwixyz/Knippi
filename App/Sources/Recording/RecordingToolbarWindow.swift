@@ -34,9 +34,9 @@ final class RecordingToolbarWindow: NSPanel {
         self.settings = settings
         self.onCancelAction = onCancel
         self.onRecordAction = onRecord
-        // Leiste 240 pt breit plus transparenter Schattenrand (FamilyTheme.Floating.edge) ringsum.
-        let width: CGFloat = 240 + 2 * FamilyTheme.Floating.edge
-        let height: CGFloat = 200 + 2 * FamilyTheme.Floating.edge
+        // Glas-Insel plus transparenter Schattenrand (FamilyTheme.Floating.edge) ringsum.
+        let width: CGFloat = RecordingToolbarView.islandSize.width + 2 * FamilyTheme.Floating.edge
+        let height: CGFloat = RecordingToolbarView.islandSize.height + 2 * FamilyTheme.Floating.edge
 
         let screenFrame = screen.visibleFrame
         var x = selectionRect.midX - width / 2

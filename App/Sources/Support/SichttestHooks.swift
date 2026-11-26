@@ -140,3 +140,155 @@ enum HistoryDebug {
     /// Diese Karte (Index in der Trefferliste) wird beim ersten Füllen ausgewählt.
     static var selectIndex: Int?
 }
+
+// MARK: - Glas-Umbau Phase 3: Oberflächen rund ums Aufnehmen (nur Testkopien)
+
+import SwiftUI
+
+extension SichttestHooks {
+    private static var captureDemoKeepAlive: [AnyObject] = []
+
+    /// `defaults write <kennung> debugDemoCaptureSurfaces <n>` zeigt die Aufnahme-Oberflächen ohne
+    /// echte Aufnahme, ohne Bildschirmfreigabe und ohne globale Esc-Kurztaste (Michael arbeitet nebenher):
+    /// - `1`: Aufnahme-Werkzeugleiste, Modus-Auswahl, Aufzeichnungsleiste, Scroll-Leiste (bereit und
+    ///   laufend) samt Vorschau, Selbstauslöser-Kachel und ein angeheftetes Testbild mit Hover-Kapsel.
+    /// - `2`: Alles-in-einem-Leiste waagerecht (ohne eingefrorenes Bild) samt Auswahl.
+    /// - `3`: Alles-in-einem mit eingefrorenem Bild: Seitenleiste plus Annotationsleiste.
+    /// Zusatz: `debugDemoImage <png>` (Testbild), `debugHoverMode <i>` (Aufnahmeart als überfahren),
+    /// `debugDemoSeconds <s>` (Alles-in-einem schließt sich danach selbst, Standard 45 s – das
+    /// Auswahl-Overlay deckt den Bildschirm ab).
+    static func demoCaptureSurfaces(settings: AppSettings) {
+        guard isTestCopy else { return }
+        let defaults = UserDefaults.standard
+        let variant = defaults.integer(forKey: "debugDemoCaptureSurfaces")
+        guard variant > 0 else { return }
+        if defaults.object(forKey: "debugHoverMode") != nil {
+            CaptureSurfacesDebug.hoveredModeIndex = defaults.integer(forKey: "debugHoverMode")
+        }
+        let image = defaults.string(forKey: "debugDemoImage").flatMap { path -> CGImage? in
+            guard let source = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil) else { return nil }
+            return CGImageSourceCreateImageAtIndex(source, 0, nil)
+        }
+        let seconds = defaults.object(forKey: "debugDemoSeconds") != nil ? defaults.double(forKey: "debugDemoSeconds") : 45
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
+            switch variant {
+            case 2, 3: showAllInOneDemo(screen: screen, image: variant == 3 ? image : nil, seconds: seconds)
+            default: showCaptureIslands(screen: screen, image: image, settings: settings)
+            }
+        }
+    }
+
+    private static func showAllInOneDemo(screen: NSScreen, image: CGImage?, seconds: Double) {
+        let local = CGRect(x: screen.frame.width * 0.28, y: screen.frame.height * 0.36,
+                           width: screen.frame.width * 0.32, height: screen.frame.height * 0.4)
+        // Eingefrorenes „Bildschirmbild“: das Testbild auf Bildschirmgröße gezogen.
+        let frozen = image.flatMap { scaled($0, to: screen.frame.size, scale: screen.backingScaleFactor) }
+        let toolbar = CaptureAllInOneToolbarWindow(selectionRect: local, screen: screen,
+                                                   presets: [.freeform], activePreset: .freeform, frozenImage: frozen)
+        toolbar.onCancel = { [weak toolbar] in toolbar?.close() }
+        toolbar.show()
+        captureDemoKeepAlive.append(toolbar)
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [weak toolbar] in toolbar?.close() }
+    }
+
+    private static func showCaptureIslands(screen: NSScreen, image: CGImage?, settings: AppSettings) {
+        let visible = screen.visibleFrame
+        var keep: [AnyObject] = []
+        func reveal(_ window: NSWindow) {
+            // Manche Flächen sind von Bildschirmaufnahmen ausgenommen – nur hier fürs Messfoto sichtbar.
+            window.sharingType = .readOnly
+            window.orderFrontRegardless()
+            keep.append(window)
+        }
+
+        // Aufnahme-Werkzeugleiste (vor dem Start), links.
+        let area = CGRect(x: visible.minX + 60, y: visible.midY - 200, width: 420, height: 400)
+        let recordingToolbar = RecordingToolbarWindow(
+            selectionRect: area, screen: screen, settings: settings,
+            onRecord: { _, _, _, _, _ in }, onCameraToggled: { _, _ in false },
+            onChangeArea: {}, onCancel: {}, onCameraSettingsChanged: {})
+        reveal(recordingToolbar)
+
+        // Modus-Auswahl oben mittig.
+        let modeRail = RecordingSelectionModeWindow(screen: screen, selectedMode: .window, canUseLastArea: true,
+                                                    onSelect: { _ in }, onCancel: {})
+        reveal(modeRail)
+
+        // Aufzeichnungsleiste unter der Werkzeugleiste.
+        let recorder = ScreenRecorder()   // Ruhezustand: Leiste zeigt „läuft“ (nicht pausiert)
+        keep.append(recorder)
+        let controls = RecordingControlsWindow(
+            recordingFrame: CGRect(x: area.minX, y: visible.minY + 260, width: 420, height: 10), screen: screen,
+            recorder: recorder, onTogglePause: {}, onStop: {}, onRestart: {}, onDelete: {})
+        reveal(controls)
+
+        // Scroll-Leiste bereit und laufend, plus Vorschau.
+        let edge = FamilyTheme.Floating.edge
+        let idleModel = ScrollCaptureViewModel()
+        let runningModel = ScrollCaptureViewModel()
+        runningModel.isCapturing = true
+        runningModel.currentHeight = 4_280
+        runningModel.frameCount = 23
+        if let image { runningModel.previewImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height)) }
+        keep += [idleModel, runningModel]
+        for (index, model) in [idleModel, runningModel].enumerated() {
+            let rect = CGRect(x: visible.minX + 560, y: visible.minY + 120 + CGFloat(index) * 90, width: 460, height: 52)
+            let panel = demoPanel(rect.insetBy(dx: -edge, dy: -edge), ScrollCaptureControlsView(
+                viewModel: model, onStart: {}, onAutoStart: {}, onCancel: {}, onDone: {}))
+            reveal(panel)
+        }
+        let preview = demoPanel(CGRect(x: visible.minX + 1060, y: visible.minY + 120, width: 180, height: 300),
+                                ScrollCapturePreviewView(viewModel: runningModel), shadow: true)
+        reveal(preview)
+
+        // Selbstauslöser-Kachel (ohne Countdown, ohne Esc-Kurztaste).
+        let timer = SelfTimerViewModel()
+        // Sehr lange Gesamtdauer: der Ring steht fürs Foto bei gut zwei Dritteln.
+        timer.totalDuration = 36_000
+        timer.startDate = Date().addingTimeInterval(-11_500)
+        timer.remaining = 7
+        keep.append(timer)
+        let tileSize = NSSize(width: 108, height: 108)
+        let timerPanel = demoPanel(
+            CGRect(x: visible.minX + 1300 - edge, y: visible.minY + 120 - edge,
+                   width: tileSize.width + 2 * edge, height: tileSize.height + 2 * edge),
+            SelfTimerHUDView(viewModel: timer, hudSize: tileSize, onCancel: {}, onDragEnded: { _ in }))
+        reveal(timerPanel)
+
+        // Angeheftetes Testbild mit Hover-Kapsel (Mitte rechts).
+        if let image {
+            let pin = PinnedScreenshotController(image: image, anchorRect: nil, activatesApp: false,
+                                                 onCopy: {}, onSave: {}, onDidClose: { _ in })
+            pin.show()
+            pin.showControlsForSichttest()
+            keep.append(pin)
+        }
+        captureDemoKeepAlive = keep
+    }
+
+    private static func demoPanel<V: View>(_ frame: CGRect, _ view: V, shadow: Bool = false) -> NSPanel {
+        let panel = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
+                            backing: .buffered, defer: false)
+        panel.level = .floating
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = shadow
+        panel.hidesOnDeactivate = false
+        panel.contentView = NSHostingView(rootView: view)
+        return panel
+    }
+
+    private static func scaled(_ image: CGImage, to size: CGSize, scale: CGFloat) -> CGImage? {
+        let width = Int(size.width * scale), height = Int(size.height * scale)
+        guard let ctx = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                                  space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        // Ruhiger Schreibtisch, Testbild in Originalgröße mittig (nicht verzerrt).
+        ctx.setFillColor(CGColor(srgbRed: 0.45, green: 0.55, blue: 0.68, alpha: 1))
+        ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        let w = CGFloat(image.width) * scale, h = CGFloat(image.height) * scale
+        ctx.draw(image, in: CGRect(x: (CGFloat(width) - w) / 2, y: (CGFloat(height) - h) / 2, width: w, height: h))
+        return ctx.makeImage()
+    }
+}
