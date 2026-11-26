@@ -181,8 +181,8 @@ final class MenuBarController: NSObject {
             guard let self else { return }
             self.settings.historyKeepCount = HistoryStore.defaultKeepCount
             NotificationCenter.default.post(name: .historySettingsChanged, object: nil)
-            self.refreshPopover()
-            self.popover.relayout()
+            // Grow only once the list is loaded (it loads asynchronously).
+            self.refreshPopover { [weak self] in self?.popover.relayout() }
         }
     }
 

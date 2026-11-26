@@ -67,7 +67,7 @@ enum SichttestHooks {
               let source = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil),
               let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            let screen = NSScreen.main ?? NSScreen.screens.first!
+            guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
             let result = CaptureResult(
                 image: image, mode: .area,
                 captureRect: CGRect(x: 0, y: 0, width: image.width, height: image.height),

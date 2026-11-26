@@ -2004,12 +2004,17 @@ final class CaptureCoordinator {
         }
     }
 
-    /// The real camera-shutter sound macOS itself plays for Cmd+Shift+3/4.
-    /// Loaded from the built-in CoreAudio system sounds bundle. If the file
-    /// ever moves or is renamed in a future macOS release we fall back to a
-    /// subtler "Pop" alert sound (which is at least not the "Tink" error
-    /// ding we used to use).
+    /// Knippi's own shutter sound „Tock“: a short (0.12 s), quiet, dark wooden knock,
+    /// generated for Knippi (no third-party sound, no licence question). Replaced the
+    /// macOS screen-capture sound on 2026-11-26 (Michael: „abgedroschen“). Falls back
+    /// to the system sound if the bundled file is missing.
     private static let shutterSound: NSSound? = {
+        if let url = Bundle.main.url(forResource: "Ausloeser-Tock", withExtension: "caf"),
+           let sound = NSSound(contentsOf: url, byReference: true) {
+            return sound
+        }
+        Logger(subsystem: "dev.mwlr.knippi", category: "capture")
+            .error("Ausloeser-Tock.caf fehlt im Bundle – Systemton als Ersatz")
         let shutterPath = "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/system/Screen Capture.aif"
         if FileManager.default.fileExists(atPath: shutterPath),
            let sound = NSSound(contentsOf: URL(fileURLWithPath: shutterPath), byReference: true) {

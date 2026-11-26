@@ -745,6 +745,16 @@ final class MenuBarPopoverController {
         }
     }
 
+    /// A capture shortcut while the popover is open (or still fading out): gone at once, and
+    /// the window server has a frame without it before the desktop is sampled (same wait as
+    /// for the Quick Access cards in `CaptureCoordinator.withQuickAccessHidden`).
+    func closeBeforeCapture() {
+        guard panel?.isVisible == true else { return }
+        close(animated: false)
+        CATransaction.flush()
+        Thread.sleep(forTimeInterval: 1.0 / 60.0)
+    }
+
     /// Resize after the content changed (for example a recording started while open).
     func relayout() {
         guard let panel, panel.isVisible, let hosting, let button = anchorButton else { return }
@@ -764,6 +774,8 @@ final class MenuBarPopoverController {
         panel.isReleasedWhenClosed = false
         panel.hidesOnDeactivate = false
         panel.animationBehavior = .none
+        // Never part of a screenshot or screen recording, also not of other apps' captures.
+        panel.sharingType = .none
         panel.title = "Knippi"
         panel.setAccessibilityRole(.popover)
         let hosting = NSHostingView(rootView: MenuBarPopoverView(model: model))

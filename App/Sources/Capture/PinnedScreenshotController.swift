@@ -141,7 +141,8 @@ final class PinnedScreenshotController {
     @objc private func toggleLock() {
         isLocked.toggle()
         chromeWindow.chromeView.isLocked = isLocked
-        contentWindow.alphaValue = isLocked ? 0.72 : 1.0
+        // Entsperrt zurück auf die eingestellte Deckkraft (Regler und Schatten zeigen sie auch).
+        contentWindow.alphaValue = isLocked ? 0.72 : pinOpacity
         // Gesperrt schwebt das Bild halb durchsichtig – ohne Schatten wirkt es ruhiger.
         shadowWindow.alphaValue = isLocked ? 0 : pinOpacity
         contentWindow.ignoresMouseEvents = isLocked

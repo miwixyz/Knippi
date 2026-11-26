@@ -6,6 +6,10 @@
 //
 // Bedienungshilfen: „Bewegung reduzieren“ → stillstehend. „Transparenz reduzieren“
 // oder „Kontrast erhöhen“ → einfacher fester Familien-Verlauf.
+//
+// Leerlauf: Die Bewegung läuft nur, solange das Fenster aktiv ist (Schlüssel-/Hauptfenster
+// der vorderen App). Im Hintergrund steht das Bild still — Knippis Ziel ist 0 % CPU im
+// Leerlauf (docs/messwerte.md). 12 Bilder/s reichen für die sehr langsame Bewegung.
 
 import SwiftUI
 
@@ -17,6 +21,7 @@ struct AmbientBackdrop: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.appearsActive) private var appearsActive
 
     var body: some View {
         if reduceTransparency || contrast == .increased {
@@ -24,7 +29,7 @@ struct AmbientBackdrop: View {
         } else if reduceMotion {
             mesh(phase: 0)
         } else {
-            TimelineView(.animation(minimumInterval: 1.0 / 20.0)) { context in
+            TimelineView(.animation(minimumInterval: 1.0 / 12.0, paused: !appearsActive)) { context in
                 let t = context.date.timeIntervalSinceReferenceDate
                 mesh(phase: (t.truncatingRemainder(dividingBy: 24)) / 24 * 2 * .pi)
             }

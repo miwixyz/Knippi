@@ -318,12 +318,27 @@ extension View {
 
     /// Glas-Element (Kapsel, runder Knopf, schwebende Leiste). NUR für Bedienelemente,
     /// die über Inhalt schweben — nie für Inhaltsflächen (siehe Design-System, Regel G1).
-    @ViewBuilder
     func familyGlass<S: Shape>(in shape: S) -> some View {
-        if #available(macOS 26.0, iOS 26.0, *) {
-            glassEffect(.regular, in: shape)
+        modifier(FamilyGlassModifier(shape: shape))
+    }
+}
+
+/// `familyGlass`: bei „Transparenz reduzieren“ eine feste Familien-Fläche statt Glas
+/// (bei `familyTintedGlass` liegt die Tönung dann deckend darauf).
+private struct FamilyGlassModifier<S: Shape>: ViewModifier {
+    let shape: S
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    func body(content: Content) -> some View {
+        if reduceTransparency {
+            content
+                .background(shape.fill(FamilyTheme.card))
+                .overlay(shape.stroke(FamilyTheme.cardStroke, lineWidth: 0.8))
+        } else if #available(macOS 26.0, iOS 26.0, *) {
+            content.glassEffect(.regular, in: shape)
         } else {
-            background(.ultraThinMaterial, in: shape)
+            content
+                .background(.ultraThinMaterial, in: shape)
                 .overlay { shape.stroke(.white.opacity(0.35), lineWidth: 0.8) }
         }
     }
@@ -346,8 +361,10 @@ private struct FamilyLiquidGlassModifier<S: Shape>: ViewModifier {
         let increased = contrast == .increased
         Group {
             if reduceTransparency {
+                // Feste Fläche; eine (halbdurchsichtige) Tönung liegt deckend darauf, nie über dem Schreibtisch.
                 content
-                    .background(shape.fill(tint.map { AnyShapeStyle($0) } ?? AnyShapeStyle(FamilyTheme.card)))
+                    .background { if let tint { shape.fill(tint) } }
+                    .background(shape.fill(FamilyTheme.card))
                     .overlay(shape.stroke(FamilyTheme.cardStroke, lineWidth: increased ? 1 : 0.8))
             } else if #available(macOS 26.0, iOS 26.0, *) {
                 content
