@@ -197,3 +197,40 @@ struct CursorTelemetryExportTests {
         try? FileManager.default.removeItem(at: url)
     }
 }
+
+@Suite("CursorTelemetry pause")
+struct CursorTelemetryPauseTests {
+
+    private let rect = CGRect(x: 0, y: 0, width: 100, height: 100)
+    private let point = CGPoint(x: 50, y: 50)
+
+    @Test("Events during a pause are dropped and later times have the pause cut out")
+    func pauseCutsTimeline() {
+        let telemetry = CursorTelemetry(recordingRect: rect)
+        telemetry.addEvent(atUptime: 1.0, globalPoint: point, type: .move)
+        telemetry.pause(atUptime: 2.0)
+        telemetry.addEvent(atUptime: 3.0, globalPoint: point, type: .leftClick)
+        telemetry.resume(atUptime: 7.0)
+        telemetry.addEvent(atUptime: 7.5, globalPoint: point, type: .leftClick)
+        telemetry.pause(atUptime: 8.0)
+        telemetry.resume(atUptime: 10.0)
+        telemetry.addEvent(atUptime: 11.0, globalPoint: point, type: .move)
+
+        let events = telemetry.exportData().events
+        #expect(events.map(\.timestamp) == [1.0, 2.5, 4.0])
+        #expect(events.map(\.type) == [.move, .leftClick, .move])
+    }
+
+    @Test("Repeated pause or resume calls do not change the offset")
+    func repeatedCallsAreIgnored() {
+        let telemetry = CursorTelemetry(recordingRect: rect)
+        telemetry.resume(atUptime: 1.0)
+        telemetry.pause(atUptime: 2.0)
+        telemetry.pause(atUptime: 3.0)
+        telemetry.resume(atUptime: 4.0)
+        telemetry.resume(atUptime: 5.0)
+        telemetry.addEvent(atUptime: 6.0, globalPoint: point, type: .move)
+
+        #expect(telemetry.exportData().events.map(\.timestamp) == [4.0])
+    }
+}

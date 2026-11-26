@@ -43,6 +43,10 @@ struct QuickAccessView: View {
     @State private var dragError: QuickAccessDragFileStoreError?
     @State private var shareAnchor = SystemShareAnchor()
     @State private var shareFailureToast: ToastWindow?
+    /// Local record of this card's last upload; enables "Delete Link".
+    @State private var uploadedRecord: UploadRecord?
+    @State private var isDeletingLink = false
+    @State private var linkDeletionToast: ToastWindow?
     @FocusState private var isFocused: Bool
 
     private typealias DragPreparationResult = Result<URL, QuickAccessDragFileStoreError>
@@ -271,6 +275,13 @@ struct QuickAccessView: View {
             .keyboardShortcut("s", modifiers: [.command, .shift])
             ForEach(QuickAccessActionLayout.overflowActions, id: \.rawValue) { action in
                 overflowTool(action)
+            }
+            if uploadedRecord != nil {
+                Divider()
+                Button(role: .destructive, action: deleteUploadedLink) {
+                    Label(String(localized: "Delete Link"), systemImage: "link.badge.minus")
+                }
+                .disabled(isDeletingLink)
             }
         } label: {
             toolFace(.overflow, icon: "ellipsis", isPrimary: false)
@@ -529,7 +540,8 @@ struct QuickAccessView: View {
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
         do {
-            _ = try await coord.upload(file: tempURL, contentType: output.format.mimeType)
+            let result = try await coord.uploadReturningRecord(file: tempURL, contentType: output.format.mimeType)
+            uploadedRecord = result.record
             visualState = .succeeded
             try? await Task.sleep(for: .seconds(3))
             if case .succeeded = visualState {
@@ -540,6 +552,54 @@ struct QuickAccessView: View {
         } catch {
             visualState = .failed(.unknown(error.localizedDescription))
         }
+    }
+
+    /// Deletes this card's uploaded object at the provider. Uses the coordinator that is
+    /// configured now (not the one the card was created with), and the record store refuses
+    /// to delete when the destination has changed since the upload.
+    private func deleteUploadedLink() {
+        guard let record = uploadedRecord, !isDeletingLink else { return }
+        guard let current = AppDelegate.shared?.shareCoordinator else {
+            showLinkDeletionResult(
+                String(format: String(localized: "Link not deleted: %@"), String(localized: "Cloud Share is not configured.")),
+                succeeded: false
+            )
+            return
+        }
+        isDeletingLink = true
+        Task {
+            defer { isDeletingLink = false }
+            do {
+                try await current.uploadRecords.deleteUpload(record, using: current.destination)
+                uploadedRecord = nil
+                showLinkDeletionResult(String(localized: "Link deleted. The screenshot is no longer online."), succeeded: true)
+            } catch UploadDeletionError.destinationMismatch {
+                showLinkDeletionResult(
+                    String(localized: "Link not deleted: it was uploaded to a different Cloud Share destination than the one set up now."),
+                    succeeded: false
+                )
+            } catch UploadDeletionError.failed(let error) {
+                showLinkDeletionResult(
+                    String(format: String(localized: "Link not deleted: %@"), CaptureCoordinator.humanizeShareError(error)),
+                    succeeded: false
+                )
+            } catch {
+                showLinkDeletionResult(
+                    String(format: String(localized: "Link not deleted: %@"), error.localizedDescription),
+                    succeeded: false
+                )
+            }
+        }
+    }
+
+    private func showLinkDeletionResult(_ message: String, succeeded: Bool) {
+        let toast = ToastWindow(
+            message: message,
+            icon: succeeded ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
+            iconColor: succeeded ? .systemGreen : .systemOrange
+        )
+        linkDeletionToast = toast
+        toast.show(autoDismissAfter: succeeded ? 3 : 8)
     }
 
     private func startAutoUploadIfNeeded() {

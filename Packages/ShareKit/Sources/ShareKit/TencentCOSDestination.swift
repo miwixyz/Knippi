@@ -15,6 +15,8 @@ public actor TencentCOSDestination: ShareDestination {
         config.publicURL(forObjectKey: config.objectKey(for: key))
     }
 
+    public nonisolated var destinationID: String { config.destinationID }
+
     public func upload(file: URL, key: String, contentType: String) async throws -> URL {
         let objectKey = config.objectKey(for: key)
         let request = try signedRequest(method: "PUT", objectKey: objectKey, contentType: contentType)

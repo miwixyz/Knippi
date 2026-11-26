@@ -91,6 +91,12 @@ public final class ScreenRecorder {
     private var recordingConfig: RecordingConfig?
     private var recordingSourceSize: CGSize?
     private var streamInterrupted = false
+    /// Configuration the stream runs with; changed in place for the pause frame rate.
+    private var streamConfiguration: SCStreamConfiguration?
+    /// Tail of the serial chain of frame-rate updates (see `updateFrameRateForState`).
+    private var frameRateUpdate: Task<Void, Never>?
+    private var pausedFrameRateApplied = false
+    static let pausedFrameInterval = CMTime(value: 1, timescale: 1)
 
     public init() {}
 
@@ -154,11 +160,48 @@ public final class ScreenRecorder {
     public func pause() {
         guard state == .recording else { return }
         state = .paused; writer.pause(); stopElapsedTimer()
+        updateFrameRateForState()
     }
 
     public func resume() {
         guard state == .paused else { return }
         state = .recording; writer.activate(); startElapsedTimer()
+        updateFrameRateForState()
+    }
+
+    /// While paused every frame is thrown away, so the stream drops to one frame per
+    /// `pausedFrameInterval` instead of capturing and discarding 30 per second.
+    ///
+    /// Updates run one after another; each reads `state` only once the previous one has
+    /// finished, so after a fast pause/resume the rate for the latest state wins.
+    /// Timing stays as before: the pause is cut on the stream clock (`RecordingWriter`),
+    /// not by counting frames. A frame still arriving at the slow rate after resume is
+    /// written like any other (only buffers stamped before the resume are dropped); at
+    /// worst the last frame stands up to one interval longer, the same as on a still screen.
+    private func updateFrameRateForState() {
+        let previous = frameRateUpdate
+        frameRateUpdate = Task { @MainActor [weak self] in
+            await previous?.value
+            guard let self, let stream = self.stream, let sc = self.streamConfiguration,
+                  let fps = self.recordingConfig?.fps, !self.streamInterrupted else { return }
+            let wantPaused: Bool
+            switch self.state {
+            case .paused: wantPaused = true
+            case .recording: wantPaused = false
+            default: return
+            }
+            guard wantPaused != self.pausedFrameRateApplied else { return }
+            sc.minimumFrameInterval = wantPaused
+                ? Self.pausedFrameInterval
+                : CMTime(value: 1, timescale: CMTimeScale(fps))
+            do {
+                try await stream.updateConfiguration(sc)
+                self.pausedFrameRateApplied = wantPaused
+                knippiLog("Frame interval \(sc.minimumFrameInterval.seconds)s (paused=\(wantPaused))")
+            } catch {
+                knippiLog("updateConfiguration failed (paused=\(wantPaused)): \(error)")
+            }
+        }
     }
 
     public func stopRecording() async throws -> RecordingResult {
@@ -168,6 +211,11 @@ public final class ScreenRecorder {
         state = .stopping
         stopElapsedTimer()
         writer.deactivate()
+        // Let a running frame-rate update finish before the stream stops (queued ones
+        // see `.stopping` and return).
+        let pendingFrameRateUpdate = frameRateUpdate
+        frameRateUpdate = nil
+        await pendingFrameRateUpdate?.value
         if let s = stream, !streamInterrupted {
             do {
                 try await s.stopCapture()
@@ -273,7 +321,7 @@ public final class ScreenRecorder {
             try captureStream.addStreamOutput(output, type: .microphone, sampleHandlerQueue: queue)
         }
 
-        self.stream = captureStream; self.streamOutput = output
+        self.stream = captureStream; self.streamOutput = output; self.streamConfiguration = sc
         // Pauses are measured on the stream's own clock, the one its buffers are stamped
         // with (audit R1). Host clock only as fallback.
         writer.clock = captureStream.synchronizationClock ?? CMClockGetHostTimeClock()
@@ -423,6 +471,7 @@ public final class ScreenRecorder {
     /// marker once it is saved, so a crash before that still recovers it (audit R6).
     private func cleanup(keepRecoveryMarker: Bool = false) {
         stream = nil; streamOutput = nil; recordingConfig = nil; recordingQueue = nil; recordingSourceSize = nil
+        streamConfiguration = nil; frameRateUpdate = nil; pausedFrameRateApplied = false
         streamInterrupted = false
         lastDiskSpaceCheck = 0; diskSpaceLowReported = false; writerFailureReported = false
         writer.reset(); stopElapsedTimer()

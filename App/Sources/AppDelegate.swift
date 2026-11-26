@@ -225,6 +225,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         false
     }
 
+    /// Longest a quit waits for a running recording to be stopped and saved.
+    static let terminationRecordingTimeout: Duration = .seconds(10)
+    private var isTerminatingAfterRecording = false
+
+    /// Quitting during a recording (menu, Cmd-Q, logout, Sparkle's install-and-relaunch)
+    /// first stops and saves it; otherwise the file stayed unfinished and up to the last
+    /// 5 s were lost. After `terminationRecordingTimeout` the app quits anyway; the
+    /// recovery marker then brings back what was written on the next launch.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if isTerminatingAfterRecording { return .terminateLater }
+        guard let coordinator = recordingCoordinator, coordinator.isCapturingVideo else {
+            return .terminateNow
+        }
+        isTerminatingAfterRecording = true
+
+        coordinator.stopRecording(forTermination: true) { [weak self] _ in
+            self?.replyToPendingTermination()
+        }
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: Self.terminationRecordingTimeout)
+            self?.replyToPendingTermination()
+        }
+        return .terminateLater
+    }
+
+    /// Answers the `.terminateLater` exactly once (save finished or timeout, whichever first).
+    private func replyToPendingTermination() {
+        guard isTerminatingAfterRecording else { return }
+        isTerminatingAfterRecording = false
+        NSApp.reply(toApplicationShouldTerminate: true)
+    }
+
     func application(_ application: NSApplication, open urls: [URL]) {
         let (imageFiles, remainder) = ImageFileOpenRequest.partition(urls: urls)
 

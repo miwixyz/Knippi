@@ -15,6 +15,8 @@ public actor S3Destination: ShareDestination {
         config.publicURL(forObjectKey: config.objectKey(for: key))
     }
 
+    public nonisolated var destinationID: String { config.destinationID }
+
     public func upload(file: URL, key: String, contentType: String) async throws -> URL {
         let objectKey = config.objectKey(for: key)
         let target = S3CompatibleHTTP.amazonS3Target(

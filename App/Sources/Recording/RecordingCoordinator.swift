@@ -63,6 +63,8 @@ final class RecordingCoordinator {
     /// A stop is in progress; a second Stop (double click, warning panel, disk + writer
     /// timer in the same tick) must not report "Couldn't finish recording" (audit R4).
     private var isStopping = false
+    /// A quit asked for while a stop was already running: called when that stop is done.
+    private var terminationFollowUp: (@MainActor (_ saved: Bool) -> Void)?
     /// Runs once the quick-preview save of the just-stopped recording finished (true = saved).
     private var pendingSaveCompletion: ((Bool) -> Void)?
     private var escEventTap: CFMachPort?
@@ -802,16 +804,35 @@ final class RecordingCoordinator {
     /// `afterStop` runs once the recording was stopped and, in the quick-preview flow, the
     /// save finished; its argument says whether it is saved (in the editor flow it is not
     /// saved yet). Before, it ran right after the save had only *started* (audit R2).
-    func stopRecording(afterStop: (@MainActor (_ saved: Bool) -> Void)? = nil) {
-        guard !isStopping else { return }
+    /// `forTermination`: the app is quitting. The recording is saved right away like in the
+    /// quick-preview flow (an editor would close with the app and lose it), and `afterStop`
+    /// also runs when stopping failed, so the quit does not wait for nothing.
+    func stopRecording(forTermination: Bool = false, afterStop: (@MainActor (_ saved: Bool) -> Void)? = nil) {
+        guard !isStopping else {
+            // A stop is already running (Stop clicked, then quit): hook the quit onto it,
+            // otherwise it would wait out the whole timeout and the recording would open
+            // in an editor that closes with the app.
+            if forTermination { terminationFollowUp = afterStop }
+            return
+        }
         isStopping = true
+        let editorWanted = settings.openEditorAfterRecording && !forTermination
         Task {
             defer { isStopping = false }
+            let finish: @MainActor (_ saved: Bool) -> Void = { [weak self] saved in
+                afterStop?(saved)
+                if let follow = self?.terminationFollowUp {
+                    self?.terminationFollowUp = nil
+                    follow(saved)
+                }
+            }
             do {
                 let result = try await recorder.stopRecording()
+                // Decided after the stop: a quit that arrived meanwhile wins over the editor.
+                let opensEditor = editorWanted && terminationFollowUp == nil
                 // Only the editor reads cursor.json; the quick-preview flow never did, so
                 // writing it there just piled files up (audit R11, 21.11.).
-                let cursorTelemetryURL = stopCursorTelemetry(save: settings.openEditorAfterRecording)
+                let cursorTelemetryURL = stopCursorTelemetry(save: opensEditor)
                 hideRecordingUI()
 
                 let tempURL = result.fileURL
@@ -819,7 +840,7 @@ final class RecordingCoordinator {
                 let format = result.format as RecordingKit.RecordingFormat
                 startAutomaticClipboardCopyIfNeeded(url: tempURL, format: format)
 
-                if settings.openEditorAfterRecording {
+                if opensEditor {
                     // The editor owns the file from here; recovery after a crash only
                     // covers the quick-preview flow (audit R6).
                     InterruptedRecording.clear(ifMarking: tempURL)
@@ -842,19 +863,23 @@ final class RecordingCoordinator {
                     let duration = VideoThumbnail.formattedDuration(result.duration)
                     showRecordingPreview(thumbnail: nsThumb, duration: duration, fileSize: size,
                                         tempURL: tempURL, format: format)
-                    if let afterStop {
-                        pendingSaveCompletion = { saved in afterStop(saved) }
-                    }
+                    pendingSaveCompletion = { saved in finish(saved) }
                     recordingPreviewWindow?.onSave?()
                     return
                 }
-                afterStop?(false)
+                finish(false)
             } catch {
                 NSLog("[Knippi] Failed to stop/save recording: %@", String(describing: error))
                 hideRecordingUI()
                 await self.handleRecordingStopFailure(error)
+                if forTermination || terminationFollowUp != nil { finish(false) }
             }
         }
+    }
+
+    /// Video is being captured or its stop is finishing the file (not idle, not counting down).
+    var isCapturingVideo: Bool {
+        recorder.state == .recording || recorder.state == .paused || recorder.state == .stopping
     }
 
     /// Stopping failed. A partly written file is saved if possible; either
@@ -1617,6 +1642,22 @@ final class RecordingCoordinator {
         }
     }
 
+    /// Pauses video and cursor telemetry together: the video has the pause cut out, so
+    /// the telemetry must too, or pointer, clicks and auto-zoom in the editor land late
+    /// by the length of every pause.
+    private func togglePause() {
+        switch recorder.state {
+        case .recording:
+            recorder.pause()
+            cursorTelemetry?.pause()
+        case .paused:
+            recorder.resume()
+            cursorTelemetry?.resume()
+        default:
+            break
+        }
+    }
+
     private func showRecordingControls() {
         guard let screen = selectedScreen,
               let recordingFrame = appKitRecordingFrame() else { return }
@@ -1625,6 +1666,7 @@ final class RecordingCoordinator {
             recordingFrame: recordingFrame,
             screen: screen,
             recorder: recorder,
+            onTogglePause: { [weak self] in self?.togglePause() },
             onStop: { [weak self] in self?.stopRecording() },
             onRestart: { [weak self] in self?.restartRecording() },
             onDelete: { [weak self] in self?.confirmDeleteRecording() }

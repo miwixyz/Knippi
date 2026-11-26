@@ -10,6 +10,11 @@ struct CloudShareSettingsView: View {
     @State private var testResult: TestResultAlert?
     @State private var showingAutoUploadConfirmation = false
     @State private var showingResetConfirmation = false
+    @State private var deletingRecordIDs: Set<UUID> = []
+    @State private var deletingAll = false
+    @State private var showingDeleteAllConfirmation = false
+
+    private var uploadStore: UploadRecordStore { .shared }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -20,7 +25,22 @@ struct CloudShareSettingsView: View {
                 configuredView
             } else {
                 notConfiguredView
+                // Entries stay visible after a reset: those files are still online.
+                if !uploadStore.records.isEmpty {
+                    uploadedGroup
+                }
             }
+        }
+        .alert(
+            String(localized: "Delete All Uploaded Screenshots?"),
+            isPresented: $showingDeleteAllConfirmation
+        ) {
+            Button(String(localized: "Cancel"), role: .cancel) {}
+            Button(String(localized: "Delete All"), role: .destructive) {
+                Task { await deleteAllUploads() }
+            }
+        } message: {
+            Text(String(format: String(localized: "This deletes %lld uploaded screenshots from your storage. Their links stop working. This cannot be undone."), deletableRecordCount))
         }
         .sheet(isPresented: $showWizard) {
             CloudShareWizardView(viewModel: viewModel, onComplete: {
@@ -179,7 +199,169 @@ struct CloudShareSettingsView: View {
                     }
                 }
             }
+
+            uploadedGroup
         }
+    }
+
+    // MARK: - Uploaded
+
+    /// The destination deletes go to: only the one configured right now.
+    private var currentDestination: (any ShareDestination)? {
+        AppDelegate.shared?.shareCoordinator?.destination
+    }
+
+    private func belongsToCurrentDestination(_ record: UploadRecord) -> Bool {
+        guard let currentDestination else { return false }
+        return record.destinationID == currentDestination.destinationID
+    }
+
+    private var deletableRecordCount: Int {
+        uploadStore.records.filter(belongsToCurrentDestination).count
+    }
+
+    private var uploadedGroup: some View {
+        SettingGroup(title: "Uploaded") {
+            SettingCard {
+                HStack(alignment: .center) {
+                    Text(String(localized: "Screenshots uploaded with Cloud Share stay public until you delete them here."))
+                        .font(FamilyTheme.font(11))
+                        .foregroundStyle(FamilyTheme.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Button(String(localized: "Delete All…"), role: .destructive) {
+                        showingDeleteAllConfirmation = true
+                    }
+                    .controlSize(.small)
+                    .disabled(deletingAll || deletableRecordCount == 0)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+
+                if let error = uploadStore.lastPersistenceError {
+                    Divider()
+                    Label(
+                        String(format: String(localized: "The upload list could not be read or saved: %@"), error),
+                        systemImage: "exclamationmark.triangle.fill"
+                    )
+                    .font(FamilyTheme.font(11))
+                    .foregroundStyle(.orange)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                }
+
+                if uploadStore.records.isEmpty {
+                    Divider()
+                    Text(String(localized: "No uploaded screenshots."))
+                        .font(FamilyTheme.font(12))
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                } else {
+                    ForEach(uploadStore.records) { record in
+                        Divider()
+                        uploadRecordRow(record)
+                    }
+                }
+            }
+        }
+    }
+
+    private func uploadRecordRow(_ record: UploadRecord) -> some View {
+        let matches = belongsToCurrentDestination(record)
+        return HStack(alignment: .center, spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: record.displayName)
+                    .font(FamilyTheme.font(13))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Text(record.uploadedAt.formatted(date: .abbreviated, time: .shortened))
+                    .font(FamilyTheme.font(11))
+                    .foregroundStyle(FamilyTheme.textSecondary)
+                if !matches {
+                    Text(String(localized: "Uploaded to a different destination than the one set up now. It can't be deleted from here."))
+                        .font(FamilyTheme.font(11))
+                        .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer()
+            if deletingRecordIDs.contains(record.id) {
+                ProgressView()
+                    .controlSize(.small)
+            } else if matches {
+                Button(String(localized: "Delete"), role: .destructive) {
+                    Task { await deleteUpload(record) }
+                }
+                .controlSize(.small)
+                .disabled(deletingAll)
+            } else {
+                Button(String(localized: "Remove from List")) {
+                    uploadStore.remove(id: record.id)
+                }
+                .controlSize(.small)
+                .help(String(localized: "Removes only the entry. The file stays online."))
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+    }
+
+    private func deleteUpload(_ record: UploadRecord) async {
+        guard let destination = currentDestination else {
+            testResult = TestResultAlert(
+                title: String(localized: "Link not deleted"),
+                message: humanize(.notConfigured)
+            )
+            return
+        }
+        deletingRecordIDs.insert(record.id)
+        defer { deletingRecordIDs.remove(record.id) }
+        do {
+            try await uploadStore.deleteUpload(record, using: destination)
+        } catch UploadDeletionError.destinationMismatch {
+            testResult = TestResultAlert(
+                title: String(localized: "Link not deleted"),
+                message: String(localized: "It was uploaded to a different Cloud Share destination than the one set up now.")
+            )
+        } catch UploadDeletionError.failed(let error) {
+            testResult = TestResultAlert(title: String(localized: "Link not deleted"), message: humanize(error))
+        } catch {
+            testResult = TestResultAlert(title: String(localized: "Link not deleted"), message: error.localizedDescription)
+        }
+    }
+
+    private func deleteAllUploads() async {
+        guard let destination = currentDestination else {
+            testResult = TestResultAlert(
+                title: String(localized: "Links not deleted"),
+                message: humanize(.notConfigured)
+            )
+            return
+        }
+        deletingAll = true
+        let summary = await uploadStore.deleteAllUploads(using: destination)
+        deletingAll = false
+
+        var lines: [String] = [
+            String(format: String(localized: "%lld deleted."), summary.deleted)
+        ]
+        if !summary.failed.isEmpty {
+            lines.append(String(format: String(localized: "%lld not deleted; they stay in the list."), summary.failed.count))
+            if let first = summary.failed.values.first {
+                lines.append(humanize(first))
+            }
+        }
+        if summary.skippedOtherDestination > 0 {
+            lines.append(String(format: String(localized: "%lld belong to a different destination and were kept."), summary.skippedOtherDestination))
+        }
+        testResult = TestResultAlert(
+            title: summary.failed.isEmpty
+                ? String(localized: "Links deleted")
+                : String(localized: "Some links were not deleted"),
+            message: lines.joined(separator: "\n")
+        )
     }
 
     private var currentProvider: ShareProvider? {

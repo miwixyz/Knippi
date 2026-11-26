@@ -100,7 +100,7 @@ option + shift + 4 und einen Bereich aufziehen: Knippi erkennt den Text darin un
 
 Im Schnellzugriff öffnet „Teilen“ das Teilen-Menü von macOS: AirDrop, Nachrichten, Mail und mehr. command + P heftet die Aufnahme als schwebendes Fenster an den Bildschirm.
 
-**Cloud-Freigabe** (optional): Knippi lädt in **deinen eigenen** Cloud-Speicher hoch, zum Beispiel einen Cloudflare-R2-Bucket, nie auf fremde Server. Einrichten unter Einstellungen → Cloud-Freigabe.
+**Cloud-Freigabe** (optional): Knippi lädt in **deinen eigenen** Cloud-Speicher hoch, zum Beispiel einen Cloudflare-R2-Bucket, nie auf fremde Server. Einrichten unter Einstellungen → Cloud-Freigabe. Hochgeladene Bildschirmfotos bleiben öffentlich, bis du sie löschst: im Vorschaubild über „…“ → „Link löschen“, oder in den Einstellungen → Cloud-Freigabe → „Hochgeladen“ (einzeln oder alle).
 
 ## Stream Deck
 

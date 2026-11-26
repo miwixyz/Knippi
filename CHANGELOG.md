@@ -2,6 +2,22 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [Unreleased]
+
+### Neu
+
+- **Hochgeladene Bildschirmfotos wieder löschen.** Knippi merkt sich jeden Cloud-Upload (nur Dateiname und Ziel, keine Zugangsdaten
+  oder Links). Im Vorschaubild: „…“ → „Link löschen“. In den Einstellungen → Cloud-Freigabe → „Hochgeladen“: einzeln oder alle
+  löschen, mit Rückfrage. Gelöscht wird nur beim eingerichteten Ziel; Uploads zu einem anderen Ziel bleiben in der Liste markiert.
+  Schlägt das Löschen fehl, bleibt der Eintrag und die Ursache steht dabei.
+
+### Behoben
+
+- **Beenden mitten in der Aufnahme:** Knippi stoppt und sichert die Aufnahme zuerst (höchstens 10 Sekunden), statt eine unfertige Datei
+  liegen zu lassen. Klickst du Stopp und beendest sofort danach, wartet das Beenden nicht mehr die ganze Frist ab.
+- **Pause in der Aufnahme:** Mauszeiger, Klicks und Auto-Zoom im Editor liegen nach einer Pause nicht mehr um die Pausenlänge daneben.
+  In der Pause nimmt der Bildschirmstrom nur noch mit 1 Bild pro Sekunde auf (spart Strom).
+
 ## [0.6.1] — 2026-11-26
 
 Ein ausführlicher Prüfdurchgang über den ganzen Code: Fehler behoben, Datenschutz verschärft, Bedienung und Texte verbessert.

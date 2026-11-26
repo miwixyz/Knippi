@@ -53972,6 +53972,236 @@
           }
         }
       }
+    },
+    "Delete Link" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link löschen"
+          }
+        }
+      }
+    },
+    "Link deleted. The screenshot is no longer online." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link gelöscht. Das Bildschirmfoto ist nicht mehr online."
+          }
+        }
+      }
+    },
+    "Link not deleted: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link nicht gelöscht: %@"
+          }
+        }
+      }
+    },
+    "Link not deleted: it was uploaded to a different Cloud Share destination than the one set up now." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link nicht gelöscht: Das Bild liegt bei einem anderen Cloud-Ziel als dem jetzt eingerichteten."
+          }
+        }
+      }
+    },
+    "Uploaded" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hochgeladen"
+          }
+        }
+      }
+    },
+    "Screenshots uploaded with Cloud Share stay public until you delete them here." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit der Cloud-Freigabe hochgeladene Bildschirmfotos bleiben öffentlich, bis du sie hier löschst."
+          }
+        }
+      }
+    },
+    "Delete All…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle löschen …"
+          }
+        }
+      }
+    },
+    "Delete All" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle löschen"
+          }
+        }
+      }
+    },
+    "Delete All Uploaded Screenshots?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle hochgeladenen Bildschirmfotos löschen?"
+          }
+        }
+      }
+    },
+    "This deletes %lld uploaded screenshots from your storage. Their links stop working. This cannot be undone." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das löscht %lld hochgeladene Bildschirmfotos aus deinem Speicher. Ihre Links funktionieren danach nicht mehr. Das lässt sich nicht rückgängig machen."
+          }
+        }
+      }
+    },
+    "The upload list could not be read or saved: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Liste der Uploads konnte nicht gelesen oder gesichert werden: %@"
+          }
+        }
+      }
+    },
+    "No uploaded screenshots." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine hochgeladenen Bildschirmfotos."
+          }
+        }
+      }
+    },
+    "Uploaded to a different destination than the one set up now. It can't be deleted from here." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei einem anderen Ziel hochgeladen als dem jetzt eingerichteten. Von hier aus nicht löschbar."
+          }
+        }
+      }
+    },
+    "Remove from List" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus Liste entfernen"
+          }
+        }
+      }
+    },
+    "Removes only the entry. The file stays online." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernt nur den Eintrag. Die Datei bleibt online."
+          }
+        }
+      }
+    },
+    "Link not deleted" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link nicht gelöscht"
+          }
+        }
+      }
+    },
+    "Links not deleted" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links nicht gelöscht"
+          }
+        }
+      }
+    },
+    "It was uploaded to a different Cloud Share destination than the one set up now." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es liegt bei einem anderen Cloud-Ziel als dem jetzt eingerichteten."
+          }
+        }
+      }
+    },
+    "%lld deleted." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld gelöscht."
+          }
+        }
+      }
+    },
+    "%lld not deleted; they stay in the list." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld nicht gelöscht; sie bleiben in der Liste."
+          }
+        }
+      }
+    },
+    "%lld belong to a different destination and were kept." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld gehören zu einem anderen Ziel und blieben erhalten."
+          }
+        }
+      }
+    },
+    "Links deleted" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links gelöscht"
+          }
+        }
+      }
+    },
+    "Some links were not deleted" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einige Links wurden nicht gelöscht"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

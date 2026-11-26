@@ -80,14 +80,14 @@ struct ShareCoordinatorTests {
 
     @Test("starts idle")
     func startsIdle() {
-        let coord = ShareCoordinator(destination: StubDestination())
+        let coord = ShareCoordinator(destination: StubDestination(), uploadRecords: .temporaryForTests())
         if case .idle = coord.state {} else { Issue.record("expected idle, got \(coord.state)") }
     }
 
     @Test("upload success transitions idle → uploading → succeeded")
     func successPath() async throws {
         let stub = StubDestination()
-        let coord = ShareCoordinator(destination: stub)
+        let coord = ShareCoordinator(destination: stub, uploadRecords: .temporaryForTests())
 
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test.png")
         try Data([0x89, 0x50, 0x4E, 0x47]).write(to: tmp)
@@ -105,7 +105,7 @@ struct ShareCoordinatorTests {
     @Test("an invalidated coordinator refuses to upload")
     func invalidatedCoordinatorRefuses() async throws {
         let stub = StubDestination()
-        let coord = ShareCoordinator(destination: stub)
+        let coord = ShareCoordinator(destination: stub, uploadRecords: .temporaryForTests())
         coord.invalidate()
 
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("invalidated.png")
@@ -122,7 +122,7 @@ struct ShareCoordinatorTests {
     func failurePath() async throws {
         let stub = StubDestination()
         await stub.setShouldFail(.network(underlying: "boom"))
-        let coord = ShareCoordinator(destination: stub)
+        let coord = ShareCoordinator(destination: stub, uploadRecords: .temporaryForTests())
 
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test.png")
         try Data([0]).write(to: tmp)
@@ -139,7 +139,7 @@ struct ShareCoordinatorTests {
     @Test("reset from succeeded returns to idle")
     func resetFromSucceeded() async throws {
         let stub = StubDestination()
-        let coord = ShareCoordinator(destination: stub)
+        let coord = ShareCoordinator(destination: stub, uploadRecords: .temporaryForTests())
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test.png")
         try Data([0x89]).write(to: tmp)
         defer { try? FileManager.default.removeItem(at: tmp) }
@@ -159,7 +159,7 @@ struct ShareCoordinatorTests {
     func resetFromFailed() async throws {
         let stub = StubDestination()
         await stub.setShouldFail(.network(underlying: "boom"))
-        let coord = ShareCoordinator(destination: stub)
+        let coord = ShareCoordinator(destination: stub, uploadRecords: .temporaryForTests())
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test.png")
         try Data([0]).write(to: tmp)
         defer { try? FileManager.default.removeItem(at: tmp) }
@@ -178,7 +178,7 @@ struct ShareCoordinatorTests {
     @Test("contentType is forwarded to destination")
     func contentTypeIsForwarded() async throws {
         let stub = StubDestination()
-        let coord = ShareCoordinator(destination: stub)
+        let coord = ShareCoordinator(destination: stub, uploadRecords: .temporaryForTests())
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test.png")
         try Data([0x89]).write(to: tmp)
         defer { try? FileManager.default.removeItem(at: tmp) }
@@ -191,7 +191,7 @@ struct ShareCoordinatorTests {
     @Test("concurrent uploads are processed in FIFO order")
     func concurrentUploadsAreSerialized() async throws {
         let destination = BlockingDestination()
-        let coord = ShareCoordinator(destination: destination)
+        let coord = ShareCoordinator(destination: destination, uploadRecords: .temporaryForTests())
         let firstURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("first-\(UUID().uuidString).png")
         let secondURL = FileManager.default.temporaryDirectory
@@ -222,7 +222,7 @@ struct ShareCoordinatorTests {
     @Test("a failed upload does not block the next queued upload")
     func failedUploadDoesNotBlockQueue() async throws {
         let destination = BlockingDestination(failFirst: true)
-        let coord = ShareCoordinator(destination: destination)
+        let coord = ShareCoordinator(destination: destination, uploadRecords: .temporaryForTests())
         let firstURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("first-failure-\(UUID().uuidString).png")
         let secondURL = FileManager.default.temporaryDirectory
@@ -265,7 +265,7 @@ struct ShareCoordinatorTests {
     @Test("Copy-when-upload-starts puts the link on the clipboard while the upload is still running")
     func copiesLinkWhenUploadStarts() async throws {
         let destination = BlockingDestination()
-        let coord = ShareCoordinator(destination: destination) { true }
+        let coord = ShareCoordinator(destination: destination, uploadRecords: .temporaryForTests()) { true }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString("before", forType: .string)
 
@@ -284,7 +284,7 @@ struct ShareCoordinatorTests {
     @Test("By default the link is only copied once the upload finishes")
     func copiesLinkAfterUploadByDefault() async throws {
         let destination = BlockingDestination()
-        let coord = ShareCoordinator(destination: destination)
+        let coord = ShareCoordinator(destination: destination, uploadRecords: .temporaryForTests())
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString("before", forType: .string)
 
@@ -313,7 +313,7 @@ struct ShareCoordinatorTests {
     @Test("Early-copied link is removed from the clipboard when the upload fails")
     func earlyCopiedLinkIsRevokedOnFailure() async throws {
         let destination = BlockingDestination(failFirst: true)
-        let coord = ShareCoordinator(destination: destination) { true }
+        let coord = ShareCoordinator(destination: destination, uploadRecords: .temporaryForTests()) { true }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString("before", forType: .string)
 

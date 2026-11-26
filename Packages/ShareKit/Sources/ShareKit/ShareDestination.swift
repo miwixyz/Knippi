@@ -15,10 +15,20 @@ public protocol ShareDestination: Sendable {
     /// known before the upload starts.
     nonisolated func publicURL(for key: String) -> URL
 
+    /// Credential-free identity of the place `delete(key:)` acts on (provider, bucket,
+    /// region/account, endpoint, path prefix). Stored with each upload record so a later
+    /// delete is only sent to the same destination.
+    nonisolated var destinationID: String { get }
+
     /// Delete an object by key. No-op if it doesn't exist.
     func delete(key: String) async throws
 
     /// Round-trip test: upload tiny file, fetch via public URL, delete.
     /// Throws if any step fails.
     func validateConfig() async throws
+}
+
+public extension ShareDestination {
+    /// Fallback for test doubles; the real destinations derive it from their `ShareConfig`.
+    nonisolated var destinationID: String { String(describing: type(of: self)) }
 }

@@ -1,5 +1,6 @@
 // Packages/ShareKit/Sources/ShareKit/ShareConfig.swift
 
+import CryptoKit
 import Foundation
 
 public enum ShareProvider: String, CaseIterable, Sendable {
@@ -79,6 +80,20 @@ public struct ShareConfig: Sendable {
                 throw ShareError.notConfigured
             }
         }
+    }
+
+    /// SHA-256 over everything that decides where `delete(key:)` lands: provider, bucket and
+    /// the non-secret fields. Excludes credentials and the public URL prefix (a new custom
+    /// domain does not move the objects).
+    public var destinationID: String {
+        var parts = [provider.rawValue, bucket.trimmingCharacters(in: .whitespacesAndNewlines)]
+        for (key, value) in fields.sorted(by: { $0.key < $1.key }) {
+            let normalized = key == "pathPrefix" ? ShareConfig.normalizePathPrefix(value) : value
+            guard !normalized.isEmpty else { continue }
+            parts.append("\(key)=\(normalized)")
+        }
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "\n").utf8))
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 
     public func objectKey(for key: String) -> String {

@@ -13,6 +13,11 @@ public enum UploadState: Sendable {
     case failed(ShareError)
 }
 
+public struct ShareUploadResult: Sendable {
+    public let url: URL
+    public let record: UploadRecord
+}
+
 @MainActor
 @Observable
 public final class ShareCoordinator {
@@ -38,11 +43,22 @@ public final class ShareCoordinator {
     private struct UploadRequest {
         let file: URL
         let contentType: String
-        let continuation: CheckedContinuation<URL, Error>
+        let displayName: String?
+        let continuation: CheckedContinuation<ShareUploadResult, Error>
     }
 
-    public init(destination: ShareDestination, copiesLinkWhenUploadStarts: @escaping @MainActor () -> Bool = { false }) {
+    /// Every successful upload is remembered here so the link can be deleted later.
+    public let uploadRecords: UploadRecordStore
+
+    /// `uploadRecords` defaults to `UploadRecordStore.shared` (Application Support);
+    /// tests pass their own store.
+    public init(
+        destination: ShareDestination,
+        uploadRecords: UploadRecordStore? = nil,
+        copiesLinkWhenUploadStarts: @escaping @MainActor () -> Bool = { false }
+    ) {
         self.destination = destination
+        self.uploadRecords = uploadRecords ?? .shared
         self.copiesLinkWhenUploadStarts = copiesLinkWhenUploadStarts
     }
 
@@ -52,12 +68,19 @@ public final class ShareCoordinator {
     /// On failure an early-copied link is removed again (previous clipboard text restored).
     @discardableResult
     public func upload(file: URL, contentType: String) async throws -> URL {
+        try await uploadReturningRecord(file: file, contentType: contentType).url
+    }
+
+    /// Same as `upload(file:contentType:)`, but also returns the local record of the upload
+    /// (needed to delete the link again). `displayName` defaults to the object key.
+    public func uploadReturningRecord(file: URL, contentType: String, displayName: String? = nil) async throws -> ShareUploadResult {
         guard !isInvalidated else { throw ShareError.notConfigured }
         return try await withCheckedThrowingContinuation { continuation in
             uploadQueue.append(
                 UploadRequest(
                     file: file,
                     contentType: contentType,
+                    displayName: displayName,
                     continuation: continuation
                 )
             )
@@ -89,9 +112,14 @@ public final class ShareCoordinator {
                     key: key,
                     contentType: request.contentType
                 )
+                let record = uploadRecords.add(
+                    key: key,
+                    displayName: request.displayName ?? key,
+                    destinationID: destination.destinationID
+                )
                 state = .succeeded(url)
                 if !copiedEarly { copyToClipboard(url) }
-                request.continuation.resume(returning: url)
+                request.continuation.resume(returning: ShareUploadResult(url: url, record: record))
             } catch {
                 if copiedEarly { revokeEarlyCopy(earlyURL, restoring: previousClipboard) }
                 let mapped = (error as? ShareError) ?? ShareError.unknown(error.localizedDescription)

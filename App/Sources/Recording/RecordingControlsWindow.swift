@@ -5,7 +5,7 @@ import RecordingKit
 
 @MainActor
 final class RecordingControlsWindow: NSPanel {
-    init(recordingFrame: CGRect, screen: NSScreen, recorder: ScreenRecorder, onStop: @escaping () -> Void, onRestart: @escaping () -> Void, onDelete: @escaping () -> Void) {
+    init(recordingFrame: CGRect, screen: NSScreen, recorder: ScreenRecorder, onTogglePause: @escaping () -> Void, onStop: @escaping () -> Void, onRestart: @escaping () -> Void, onDelete: @escaping () -> Void) {
         let width: CGFloat = 250
         let height: CGFloat = 52
 
@@ -37,7 +37,7 @@ final class RecordingControlsWindow: NSPanel {
         self.isMovableByWindowBackground = true
         self.sharingType = .none
 
-        let view = RecordingControlsView(recorder: recorder, onStop: onStop, onRestart: onRestart, onDelete: onDelete)
+        let view = RecordingControlsView(recorder: recorder, onTogglePause: onTogglePause, onStop: onStop, onRestart: onRestart, onDelete: onDelete)
         self.contentView = NSHostingView(rootView: view)
     }
 
@@ -46,6 +46,7 @@ final class RecordingControlsWindow: NSPanel {
 
 private struct RecordingControlsView: View {
     let recorder: ScreenRecorder
+    let onTogglePause: () -> Void
     let onStop: () -> Void
     let onRestart: () -> Void
     let onDelete: () -> Void
@@ -73,13 +74,7 @@ private struct RecordingControlsView: View {
 
             Divider().frame(height: 18)
 
-            Button(action: {
-                if recorder.state == .recording {
-                    recorder.pause()
-                } else if recorder.state == .paused {
-                    recorder.resume()
-                }
-            }) {
+            Button(action: onTogglePause) {
                 Image(systemName: recorder.state == .paused ? "play.fill" : "pause.fill")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.white)

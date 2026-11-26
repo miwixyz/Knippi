@@ -66,6 +66,12 @@ public final class CursorTelemetry: @unchecked Sendable {
     /// recording-relative timestamps.
     private var startTime: TimeInterval = 0
 
+    /// Pause bookkeeping (guarded by `lock`, read on the tap thread). The recorder cuts
+    /// a pause out of the video, so the telemetry cuts it out too: timestamps are video
+    /// time, and events during a pause are dropped (they have no frame to land on).
+    private var pausedAtUptime: TimeInterval?
+    private var pausedTotal: TimeInterval = 0
+
     // MARK: - Init
 
     /// Creates a new telemetry recorder for the given recording area.
@@ -119,6 +125,36 @@ public final class CursorTelemetry: @unchecked Sendable {
         lock.withLock { events.append(event) }
     }
 
+    /// Records an event that happened at the given system uptime, converted to video time.
+    /// Dropped while paused. Shared by both capture paths; also used by tests.
+    func addEvent(atUptime uptime: TimeInterval, globalPoint: CGPoint, type: CursorEventType) {
+        let (nx, ny) = normalize(globalPoint: globalPoint)
+        lock.withLock {
+            guard pausedAtUptime == nil else { return }
+            let timestamp = uptime - startTime - pausedTotal
+            events.append(CursorEvent(timestamp: timestamp, x: nx, y: ny, type: type))
+        }
+    }
+
+    // MARK: - Pause
+
+    /// Call together with `ScreenRecorder.pause()`: events stop being recorded until `resume()`.
+    public func pause(atUptime uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) {
+        lock.withLock {
+            if pausedAtUptime == nil { pausedAtUptime = uptime }
+        }
+    }
+
+    /// Call together with `ScreenRecorder.resume()`: later timestamps are shifted back by the
+    /// pause, so they match the video, which has the pause cut out.
+    public func resume(atUptime uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) {
+        lock.withLock {
+            guard let pausedAt = pausedAtUptime else { return }
+            pausedTotal += max(0, uptime - pausedAt)
+            pausedAtUptime = nil
+        }
+    }
+
     // MARK: - CGEvent tap lifecycle
 
     /// Starts capturing cursor events via a CGEvent tap on a background thread.
@@ -142,6 +178,7 @@ public final class CursorTelemetry: @unchecked Sendable {
 
         // Record the reference time for relative timestamps.
         startTime = ProcessInfo.processInfo.systemUptime
+        lock.withLock { pausedAtUptime = nil; pausedTotal = 0 }
         receivedEventCount = 0
 
         var mask: CGEventMask =
@@ -313,10 +350,7 @@ public final class CursorTelemetry: @unchecked Sendable {
         default:              eventType = .move
         }
 
-        let timestamp = ProcessInfo.processInfo.systemUptime - startTime
-        let (nx, ny) = normalize(globalPoint: cgPoint)
-        let cursorEvent = CursorEvent(timestamp: timestamp, x: nx, y: ny, type: eventType)
-        lock.withLock { events.append(cursorEvent) }
+        addEvent(atUptime: ProcessInfo.processInfo.systemUptime, globalPoint: cgPoint, type: eventType)
         nsEventCount &+= 1
     }
 
@@ -387,8 +421,8 @@ public final class CursorTelemetry: @unchecked Sendable {
         // handleNSEvent (avoid edge-clamped positions in telemetry).
         guard isInsideRecordingRect(point) else { return }
 
-        // Timestamp is relative to when start() was called, not absolute uptime.
-        let timestamp = ProcessInfo.processInfo.systemUptime - startTime
+        // Timestamp is relative to when start() was called, minus pauses (see addEvent(atUptime:)).
+        let uptime = ProcessInfo.processInfo.systemUptime
 
         let eventType: CursorEventType
         switch type {
@@ -405,9 +439,7 @@ public final class CursorTelemetry: @unchecked Sendable {
             eventType = .move
         }
 
-        let (nx, ny) = normalize(globalPoint: point)
-        let cursorEvent = CursorEvent(timestamp: timestamp, x: nx, y: ny, type: eventType)
-        lock.withLock { events.append(cursorEvent) }
+        addEvent(atUptime: uptime, globalPoint: point, type: eventType)
     }
 
     // MARK: - Deinit
