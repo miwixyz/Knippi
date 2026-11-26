@@ -17,11 +17,15 @@ final class HistoryStoreTests: XCTestCase {
             .appendingPathComponent("knippi-history-app-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         indexFile = root.appendingPathComponent("index/SearchIndex.json")
-        suite = "knippi.history.tests.\(UUID().uuidString)"
+        // One fixed suite, emptied before and after every test (the tests of this class run
+        // one after another). A fresh UUID suite per test left one .plist per test behind.
+        suite = "knippi.history.tests"
+        UserDefaults().removePersistentDomain(forName: suite)
     }
 
     override func tearDown() async throws {
         UserDefaults().removePersistentDomain(forName: suite)
+        pasteboard?.releaseGlobally()
         try? FileManager.default.removeItem(at: root)
     }
 
