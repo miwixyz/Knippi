@@ -9,6 +9,8 @@ Knippi ist eine schnelle, schlanke Screenshot-App für die Menüleiste des Mac. 
 ## Was Knippi kann
 
 - **Aufnehmen:** Bereich, Fenster oder ganzer Bildschirm, mit eigenen Tastenkürzeln. Auf Wunsch übernimmt Knippi command + shift + 3, 4 und 5.
+- **Menüleiste:** Ein Klick öffnet ein Glas-Fenster mit den Aufnahmearten und den letzten Bildschirmfotos, ein Rechtsklick das vollständige Menü.
+- **Optik:** Liquid Glass von macOS 26, ruhige Bewegung, hell und dunkel; „Transparenz reduzieren“ und „Bewegung reduzieren“ werden berücksichtigt.
 - **Video und GIF:** Bereich oder ganzer Bildschirm, mit Systemaudio, wahlweise Mikrofon und eingeblendetem Sprecherbild, das der Maus ausweicht. Wird nach dem Stoppen automatisch gesichert.
 - **Scroll-Aufnahme:** Lange Seiten (Webseite, Mail, PDF) als ein Bild, von Hand gescrollt oder automatisch bis zum Seitenende. Feste Kopfleisten erscheinen nur einmal.
 - **Schnellzugriff:** Nach der Aufnahme erscheint ein Vorschaubild in der Ecke. Von dort kopieren, sichern, teilen, annotieren oder anheften. Wahlweise öffnet sich sofort der Editor, oder Knippi sichert still.

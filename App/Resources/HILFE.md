@@ -1,6 +1,8 @@
 # Knippi
 
-Knippi wohnt in der Menüleiste. Ein Klick auf das Symbol öffnet das Menü mit allen Aufnahmearten, die Tastenkürzel funktionieren überall.
+Knippi wohnt in der Menüleiste. Ein Klick auf das Symbol öffnet das Knippi-Fenster mit den Aufnahmearten als runden Knöpfen und deinen letzten Bildschirmfotos (wenn der Verlauf an ist). Ein Rechtsklick (oder option-Klick) öffnet das vollständige Menü mit allen Funktionen; dorthin führt auch „…“ unten im Fenster. Die Tastenkürzel funktionieren überall.
+
+Beim Auslösen spielt Knippi einen kurzen, leisen Ton („Tock“). Abschalten unter Einstellungen → Allgemein → „Auslöserton“.
 
 ## Erste Schritte
 

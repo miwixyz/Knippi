@@ -2,6 +2,34 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.7.0] — 2026-11-26
+
+Neue Optik: Knippi sieht jetzt aus wie eine aktuelle macOS-App, mit Liquid Glass, Tiefe und ruhiger Bewegung.
+
+### Neu
+
+- **Knippi-Fenster in der Menüleiste.** Ein Klick auf das Symbol öffnet ein Glas-Fenster mit den Aufnahmearten als runden Knöpfen
+  (Bereich, Vollbild, Fenster, Scrollen, Text erkennen, Video) und den letzten sechs Bildschirmfotos als Kacheln, zum Öffnen oder
+  Ziehen. Während einer Aufzeichnung steht oben ein Block mit Zeit, Pause und Stopp. Das vollständige Menü öffnet ein Rechtsklick
+  oder option-Klick auf das Symbol.
+- **Eigener Auslöser-Ton „Tock“:** kurz, leise und dunkel statt des macOS-Bildschirmfoto-Tons.
+
+### Geändert
+
+- **Liquid Glass überall, wo etwas schwebt:** Werkzeugleisten, Vorschaukarte, Hinweise, Aufzeichnungsleiste, Scroll-Aufnahme,
+  Selbstauslöser, angeheftete Bilder (mit Glas-Knöpfen beim Überfahren) und die Leisten bei der Aufnahme.
+- **Einstellungen:** schwebende Glas-Seitenleiste mit gleitender Auswahl, große Überschriften, ruhig lebender Hintergrund.
+- **Editor:** Das Bild füllt das Fenster, die Werkzeuge schweben als Glas-Kapseln darüber, der Zoom ist eine Glas-Pille unten.
+- **Verlauf:** Glas-Suchleiste, Bilder nach Tagen gruppiert, Karten heben sich beim Überfahren und zeigen Kopieren, Im Finder zeigen
+  und Papierkorb.
+- **Video-Editor, Cloud-Assistent und Hilfe** im selben Stil.
+- „Transparenz reduzieren“, „Bewegung reduzieren“ und „Kontrast erhöhen“ werden berücksichtigt. Der bewegte Hintergrund ruht, solange
+  Knippi nicht im Vordergrund ist (gemessen: unter 0,5 % CPU im Hintergrund).
+
+### Intern
+
+- Messhilfen für Testkopien (`SichttestHooks`), wirken nur bei abweichender Kennung, nie in der echten App.
+
 ## [0.6.2] — 2026-11-26
 
 Zweiter Prüfdurchgang mit Schwerpunkt Datensicherheit, Bedienung und Optik.
