@@ -4,6 +4,7 @@ import AppKit
 import CaptureKit
 import SharedKit
 import ShareKit
+import Observation
 
 struct QuickAccessView: View {
     let thumbnail: NSImage
@@ -29,6 +30,9 @@ struct QuickAccessView: View {
     let onHoverChanged: (Bool) -> Void
     var onUploadBusyChanged: (Bool) -> Void = { _ in }
     let onClose: () -> Void
+    /// Einblende-Zustand, vom Fenster gesteuert (Feder beim Erscheinen). Standard: sichtbar.
+    var reveal = QuickAccessReveal()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotionSetting
 
     @State private var isHovering = false
     @State private var hoveredAction: HoverAction?
@@ -67,7 +71,7 @@ struct QuickAccessView: View {
     private static let thumbnailSize = CGSize(width: 268, height: 142)
 
     private var reduceMotion: Bool {
-        NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        reduceMotionSetting || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
 
     var body: some View {
@@ -101,7 +105,10 @@ struct QuickAccessView: View {
                 .transition(.opacity)
             }
         }
-        .familyTintedGlass(in: RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous))
+        // Echtes Liquid Glass als Kartenrahmen, leicht getönt (das Vorschaubild selbst liegt fest
+        // darauf – Regel G1). Bei „Transparenz reduzieren“ wird es eine feste Karte.
+        .familyLiquidGlass(in: RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous),
+                           tint: FamilyTheme.glassLightTint)
         .clipShape(RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous)
@@ -112,9 +119,13 @@ struct QuickAccessView: View {
         // Ränder dürfen zusammen nicht breiter sein, sonst fängt der unsichtbare Rand einer
         // Karte die Klicks für die Nachbarkarte ab (Radius + Versatz ≤ Rand).
         .compositingGroup()
-        .shadow(color: FamilyTheme.Floating.shadowColor, radius: 4, y: 2)
-        .offset(y: isRevealed ? -2 : 0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.26), value: isRevealed)
+        .shadow(color: FamilyTheme.Floating.shadowColor, radius: isRevealed ? 5 : 4, y: isRevealed ? 3 : 2)
+        // Hover hebt die Karte leicht an (Versatz + Hauch Vergrößerung, bleibt im 6-pt-Rand).
+        .scaleEffect(reduceMotion ? 1 : (reveal.isShown ? (isRevealed ? 1.012 : 1) : 0.94))
+        .offset(y: isRevealed && !reduceMotion ? -2 : 0)
+        .opacity(reveal.isShown ? 1 : 0)
+        .blur(radius: reveal.isShown || reduceMotion ? 0 : 6)
+        .animation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.hover, value: isRevealed)
         .onHover { hovering in
             isHovering = hovering
             onHoverChanged(hovering)
@@ -222,21 +233,22 @@ struct QuickAccessView: View {
     }
 
     private var toolbar: some View {
-        HStack(spacing: 2) {
-            ForEach(visibleActions, id: \.self) { action in
+        HStack(spacing: 3) {
+            ForEach(Array(visibleActions.enumerated()), id: \.element) { index, action in
                 if startsNewGroup(action) {
                     toolDivider
                 }
                 visibleTool(action)
+                    .modifier(StaggeredReveal(isShown: isRevealed, index: index, reduceMotion: reduceMotion))
             }
             toolDivider
             overflowMenu
+                .modifier(StaggeredReveal(isShown: isRevealed, index: visibleActions.count, reduceMotion: reduceMotion))
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("Quick Access actions"))
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 2)
         .padding(.vertical, 3)
-        .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private var visibleActions: [QuickAccessActionKind] {
@@ -336,7 +348,7 @@ struct QuickAccessView: View {
             case .uploading:
                 ProgressView()
                     .controlSize(.small)
-                    .frame(width: 28, height: 26)  // matches toolButton height
+                    .frame(width: 28, height: 28)  // matches toolButton size
             case .succeeded:
                 toolButton(.linkCopied, icon: "checkmark.circle.fill", action: {})
                     .foregroundStyle(FamilyTheme.success)
@@ -356,7 +368,7 @@ struct QuickAccessView: View {
                 onDragStarted: onDragStarted,
                 onDragEnded: onDragEnded
             )
-            .frame(width: 29, height: 28)
+            .frame(width: 28, height: 28)
             .disabled(dragError != nil)
             .accessibilityHidden(true)
         }
@@ -647,16 +659,23 @@ struct QuickAccessView: View {
         }
     }
 
+    /// Runder Knopf: neutrales Glas (reagiert auf Zeiger/Klick), Sichern als Akzent-Kreis.
+    @ViewBuilder
     private func toolFace(_ kind: HoverAction, icon: String, isPrimary: Bool) -> some View {
-        Image(systemName: icon)
-            .font(.system(size: 14, weight: .medium))
+        let glyph = Image(systemName: icon)
+            .font(.system(size: 13, weight: .medium))
             .symbolRenderingMode(.monochrome)
             .foregroundStyle(toolForeground(kind, isPrimary: isPrimary))
-            .frame(width: 29, height: 28)
-            .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(toolBackground(kind, isPrimary: isPrimary))
-            )
+            .frame(width: 28, height: 28)
+        if isPrimary {
+            glyph.background(Circle().fill(toolBackground(kind, isPrimary: true)))
+        } else if hoveredAction == kind {
+            // Erst beim Überfahren wird der Knopf zur runden Glaslinse (dauerhaft wirkten acht
+            // Glaskreise auf der Glaskarte schwer, gemessen 26.11. am echten Fenster).
+            glyph.familyLiquidGlass(in: Circle(), interactive: true)
+        } else {
+            glyph.contentShape(Circle())
+        }
     }
 
     private func toolForeground(_ kind: HoverAction, isPrimary: Bool) -> Color {
@@ -670,7 +689,7 @@ struct QuickAccessView: View {
             // Weiße Schrift → accentFill (Weiß ≥ 5,3 : 1), nicht der helle Dunkelmodus-Akzent.
             return FamilyTheme.accentFill.opacity(hoveredAction == kind ? 1 : 0.9)
         }
-        return hoveredAction == kind ? Color.primary.opacity(0.12) : Color.clear
+        return Color.clear
     }
 
     private func shortcut(for kind: HoverAction) -> (key: KeyEquivalent, modifiers: EventModifiers)? {
@@ -827,5 +846,31 @@ private struct FailurePanel: View {
         case .unknown(let detail):
             return String(localized: "Upload failed: \(detail)")
         }
+    }
+}
+
+/// Wird vom Fenster gesetzt, sobald die Karte wirklich sichtbar ist (Feder-Einblendung).
+@MainActor
+@Observable
+final class QuickAccessReveal {
+    var isShown: Bool
+    init(isShown: Bool = true) { self.isShown = isShown }
+}
+
+/// Aktionsknöpfe erscheinen beim Überfahren gestaffelt von links nach rechts.
+private struct StaggeredReveal: ViewModifier {
+    let isShown: Bool
+    let index: Int
+    let reduceMotion: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(isShown ? 1 : 0)
+            .scaleEffect(isShown || reduceMotion ? 1 : 0.7)
+            .offset(y: isShown || reduceMotion ? 0 : 4)
+            .animation(
+                reduceMotion ? FamilyTheme.Motion.reduced
+                    : (isShown ? FamilyTheme.Motion.appear.delay(Double(index) * 0.028) : .easeOut(duration: 0.12)),
+                value: isShown)
     }
 }

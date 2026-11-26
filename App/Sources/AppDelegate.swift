@@ -113,6 +113,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registerGlobalShortcuts()
         performPendingAutomationURLAction()
         performPendingImageFileOpen()
+        SichttestHooks.apply(captureCoordinator: captureCoordinator)
 
         NotificationCenter.default.addObserver(
             forName: .openScreenshotSettings,

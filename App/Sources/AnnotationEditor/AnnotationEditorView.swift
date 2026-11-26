@@ -370,8 +370,9 @@ struct AnnotationEditorView: View {
 
     private var editorContent: some View {
         VStack(spacing: 0) {
+            // Glas-Kapseln schweben auf derselben Arbeitsfläche wie das Bild – keine Trennlinie,
+            // keine feste Leiste (macOS-26-Muster wie Vorschau/Freeform).
             toolbar
-            Divider()
 
             if showBeautifyPanel {
                 BeautifyPanel(settings: beautifySettingsBinding)
@@ -381,6 +382,7 @@ struct AnnotationEditorView: View {
             canvasArea
             zoomBar
         }
+        .background(FamilyTheme.canvasBackdrop)
         .annotationToolShortcuts(currentTool: $currentTool, isEnabled: !isEditingText)
     }
 
@@ -433,7 +435,7 @@ struct AnnotationEditorView: View {
             ) {
                 previewCanvas
             }
-            .background(Color(white: 0.12))
+            .background(FamilyTheme.canvasBackdrop)
             .overlay(alignment: .top) {
                 if sensitiveSuggestions.isShowing {
                     SensitiveSuggestionsBar(model: sensitiveSuggestions, onPixelateAll: pixelateSensitiveData)
@@ -592,7 +594,7 @@ struct AnnotationEditorView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
-        .background(.bar)
+        .background(FamilyTheme.canvasBackdrop)
     }
 
     private var canvasCornerRadius: CGFloat {

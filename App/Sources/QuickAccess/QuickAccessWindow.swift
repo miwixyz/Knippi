@@ -30,6 +30,8 @@ final class QuickAccessWindow: NSPanel {
 
     private var autoDismissTimer: Timer?
     private var alphaValueBeforeDrag: CGFloat?
+    /// Steuert die Feder-Einblendung der Karte (Skalierung, Deckkraft, Unschärfe) in SwiftUI.
+    private let reveal = QuickAccessReveal()
     private var transitionWindow: QuickAccessTransitionWindow?
     private var closeAnimationID = UUID()
     private var isClosing = false
@@ -130,7 +132,8 @@ final class QuickAccessWindow: NSPanel {
             onDragEnded:   { [weak self] dropped in self?.finishExternalDrag(dropped: dropped) },
             onHoverChanged: { [weak self] hovering in self?.hoverChanged(hovering) },
             onUploadBusyChanged: { [weak self] busy in self?.uploadBusyChanged(busy) },
-            onClose:     { [weak self] in self?.onClose?() }
+            onClose:     { [weak self] in self?.onClose?() },
+            reveal: reveal
         )
 
         let hostingView = NSHostingView(rootView: view)
@@ -231,17 +234,17 @@ final class QuickAccessWindow: NSPanel {
     }
 
     private func showPanel(from startFrame: NSRect) {
-        let finalFrame = frame
-        setFrame(startFrame, display: false)
-        alphaValue = 0
+        // Die Karte federt in SwiftUI auf (0,94 → 1, Deckkraft, Unschärfe weg); das Fenster
+        // steht dabei schon an seinem Platz. „Bewegung reduzieren“: nur Überblendung.
+        reveal.isShown = false
+        alphaValue = 1
         orderFrontRegardless()
         makeKey()
-
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.42
-            ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.22, 0.8, 0.2, 1)
-            self.animator().setFrame(finalFrame, display: true)
-            self.animator().alphaValue = 1
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        DispatchQueue.main.async { [reveal] in
+            withAnimation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.appear) {
+                reveal.isShown = true
+            }
         }
 
         scheduleAutoDismissTimerIfNeeded()

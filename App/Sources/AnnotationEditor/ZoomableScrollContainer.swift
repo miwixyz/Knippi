@@ -47,7 +47,7 @@ struct ZoomableScrollContainer<Content: View>: NSViewRepresentable {
         scrollView.hasHorizontalScroller = true
         scrollView.autohidesScrollers = true
         scrollView.drawsBackground = true
-        scrollView.backgroundColor = NSColor(white: 0.12, alpha: 1)
+        scrollView.backgroundColor = FamilyTheme.canvasBackdropNS
         scrollView.minScale = minScale
         scrollView.maxScale = maxScale
         scrollView.currentScale = zoomScale

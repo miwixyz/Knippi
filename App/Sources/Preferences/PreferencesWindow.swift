@@ -31,32 +31,42 @@ final class PreferencesWindow {
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: PreferencesView.windowSize),
-            styleMask: [.titled, .closable],
+            styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         window.identifier = DockPresenceController.windowIdentifier
         window.title = String(localized: "Knippi Settings")
-        window.minSize = PreferencesView.windowSize
-        window.maxSize = PreferencesView.windowSize
+        // macOS-26-Einstellungsfenster: durchsichtige Titelleiste, Inhalt bis oben, die
+        // Glas-Seitenleiste schwebt unter den Ampel-Knöpfen (wie die Systemeinstellungen).
+        // Der Titel steht als Überschrift im Inhalt; der Fenstertitel bleibt für Fenster-Menü
+        // und Bedienungshilfen gesetzt.
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        // Keine Werkzeugleiste: sie brachte nur einen leeren Streifen über der Seitenleiste.
+        // Die Seitenleiste zeichnet AppKit wie in Schriftsammlung/Finder (verglichen 26.11.).
         window.isReleasedWhenClosed = false
-        window.center()
-
-        // App-Familie G1: fester Fensterkörper statt Behind-Window-Blur
-        // (der Schreibtisch würde sonst den Inhalt einfärben).
-        let visualEffect = NSView()
-        window.contentView = visualEffect
 
         let viewModel = PreferencesViewModel(settings: settings, permissionManager: permissionManager)
-        let hostingView = NSHostingView(rootView: PreferencesView(viewModel: viewModel, updateManager: updateManager, initialTab: tab))
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
-        visualEffect.addSubview(hostingView)
-        NSLayoutConstraint.activate([
-            hostingView.topAnchor.constraint(equalTo: visualEffect.topAnchor),
-            hostingView.bottomAnchor.constraint(equalTo: visualEffect.bottomAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: visualEffect.leadingAnchor),
-            hostingView.trailingAnchor.constraint(equalTo: visualEffect.trailingAnchor),
-        ])
+        let navigation = PreferencesNavigation(selectedTab: tab ?? .general)
+        // NSSplitViewController mit Seitenleisten-Element: macOS 26 zeichnet die Seitenleiste
+        // dann selbst als schwebendes Liquid Glass (wie Systemeinstellungen/Finder).
+        let split = NSSplitViewController()
+        let sidebarItem = NSSplitViewItem(sidebarWithViewController:
+            NSHostingController(rootView: PreferencesSidebarView(navigation: navigation)))
+        sidebarItem.minimumThickness = PreferencesView.sidebarWidth
+        sidebarItem.maximumThickness = PreferencesView.sidebarWidth
+        sidebarItem.canCollapse = false
+        let detail = NSHostingController(rootView: PreferencesDetailView(
+            navigation: navigation, viewModel: viewModel, updateManager: updateManager))
+        let detailItem = NSSplitViewItem(viewController: detail)
+        split.addSplitViewItem(sidebarItem)
+        split.addSplitViewItem(detailItem)
+        window.contentViewController = split
+        window.setContentSize(PreferencesView.windowSize)
+        window.contentMinSize = PreferencesView.windowSize
+        window.contentMaxSize = PreferencesView.windowSize
+        window.center()
 
         self.window = window
         window.makeKeyAndOrderFront(nil)

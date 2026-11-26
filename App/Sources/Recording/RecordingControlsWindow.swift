@@ -57,6 +57,8 @@ private struct RecordingControlsView: View {
     let onDelete: () -> Void
 
     private var isPaused: Bool { recorder.state == .paused }
+    @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 12) {
@@ -75,11 +77,17 @@ private struct RecordingControlsView: View {
             // damit die Farbe nicht das einzige Signal ist. Läuft: Zeit in `danger` mit Punkt.
             HStack(spacing: 5) {
                 Image(systemName: isPaused ? "pause.fill" : "circle.fill")
-                    .font(.system(size: isPaused ? 10 : 7, weight: .bold))
+                    .font(.system(size: isPaused ? 10 : 8, weight: .bold))
+                    // Aufnahmepunkt pulsiert, solange aufgenommen wird.
+                    .symbolEffect(.pulse, options: .repeating, isActive: !isPaused && !reduceMotion)
+                    .contentTransition(.symbolEffect(.replace))
                     .frame(width: 10)
                     .accessibilityHidden(true)
                 Text(formatTime(recorder.elapsedTime))
                     .font(FamilyTheme.font(14, weight: .semibold).monospacedDigit())
+                    .monospacedDigit()
+                    .contentTransition(.numericText(countsDown: false))
+                    .familyAnimation(.snappy(duration: 0.25), value: Int(recorder.elapsedTime))
             }
             .foregroundStyle(isPaused ? FamilyTheme.textSecondary : FamilyTheme.danger)
             .frame(minWidth: 58, alignment: .leading)
@@ -114,7 +122,15 @@ private struct RecordingControlsView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .frame(width: RecordingControlsWindow.barSize.width, height: RecordingControlsWindow.barSize.height)
-        .familyFloatingSurface(in: Capsule())
+        // Liquid-Glass-Kapsel, lesbar getönt (Text dahinter schien bei 0,42 durch, gemessen 26.11.); Knöpfe darin bleiben feste Flächen (kein Glas auf Glas).
+        .familyLiquidGlass(in: Capsule(), tint: FamilyTheme.glassReadableTint)
+        .scaleEffect(appeared || reduceMotion ? 1 : 0.92)
+        .blur(radius: appeared || reduceMotion ? 0 : 4)
+        .opacity(appeared ? 1 : 0)
+        .padding(FamilyTheme.Floating.edge)
+        .onAppear {
+            withAnimation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.appear) { appeared = true }
+        }
     }
 
     /// Runder Leistenknopf: feste, leicht abgesetzte Fläche (kein Glas auf Glas).

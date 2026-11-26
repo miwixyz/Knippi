@@ -73,6 +73,10 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
         identifier = DockPresenceController.windowIdentifier
 
         self.title = String(localized: "Annotate")
+        // Titelleiste geht nahtlos in die Arbeitsfläche über; darunter schweben die Glas-Kapseln.
+        self.titlebarAppearsTransparent = true
+        self.titlebarSeparatorStyle = .none
+        self.backgroundColor = FamilyTheme.canvasBackdropNS
         self.isReleasedWhenClosed = false
         // Use .normal level so the window stays visible when app loses focus
         self.level = .normal

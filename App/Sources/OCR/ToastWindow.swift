@@ -45,20 +45,9 @@ final class ToastWindow: NSPanel {
     }
 
     func show(autoDismissAfter: TimeInterval = 1.5) {
-        let finalFrame = frame
-        var startFrame = finalFrame
-        startFrame.origin.y -= 20
-        setFrame(startFrame, display: false)
-        alphaValue = 0
-
+        // Die Kapsel federt in SwiftUI herein (ToastView.onAppear); das Fenster steht still.
+        alphaValue = 1
         makeKeyAndOrderFront(nil)
-
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.35
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            self.animator().setFrame(finalFrame, display: true)
-            self.animator().alphaValue = 1
-        }
 
         dismissTimer = Timer.scheduledTimer(withTimeInterval: autoDismissAfter, repeats: false) { [weak self] _ in
             Task { @MainActor in
@@ -83,12 +72,16 @@ private struct ToastView: View {
     let message: String
     let icon: String
     let iconColor: Color
+    @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(iconColor)
+                // Häkchen „springt“ einmal, sobald der Hinweis da ist (nicht bei „Bewegung reduzieren“).
+                .symbolEffect(.bounce.up.byLayer, options: .nonRepeating, value: appeared && !reduceMotion)
                 .accessibilityHidden(true)
             Text(message)
                 .font(FamilyTheme.font(13, weight: .medium))
@@ -97,6 +90,16 @@ private struct ToastView: View {
         .fixedSize()
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .familyFloatingSurface(in: Capsule())
+        // Echtes Liquid Glass, leicht getönt (Desktop färbt nicht ein); kein Glas-Schatten.
+        .familyLiquidGlass(in: Capsule(), tint: FamilyTheme.glassReadableTint)
+        .scaleEffect(appeared || reduceMotion ? 1 : 0.9)
+        .offset(y: appeared || reduceMotion ? 0 : 10)
+        .blur(radius: appeared || reduceMotion ? 0 : 4)
+        .opacity(appeared ? 1 : 0)
+        // Transparenter Rand wie bisher: Fenstergröße und Lage bleiben gleich.
+        .padding(FamilyTheme.Floating.edge)
+        .onAppear {
+            withAnimation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.appear) { appeared = true }
+        }
     }
 }
