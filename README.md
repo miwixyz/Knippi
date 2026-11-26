@@ -18,7 +18,7 @@ Knippi ist eine schnelle, schlanke Screenshot-App für die Menüleiste des Mac. 
 - **Hintergründe:** Verläufe, eigene Bilder und Formate wie 16:9, 1:1 und 4:5. Fenster bleiben auf Wunsch transparent mit Schatten.
 - **Texterkennung:** Text aus jedem Bildschirmbereich kopieren, auch aus Bildern und Videos.
 - **Verlauf mit Suche:** Die letzten 25, 50 oder 100 Aufnahmen aus dem Sicherungsordner als Raster, durchsuchbar nach dem Text im Bild, per option + shift + H oder Stream-Deck-Taste geöffnet. Klick kopiert (Shift- oder command-Klick wählt mehrere), Doppelklick öffnet, Leertaste zeigt die Schnellansicht, Ziehen schickt eine Kopie in eine andere App, Entf legt in den Papierkorb (command + Z holt es zurück). Ab Werk aus. Den gelesenen Text speichert Knippi als Suchindex auf deinem Mac; du kannst ihn jederzeit löschen.
-- **Teilen:** Teilen-Menü von macOS, optional Cloud-Freigabe in den eigenen Speicher.
+- **Teilen:** Teilen-Menü von macOS, optional Cloud-Freigabe in den eigenen Speicher. Hochgeladenes lässt sich in Knippi wieder löschen.
 
 Die Hilfe in der App (Menü → „Knippi-Hilfe“) erklärt alles Schritt für Schritt.
 

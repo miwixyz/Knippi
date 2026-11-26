@@ -2,7 +2,9 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
-## [Unreleased]
+## [0.6.2] — 2026-11-26
+
+Zweiter Prüfdurchgang mit Schwerpunkt Datensicherheit, Bedienung und Optik.
 
 ### Neu
 
@@ -10,13 +12,38 @@ Alle nennenswerten Änderungen an Knippi.
   oder Links). Im Vorschaubild: „…“ → „Link löschen“. In den Einstellungen → Cloud-Freigabe → „Hochgeladen“: einzeln oder alle
   löschen, mit Rückfrage. Gelöscht wird nur beim eingerichteten Ziel; Uploads zu einem anderen Ziel bleiben in der Liste markiert.
   Schlägt das Löschen fehl, bleibt der Eintrag und die Ursache steht dabei.
+- **Aufzeichnung stoppen per Tastenkürzel und Menü.** Das Aufzeichnungs-Kürzel stoppt eine laufende Aufzeichnung. Im Menü stehen
+  währenddessen oben „Aufzeichnung stoppen“ und „Aufzeichnung pausieren/fortsetzen“.
+- **Nach dem Sichern** zeigt ein Hinweis, in welchem Ordner das Bildschirmfoto liegt.
+
+### Geändert
+
+- **Neue Optik nach dem Design der App-Familie:** Vorschaukarte, Aufzeichnungsleiste, Hinweise und Scroll-Aufnahme mit weichem Schatten
+  und getöntem Glas, Cloud-Assistent und Video-Editor in Hell und Dunkel, die Werkzeugleiste im Editor passt sich der Fensterbreite an
+  (Stil und weitere Farben im Aufklappfenster). Die Seitenleiste der Einstellungen bricht keine Wörter mehr um.
+- **Einheitliche Begriffe:** Bildschirmfoto (Standbild), Aufzeichnung (Video), Ablageordner, Tastenkürzel. Hilfe korrigiert, unter anderem:
+  Ab Werk wird ein Bildschirmfoto nur kopiert; als Datei landet es erst mit „Sichern“ oder „Automatisch sichern“.
+- **Menü neu geordnet:** Bildschirmfotos, Video, Werkzeuge, Verlauf. Esc schließt den Verlauf, wenn nichts ausgewählt ist.
 
 ### Behoben
 
-- **Beenden mitten in der Aufnahme:** Knippi stoppt und sichert die Aufnahme zuerst (höchstens 10 Sekunden), statt eine unfertige Datei
-  liegen zu lassen. Klickst du Stopp und beendest sofort danach, wartet das Beenden nicht mehr die ganze Frist ab.
-- **Pause in der Aufnahme:** Mauszeiger, Klicks und Auto-Zoom im Editor liegen nach einer Pause nicht mehr um die Pausenlänge daneben.
-  In der Pause nimmt der Bildschirmstrom nur noch mit 1 Bild pro Sekunde auf (spart Strom).
+- **Beenden mit offenem Editor verlor die Arbeit:** Knippi fragt jetzt nach, bevor ungesicherte Bearbeitungen oder eine noch nicht
+  gesicherte Aufzeichnung im Video-Editor verloren gehen.
+- **Zwei Video-Editoren:** Schloss man den ersten, wurde der zweite samt Aufzeichnung mitgeschlossen.
+- **Beenden mitten in der Aufzeichnung:** Knippi stoppt und sichert zuerst (höchstens 10 Sekunden), statt eine unfertige Datei liegen zu
+  lassen.
+- **Pause:** Mauszeiger, Klicks und Auto-Zoom im Editor liegen nach einer Pause nicht mehr um die Pausenlänge daneben. In der Pause nimmt
+  der Bildschirmstrom nur noch 1 Bild pro Sekunde auf.
+- **macOS fragte wiederholt nach der Bildschirmaufnahme-Freigabe**, wenn sie fehlte (beim Öffnen der Einstellungen). Knippi prüft die
+  Freigabe jetzt ohne Nebenwirkung.
+- **Nach dem Schwärzen** lag das ungeschwärzte Bild noch in der Zwischenablage und sein Text im Suchindex. Beides wird jetzt ersetzt.
+- Zwei Exporte in derselben Sekunde überschrieben einander nicht mehr; die Wiederherstellung nach einem Absturz bleibt bis zum echten
+  Sichern erhalten; „Sichern unter“ schreibt atomar; der Editor bleibt offen, wenn das Sichern scheitert.
+
+### Intern
+
+- `VisualSnapshotTests` rendert die Oberfläche hell und dunkel nach PNG (nur mit `KNIPPI_SNAPSHOT_DIR`).
+- Gesperrte Pins fragen die Maus nicht mehr zehnmal pro Sekunde ab; Watchdog-Rennen und Tap-Leck behoben.
 
 ## [0.6.1] — 2026-11-26
 
