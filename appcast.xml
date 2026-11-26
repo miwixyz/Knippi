@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.6.2</title>
+            <pubDate>Thu, 26 Nov 2026 13:31:39 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>563</sparkle:version>
+            <sparkle:shortVersionString>0.6.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><p>Zweiter Prüfdurchgang mit Schwerpunkt Datensicherheit, Bedienung und Optik.</p><h3>Neu</h3><ul><li><b>Hochgeladene Bildschirmfotos wieder löschen.</b> Knippi merkt sich jeden Cloud-Upload (nur Dateiname und Ziel, keine Zugangsdaten oder Links). Im Vorschaubild: „…“ → „Link löschen“. In den Einstellungen → Cloud-Freigabe → „Hochgeladen“: einzeln oder alle löschen, mit Rückfrage. Gelöscht wird nur beim eingerichteten Ziel; Uploads zu einem anderen Ziel bleiben in der Liste markiert. Schlägt das Löschen fehl, bleibt der Eintrag und die Ursache steht dabei.</li><li><b>Aufzeichnung stoppen per Tastenkürzel und Menü.</b> Das Aufzeichnungs-Kürzel stoppt eine laufende Aufzeichnung. Im Menü stehen währenddessen oben „Aufzeichnung stoppen“ und „Aufzeichnung pausieren/fortsetzen“.</li><li><b>Nach dem Sichern</b> zeigt ein Hinweis, in welchem Ordner das Bildschirmfoto liegt.</li></ul><h3>Geändert</h3><ul><li><b>Neue Optik nach dem Design der App-Familie:</b> Vorschaukarte, Aufzeichnungsleiste, Hinweise und Scroll-Aufnahme mit weichem Schatten und getöntem Glas, Cloud-Assistent und Video-Editor in Hell und Dunkel, die Werkzeugleiste im Editor passt sich der Fensterbreite an (Stil und weitere Farben im Aufklappfenster). Die Seitenleiste der Einstellungen bricht keine Wörter mehr um.</li><li><b>Einheitliche Begriffe:</b> Bildschirmfoto (Standbild), Aufzeichnung (Video), Ablageordner, Tastenkürzel. Hilfe korrigiert, unter anderem: Ab Werk wird ein Bildschirmfoto nur kopiert; als Datei landet es erst mit „Sichern“ oder „Automatisch sichern“.</li><li><b>Menü neu geordnet:</b> Bildschirmfotos, Video, Werkzeuge, Verlauf. Esc schließt den Verlauf, wenn nichts ausgewählt ist.</li></ul><h3>Behoben</h3><ul><li><b>Beenden mit offenem Editor verlor die Arbeit:</b> Knippi fragt jetzt nach, bevor ungesicherte Bearbeitungen oder eine noch nicht gesicherte Aufzeichnung im Video-Editor verloren gehen.</li><li><b>Zwei Video-Editoren:</b> Schloss man den ersten, wurde der zweite samt Aufzeichnung mitgeschlossen.</li><li><b>Beenden mitten in der Aufzeichnung:</b> Knippi stoppt und sichert zuerst (höchstens 10 Sekunden), statt eine unfertige Datei liegen zu lassen.</li><li><b>Pause:</b> Mauszeiger, Klicks und Auto-Zoom im Editor liegen nach einer Pause nicht mehr um die Pausenlänge daneben. In der Pause nimmt der Bildschirmstrom nur noch 1 Bild pro Sekunde auf.</li><li><b>macOS fragte wiederholt nach der Bildschirmaufnahme-Freigabe</b>, wenn sie fehlte (beim Öffnen der Einstellungen). Knippi prüft die Freigabe jetzt ohne Nebenwirkung.</li><li><b>Nach dem Schwärzen</b> lag das ungeschwärzte Bild noch in der Zwischenablage und sein Text im Suchindex. Beides wird jetzt ersetzt.</li><li>Zwei Exporte in derselben Sekunde überschrieben einander nicht mehr; die Wiederherstellung nach einem Absturz bleibt bis zum echten Sichern erhalten; „Sichern unter“ schreibt atomar; der Editor bleibt offen, wenn das Sichern scheitert.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.6.2/Knippi-0.6.2.zip" length="5838744" type="application/octet-stream" sparkle:edSignature="ZZbgA3feEi70dE3Ou/TdytLNUZJWWJ8asgGX2A4/Qd6NLjaFSKZG7KIVMrZjXEWHcrsrFh+OiXrVNkMWiWkmAw=="/>
+        </item>
+        <item>
             <title>0.6.1</title>
             <pubDate>Thu, 26 Nov 2026 11:39:35 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Gesichter mitsuchen:</b> „Vertrauliches finden“ schlägt zusätzlich Gesichter vor, ab Werk an, abschaltbar in den Einstellungen unter „Allgemein“ → „Gesichter mitsuchen“. Jedes Gesicht ist ein eigener Rahmen, den du behalten oder auslassen kannst; ein gestrichelter Rahmen ist unsicher. Der Rahmen wird um Haare, Stirn und Ohren vergrößert und grob verpixelt (etwa sechs Blöcke breit, mit festem Rauschen). Gesichts- und Textrahmen verschmelzen nie. <b>Das ist eine Hilfe, kein Schutz:</b> Die Suche läuft auf dem Mac mit Apples Vision und findet gut sichtbare Gesichter. Gemessen an 300 echten Bildschirmfotos fand die Ganzbild-Suche allein rund ein Drittel der Gesichter, die Kombination mit vergrößerten Kacheln etwa dreimal so viele; kleine (unter etwa 25 Pixel), verdeckte, abgewandte und stilisierte Gesichter können trotzdem fehlen oder falsch gerahmt sein. Bitte vor dem Teilen ansehen.</li><li><b>Schwärzungsmodus „Entfernen“:</b> Die Stelle wird aus den Randpixeln rundherum nachgebaut (weicher Verlauf plus leichtes festes Rauschen). Gut für Text auf einfarbigem Grund, etwa Namen in Tabellen; auf Mustern und Fotos bleibt ein sichtbarer Fleck. Vom alten Inhalt geht nichts in die Füllung ein, er lässt sich nicht zurückrechnen. Ein sicherer Vorschlag („Vertrauliches finden“) lässt sich auf „Entfernen“ verstärken, nie auf Verpixeln oder Weichzeichnen abschwächen.</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.6.0/Knippi-0.6.0.zip" length="5695433" type="application/octet-stream" sparkle:edSignature="96fDTGzP2tp3swG8QeF5zLWtDwp6C1L4PfEgSLjunvAw+l5v0vQWiYXblNpwuBNgl8rcwMer4JfOYxuOou58Dg=="/>
         </item>
-        <item>
-            <title>0.5.4</title>
-            <pubDate>Mon, 23 Nov 2026 17:50:37 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>549</sparkle:version>
-            <sparkle:shortVersionString>0.5.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><h3>Behoben</h3><ul><li><b>Knippi-Bildschirmfotos werden als Bildschirmfoto gekennzeichnet.</b> Bisher setzte Knippi das Spotlight-Merkmal „Bildschirmfoto“ (<code>kMDItemIsScreenCapture</code>) nicht, anders als macOS und andere Aufnahme-Programme. Deshalb sah keine App, die Bildschirmfotos daran erkennt, die Aufnahmen von Knippi: Gnotchis Bildschirmfoto-Ablage zeigte sie nicht, und sie fehlten in Spotlight unter der Art „Bildschirmfoto“. Jetzt tragen neu gesicherte Aufnahmen das Merkmal, auch nachdem der Editor sie ersetzt hat (der Austausch löscht Merkmale der alten Datei). Bereits gesicherte ältere Aufnahmen bleiben unmarkiert. Gemessen: Spotlight meldet eine so gesicherte Datei nach rund 6 Sekunden.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.5.4/Knippi-0.5.4.zip" length="5671675" type="application/octet-stream" sparkle:edSignature="W5Xf7cPudVdjbVdPWChpUscWt/WhNYTpYk8qR3ZWbaboeiFmWa3CVVXuAz9qSy+X1VqHFoEUAcrdpFLWiPonAw=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: wziO0nkpctF2MZ7HZWurkfBmCyayFrm7s3IRuW+9o7/Y0mrGuY0M25hprjo7JhbQ2PZaF3BFGed27dKGZsvmBg==
-length: 8603
+edSignature: G/20ACdVPmFZfZZoWYNCinfZem94bXN2w6nGs2ZafB5i8XQvRbophekmzyHI1NkdevXYMfsu840HdOw27OMwBw==
+length: 10883
 -->
