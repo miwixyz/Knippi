@@ -2,6 +2,51 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.6.1] — 2026-11-26
+
+Ein ausführlicher Prüfdurchgang über den ganzen Code: Fehler behoben, Datenschutz verschärft, Bedienung und Texte verbessert.
+
+### Geändert
+
+- **Update-Suche ab Werk aus.** Knippi fragt nicht mehr von selbst bei GitHub nach neuen Versionen. Wer die Suche
+  nie angefasst hatte, steht damit auf „aus“ und bekommt keinen Hinweis mehr: Einstellungen → Allgemein → Updates
+  einschalten oder von Hand „Nach Updates suchen“. Wer sie ausdrücklich eingeschaltet hat, behält sie.
+- **Tastenanzeige zeigt ab Werk nur Kurzbefehle** (⌘ und ⌃), nie normales Tippen. In Passwortfeldern erscheint nichts. Neuer
+  Schalter „Nur Kurzbefehle zeigen“ unter Einstellungen → Aufnahme.
+- **Editor schließt nur nach Rückfrage.** Roter Knopf und ⌘W fragen „Aufnahme verwerfen?“, solange nichts exportiert ist; während
+  eines Exports lässt sich das Fenster nicht schließen. Nach dem Schließen wird die Aufnahme im temporären Ordner gelöscht
+  (bisher blieb jede mehrere hundert MB groß liegen).
+- „Gesichter mitsuchen“ steht jetzt unter Bildschirmfotos. Die Meldung ohne Treffer heißt „Keine Treffer der bekannten Muster“.
+
+### Behoben
+
+- **„Vertrauliches finden“ übersah Geheimnisse:** über Zeilen umbrochene Zugangsschlüssel, Kartennummern und IBAN, kurze
+  Schlüssel hinter Wörtern wie „Passwort:“, „Token:“ oder „API-Key:“ und Hex-Schlüssel ab 16 Zeichen werden jetzt vorgeschlagen.
+- **Editor:** Zog man den Start-Griff hinter den End-Griff, entstand ein leeres Video. Die Griffe halten jetzt Abstand; Schnitte am
+  Rand verschwinden nicht mehr.
+- **Annotation:** Ein Doppelklick auf Text speicherte die Schriftgröße als Linienbreite, danach waren alle Pfeile und Rechtecke dick.
+  Ein Farbwechsel änderte Zählmarken-Größe oder Textmarker-Deckkraft mit. Rückgängig ist während der Textbearbeitung gesperrt.
+  Griffe und Linien treffen bei starkem Zoom wieder.
+- **Bildschirmfoto-Aufnahme:** „Symbole ausblenden“ färbte den Schreibtisch grau, wenn das Hintergrundbild fehlte. Gepinnte
+  Bildschirmfotos waren auf Retina doppelt so groß und zeigten die Zoomstufe falsch. Scroll-Aufnahmen kopierten bei jedem Schritt
+  beide Vollbilder. Ein Bereich unter 2 Pixel meldet sich statt still abzubrechen.
+- **Videoaufnahme und Export:** Halbe Dateien bleiben nach einem Fehler nicht mehr liegen. Die Qualitätsstufe „Social/Web“ gilt
+  auch bei zwei Tonspuren. Trennt sich die Kamera mitten in der Aufnahme, schließt die Kamerablase mit Hinweis. Eine
+  abgebrochene Wiederherstellung meldet sich mit Dateipfad. Die Pause ist an der grauen Zeit erkennbar.
+- **Verlauf:** Ein Einfachklick wählt nur noch aus und überschreibt nicht mehr die Zwischenablage; kopiert wird mit ⌘C, Return oder
+  Doppelklick. Quick Look im Kontextmenü zeigt das angeklickte Bild und verändert die Auswahl nicht.
+- **Teilen:** Uploads folgen keinen Weiterleitungen mehr. Fehler bei Aliyun und Tencent nennen die echte Ursache statt immer
+  „ungültige Zugangsdaten“. Große Bilder aus der Zwischenablage werden begrenzt.
+- **Einstellungen:** Berechtigungen laden neu, wenn du aus den Systemeinstellungen zurückkehrst. „Zurücksetzen“ der Cloud-Freigabe
+  fragt nach. Das Farbfeld nimmt Tippen an. Die Kamerafrage ist deutsch. Texte und Statusfarben folgen dem Theme; Bedienelemente
+  haben Beschriftungen für VoiceOver.
+- Die Editor-Vorschau rechnet im Stillstand nicht mehr 30-mal pro Sekunde.
+
+### Intern
+
+- 12 neue Tests für die Suche nach Vertraulichem; Prüfung der Pakete gegen bekannte Lücken und nach Geheimnissen: sauber.
+- Temporärer Ordner für Ziehdateien heißt jetzt `dev.mwlr.knippi` (war ein Rest aus Capso).
+
 ## [0.6.0] — 2026-11-25
 
 ### Neu

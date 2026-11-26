@@ -38,7 +38,7 @@ Knippi ist von Apple notarisiert und startet ohne Warnung.
 
 ## Aktualisieren
 
-Knippi aktualisiert sich über [Sparkle](https://sparkle-project.org) und sucht im Hintergrund nach neuen Versionen. Von Hand: Einstellungen → Allgemein → „Nach Updates suchen“. Jedes Update und die Liste der Updates sind signiert; Knippi installiert nichts, dessen Signatur nicht stimmt.
+Knippi aktualisiert sich über [Sparkle](https://sparkle-project.org). Ab Version 0.6.1 fragt Knippi ab Werk nicht von selbst nach neuen Versionen: Einstellungen → Allgemein → „Nach Updates suchen“ von Hand, oder die automatische Suche dort einschalten. Jedes Update und die Liste der Updates sind signiert; Knippi installiert nichts, dessen Signatur nicht stimmt.
 
 ## Stream Deck
 
@@ -52,7 +52,7 @@ Mit dem Plugin `Knippi.streamDeckPlugin` (liegt jedem Release bei, Menü „Stre
 
 ## Datenschutz
 
-Aufnahmen, Texterkennung und die Suche nach Vertraulichem laufen vollständig auf dem Mac. Der Verlauf ist ab Werk aus; schaltest du ihn ein, liegt der gelesene Text als Suchindex auf dem Mac und lässt sich löschen. Knippi geht nur für die Update-Suche ins Netz und, falls eingerichtet, für die Cloud-Freigabe in den eigenen Speicher. Keine Analyse, kein Konto, keine Werbung.
+Aufnahmen, Texterkennung und die Suche nach Vertraulichem laufen vollständig auf dem Mac. Der Verlauf ist ab Werk aus; schaltest du ihn ein, liegt der gelesene Text als Suchindex auf dem Mac und lässt sich löschen. Knippi geht nur für die Update-Suche (ab Werk aus, du schaltest sie ein oder startest sie von Hand) ins Netz und, falls eingerichtet, für die Cloud-Freigabe in den eigenen Speicher. Keine Analyse, kein Konto, keine Werbung.
 
 ## Bauen
 
