@@ -54,140 +54,134 @@ struct RecordingToolbarView: View {
     @State private var selectedMicID: String?
     @State private var cameraMenuRevision = 0
     @State private var showCameraPanel = false
+    @State private var appeared = false
+    @State private var recordHovered = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    /// Sichtbare Insel; das Fenster ist ringsum um `Floating.edge` größer (Schattenrand).
+    static let islandSize = CGSize(width: 240, height: 200)
+
+    // Glas-Umbau Phase 3: eine schwebende Glas-Insel. Oben die Maße als Kapsel, darunter
+    // Mikrofon/Systemton/Kamera als Glas-Pillen (an = Akzent), dann der Start-Knopf als
+    // leuchtender Akzent-Kreis, unten GIF und „Bereich ändern“ als leise Kapseln.
     var body: some View {
-        VStack(spacing: 0) {
-            // Top section: dimensions + controls
-            VStack(spacing: 8) {
-                // Dimensions display
-                HStack(spacing: 6) {
-                    Text("\(width)")
-                        .font(FamilyTheme.font(13, weight: .medium).monospacedDigit())
-                        .foregroundStyle(FamilyTheme.textPrimary)
-                        .frame(minWidth: 48)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(FamilyTheme.textPrimary.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-
-                    Text("\u{00D7}")
-                        .font(FamilyTheme.font(13))
-                        .foregroundStyle(FamilyTheme.textSecondary)
-
-                    Text("\(height)")
-                        .font(FamilyTheme.font(13, weight: .medium).monospacedDigit())
-                        .foregroundStyle(FamilyTheme.textPrimary)
-                        .frame(minWidth: 48)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(FamilyTheme.textPrimary.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-
-                    Text("px")
-                        .font(FamilyTheme.font(11, weight: .medium))
-                        .foregroundStyle(FamilyTheme.textSecondary)
-                }
-
-                // Controls row
-                HStack(spacing: 4) {
-                    // Mic menu
-                    micMenuButton
-
-                    toolbarToggle(
-                        icon: systemAudioEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                        isOn: $systemAudioEnabled,
-                        tooltip: "System Audio"
-                    )
-
-                    // Camera menu
-                    cameraMenuButton
-                }
+        VStack(spacing: 10) {
+            HStack(spacing: 6) {
+                Text(verbatim: "\(width) × \(height)")
+                    .font(FamilyTheme.font(13, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(FamilyTheme.textPrimary)
+                    .contentTransition(.numericText())
+                Text(verbatim: "px")
+                    .font(FamilyTheme.font(11, weight: .medium))
+                    .foregroundStyle(FamilyTheme.textSecondary)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 12)
+            .frame(height: 26)
+            .background(Capsule().fill(FamilyTheme.textPrimary.opacity(0.07)))
+            .accessibilityElement(children: .combine)
 
-            hairline
+            HStack(spacing: 8) {
+                micMenuButton
+                toolbarToggle(
+                    icon: systemAudioEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill",
+                    isOn: $systemAudioEnabled,
+                    tooltip: "System Audio"
+                )
+                cameraMenuButton
+            }
+            .familyAnimation(FamilyTheme.Motion.select, value: micEnabled)
+            .familyAnimation(FamilyTheme.Motion.select, value: systemAudioEnabled)
+            .familyAnimation(FamilyTheme.Motion.select, value: cameraEnabled)
 
-            // Action rows
-            VStack(spacing: 0) {
-                // Record GIF
+            recordButton
+
+            HStack(spacing: 6) {
                 Button(action: onRecordGIF) {
-                    HStack(spacing: 10) {
-                        // Neutrale Marke statt Lila: ein Akzent pro App (G2).
-                        Text("GIF")
-                            .font(FamilyTheme.font(10, weight: .bold))
+                    HStack(spacing: 6) {
+                        Text(verbatim: "GIF")
+                            .font(FamilyTheme.font(11, weight: .bold))
                             .foregroundStyle(FamilyTheme.textPrimary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(FamilyTheme.textPrimary.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-
-                        Text("Record GIF")
-                            .font(FamilyTheme.font(13, weight: .medium))
-                            .foregroundStyle(FamilyTheme.textPrimary)
-
-                        Spacer()
-
                         HStack(spacing: 2) {
-                            shortcutKey("\u{2325}")  // Option
-                            shortcutKey("\u{21A9}")  // Return
+                            CaptureShortcutKey(text: "\u{2325}")  // Option
+                            CaptureShortcutKey(text: "\u{21A9}")  // Return
                         }
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .contentShape(Rectangle())
+                    .padding(.horizontal, 10)
+                    .frame(height: 28)
+                    .background(Capsule().fill(FamilyTheme.textPrimary.opacity(0.07)))
+                    .captureHoverLift()
                 }
                 .buttonStyle(.plain)
-
-                hairline
-
-                // Record Video
-                Button(action: onRecordVideo) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "record.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(FamilyTheme.danger)
-
-                        Text("Record Video")
-                            .font(FamilyTheme.font(13, weight: .medium))
-                            .foregroundStyle(FamilyTheme.textPrimary)
-
-                        Spacer()
-
-                        shortcutKey("\u{21A9}")  // Return
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-
-                hairline
+                .help("Record GIF")
+                .accessibilityLabel(Text("Record GIF"))
 
                 Button(action: onChangeArea) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 5) {
                         Image(systemName: "selection.pin.in.out")
-                            .font(.system(size: 14))
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(FamilyTheme.textSecondary)
-
                         Text("Change Area")
-                            .font(FamilyTheme.font(13, weight: .medium))
+                            .font(FamilyTheme.font(11, weight: .semibold))
                             .foregroundStyle(FamilyTheme.textPrimary)
-
-                        Spacer()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .contentShape(Rectangle())
+                    .padding(.horizontal, 10)
+                    .frame(height: 28)
+                    .background(Capsule().fill(FamilyTheme.textPrimary.opacity(0.07)))
+                    .captureHoverLift()
                 }
                 .buttonStyle(.plain)
             }
         }
-        .frame(width: 240)
-        .clipShape(RoundedRectangle(cornerRadius: FamilyTheme.Floating.radius, style: .continuous))
-        // Familien-Schwebefläche (getöntes Glas, Hell/Dunkel), Schatten im transparenten Fensterrand.
-        .familyFloatingSurface(in: RoundedRectangle(cornerRadius: FamilyTheme.Floating.radius, style: .continuous))
-        .onAppear { restoreMicSelection() }
+        .padding(.vertical, 14)
+        .frame(width: Self.islandSize.width, height: Self.islandSize.height)
+        .familyLiquidGlass(in: RoundedRectangle(cornerRadius: 26, style: .continuous),
+                           tint: FamilyTheme.glassReadableTint)
+        .captureAppear(appeared, reduceMotion: reduceMotion)
+        .padding(FamilyTheme.Floating.edge)
+        .onAppear {
+            restoreMicSelection()
+            withAnimation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.appear) { appeared = true }
+        }
+    }
+
+    /// Start: leuchtender Akzent-Kreis mit Aufnahmepunkt, daneben „Video aufnehmen ⏎“.
+    private var recordButton: some View {
+        Button(action: onRecordVideo) {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(FamilyTheme.accentFill)
+                        .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 0.8))
+                        .shadow(color: FamilyTheme.accentFill.opacity(recordHovered ? 0.75 : 0.5),
+                                radius: recordHovered ? 12 : 8, y: 1)
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 15, height: 15)
+                }
+                .frame(width: 44, height: 44)
+                .scaleEffect(recordHovered && !reduceMotion ? 1.06 : 1)
+
+                Text("Record Video")
+                    .font(FamilyTheme.font(13, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Spacer(minLength: 4)
+                CaptureShortcutKey(text: "\u{21A9}")  // Return
+            }
+            .padding(.leading, 6)
+            .padding(.trailing, 12)
+            .frame(width: 216, height: 56)
+            .background(Capsule().fill(FamilyTheme.textPrimary.opacity(recordHovered ? 0.08 : 0.04)))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .onHover { recordHovered = $0 }
+        .familyAnimation(FamilyTheme.Motion.hover, value: recordHovered)
+        .help("Record Video")
+        .accessibilityLabel(Text("Record Video"))
     }
 
     // MARK: - Mic Menu
@@ -223,16 +217,24 @@ struct RecordingToolbarView: View {
             }
         } label: {
             Image(systemName: micEnabled ? "mic.fill" : "mic.slash.fill")
-                .font(.system(size: 14))
-                .foregroundStyle(micEnabled ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(micEnabled ? Color.white : FamilyTheme.textSecondary)
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .frame(width: 36, height: 30)
-        .background(micEnabled ? FamilyTheme.textPrimary.opacity(0.1) : .clear)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        // Ein Menü-Etikett zeichnet keine eigene Fläche – die Pille liegt deshalb außen.
+        .frame(width: 52, height: 30)
+        .background {
+            if micEnabled {
+                CaptureAccentPill()
+            } else {
+                Capsule().fill(FamilyTheme.textPrimary.opacity(0.07))
+            }
+        }
+        .captureHoverLift(isEnabled: !micEnabled)
         .help("Microphone")
         .accessibilityLabel("Microphone")
+        .accessibilityValue(Text(micEnabled ? "On" : "Off"))
     }
 
     private func restoreMicSelection() {
@@ -259,17 +261,12 @@ struct RecordingToolbarView: View {
         Button {
             showCameraPanel.toggle()
         } label: {
-            Image(systemName: cameraEnabled ? "camera.fill" : "camera")
-                .font(.system(size: 14))
-                .foregroundStyle(cameraEnabled ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
-                .frame(width: 36, height: 30)
-                .background(cameraEnabled ? FamilyTheme.textPrimary.opacity(0.1) : .clear)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .contentShape(Rectangle())
+            togglePillFace(icon: cameraEnabled ? "camera.fill" : "camera", isOn: cameraEnabled)
         }
         .buttonStyle(.plain)
         .help("Camera")
         .accessibilityLabel("Camera")
+        .accessibilityValue(Text(cameraEnabled ? "On" : "Off"))
         .popover(isPresented: $showCameraPanel, arrowEdge: .bottom) {
             cameraPanel
         }
@@ -342,43 +339,33 @@ struct RecordingToolbarView: View {
 
     // MARK: - Helpers
 
-    /// Feine Trennlinie im Familienton (Systemtrenner wirkt auf der dunklen Glastönung grell).
-    private var hairline: some View {
-        Rectangle().fill(FamilyTheme.cardStroke).frame(height: 1)
-    }
-
-    private func toolbarIcon(systemName: String, active: Bool) -> some View {
-        Image(systemName: systemName)
-            .font(.system(size: 14))
-            .foregroundStyle(active ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
-            .frame(width: 36, height: 30)
-            .background(active ? FamilyTheme.textPrimary.opacity(0.1) : .clear)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+    /// Schalter-Pille: an = leuchtende Akzent-Pille mit weißem Symbol, aus = leise Fläche
+    /// (feste Fläche auf der Glas-Insel, kein Glas auf Glas). Farbe ist nicht das einzige
+    /// Signal: das Symbol wechselt mit (durchgestrichen bzw. umrandet).
+    private func togglePillFace(icon: String, isOn: Bool) -> some View {
+        Image(systemName: icon)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(isOn ? Color.white : FamilyTheme.textSecondary)
+            .contentTransition(.symbolEffect(.replace))
+            .frame(width: 52, height: 30)
+            .background {
+                if isOn {
+                    CaptureAccentPill()
+                } else {
+                    Capsule().fill(FamilyTheme.textPrimary.opacity(0.07))
+                }
+            }
+            .captureHoverLift(isEnabled: !isOn)
     }
 
     private func toolbarToggle(icon: String, isOn: Binding<Bool>, tooltip: LocalizedStringKey) -> some View {
         Button(action: { isOn.wrappedValue.toggle() }) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundStyle(isOn.wrappedValue ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
-                .frame(width: 36, height: 30)
-                .background(isOn.wrappedValue ? FamilyTheme.textPrimary.opacity(0.1) : .clear)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+            togglePillFace(icon: icon, isOn: isOn.wrappedValue)
         }
         .buttonStyle(.plain)
         .help(tooltip)
         .accessibilityLabel(Text(tooltip))
         .accessibilityAddTraits(isOn.wrappedValue ? .isSelected : [])
-    }
-
-    private func shortcutKey(_ text: String) -> some View {
-        Text(text)
-            .font(FamilyTheme.font(10))
-            .foregroundStyle(FamilyTheme.textSecondary)
-            .padding(.horizontal, 4)
-            .padding(.vertical, 2)
-            .background(FamilyTheme.textPrimary.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 3))
     }
 
     private func micDevices() -> [AVCaptureDevice] {

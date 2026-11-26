@@ -20,6 +20,9 @@ final class MenuBarController: NSObject {
     private let updateManager: UpdateManager?
     private let helpWindow = HelpWindow()
     private let historyWindow: HistoryWindow
+    /// Left click: the glass popover. Right click (or ⌥/⌃ click) and "More": the full classic menu.
+    let popover = MenuBarPopoverController()
+    private var classicMenu: NSMenu?
 
     init(settings: AppSettings, captureCoordinator: CaptureCoordinator, recordingCoordinator: RecordingCoordinator, ocrCoordinator: OCRCoordinator, desktopIconsCover: DesktopIconsCover, updateManager: UpdateManager? = nil, onShowPreferences: @escaping () -> Void) {
         self.settings = settings
@@ -33,6 +36,7 @@ final class MenuBarController: NSObject {
             settings: settings,
             openInEditor: { [captureCoordinator] url in _ = captureCoordinator.openImageFiles([url]) }))
         super.init()
+        configurePopover()
         applyVisibility()
         NotificationCenter.default.addObserver(
             self,
@@ -40,6 +44,7 @@ final class MenuBarController: NSObject {
             name: .menuBarVisibilityChanged,
             object: nil
         )
+        SichttestHooks.menuBarReady(self, settings: settings)
     }
 
     deinit {
@@ -57,6 +62,7 @@ final class MenuBarController: NSObject {
             setupStatusItem()
         } else {
             guard let item = statusItem else { return }
+            popover.close(animated: false)
             NSStatusBar.system.removeStatusItem(item)
             statusItem = nil
         }
@@ -70,8 +76,125 @@ final class MenuBarController: NSObject {
             button.image?.isTemplate = true
             // VoiceOver otherwise reads the image name ("MenuBarIcon").
             button.setAccessibilityLabel("Knippi")
+            button.toolTip = String(localized: "Knippi: click for the main actions, right-click for all functions")
+            button.target = self
+            button.action = #selector(statusItemClicked)
+            button.sendAction(on: [.leftMouseDown, .rightMouseDown])
         }
-        statusItem?.menu = buildMenu()
+        // Not assigned to `statusItem.menu`: that would open it on every click. It is shown on demand.
+        classicMenu = buildMenu()
+    }
+
+    // MARK: Click on the status item
+
+    /// What a click on the menu bar icon opens.
+    enum ClickTarget: Equatable { case popover, classicMenu }
+
+    /// Right click, ⌥ click and ⌃ click open the full classic menu, a plain left click the popover.
+    nonisolated static func clickTarget(isRightClick: Bool, modifiers: NSEvent.ModifierFlags) -> ClickTarget {
+        if isRightClick { return .classicMenu }
+        return modifiers.intersection([.option, .control]).isEmpty ? .popover : .classicMenu
+    }
+
+    @objc private func statusItemClicked() {
+        let event = NSApp.currentEvent
+        let target = Self.clickTarget(isRightClick: event?.type == .rightMouseDown,
+                                      modifiers: event?.modifierFlags ?? [])
+        switch target {
+        case .classicMenu: showClassicMenu()
+        case .popover:
+            if popover.isShown { popover.close(animated: true) } else { showPopover() }
+        }
+    }
+
+    /// Opens the full menu under the icon (validation and `menuWillOpen` as before).
+    func showClassicMenu() {
+        guard let statusItem, let classicMenu else { return }
+        popover.close(animated: false)
+        statusItem.menu = classicMenu
+        statusItem.button?.performClick(nil)
+        statusItem.menu = nil
+    }
+
+    func showPopover() {
+        guard let button = statusItem?.button else { return }
+        refreshPopover { [weak self] in self?.popover.show(below: button) }
+    }
+
+    /// Runs a popover action after the panel is gone, so it never ends up in a screenshot.
+    private func fromPopover(_ work: @escaping @MainActor () -> Void) -> () -> Void {
+        { [weak self] in
+            self?.popover.close(animated: false)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { MainActor.assumeIsolated { work() } }
+        }
+    }
+
+    private func configurePopover() {
+        let model = popover.model
+        var actions: [MenuBarPopoverModel.Action] = [
+            .init(id: 0, title: String(localized: "Area"), detail: String(localized: "Capture Area"),
+                  symbol: "viewfinder", isPrimary: true, run: fromPopover { [weak self] in self?.captureArea() }),
+            .init(id: 1, title: String(localized: "Full Screen"), detail: String(localized: "Capture Fullscreen"),
+                  symbol: "inset.filled.rectangle", run: fromPopover { [weak self] in self?.captureFullscreen() }),
+            .init(id: 2, title: String(localized: "Window"), detail: String(localized: "Capture Window"),
+                  symbol: "macwindow", run: fromPopover { [weak self] in self?.captureWindow() }),
+        ]
+        if FeatureFlags.scrollingCapture {
+            actions.append(.init(id: 3, title: String(localized: "Scroll"), detail: String(localized: "Scrolling Capture"),
+                                 symbol: "arrow.up.and.down.text.horizontal",
+                                 run: fromPopover { [weak self] in self?.captureScrolling() }))
+        }
+        actions.append(.init(id: 4, title: String(localized: "Read Text"), detail: String(localized: "Capture Text (OCR)"),
+                             symbol: "text.viewfinder", run: fromPopover { [weak self] in self?.captureText() }))
+        if FeatureFlags.screenRecording {
+            actions.append(.init(id: 5, title: String(localized: "Video"), detail: String(localized: "Record Area"),
+                                 symbol: "record.circle", run: fromPopover { [weak self] in self?.recordArea() }))
+        }
+        model.actions = actions
+        model.footer = [
+            .init(id: 0, title: String(localized: "History"), symbol: "clock.arrow.circlepath",
+                  run: fromPopover { [weak self] in self?.showHistory() }),
+            .init(id: 1, title: String(localized: "Settings"), symbol: "gearshape",
+                  run: fromPopover { [weak self] in self?.openPreferences() }),
+            .init(id: 2, title: String(localized: "Help"), symbol: "questionmark.circle",
+                  run: fromPopover { [weak self] in self?.openHelp() }),
+            .init(id: 3, title: String(localized: "More"), symbol: "ellipsis.circle",
+                  help: String(localized: "All functions (also with a right-click on the menu bar icon)"),
+                  run: { [weak self] in self?.showClassicMenu() }),
+            .init(id: 4, title: String(localized: "Quit Knippi"), symbol: "power",
+                  run: { NSApp.terminate(nil) }),
+        ]
+        model.currentRecording = { [weak self] in
+            guard let self, self.recordingCoordinator.isCapturingVideo else { return nil }
+            return .init(elapsed: self.recordingCoordinator.recorder.elapsedTime,
+                         isPaused: self.recordingCoordinator.isRecordingPaused)
+        }
+        model.onTogglePause = { [weak self] in self?.recordingCoordinator.togglePause() }
+        model.onStop = fromPopover { [weak self] in self?.recordingCoordinator.stopRecording() }
+        model.onUpdate = fromPopover { [weak self] in self?.updateManager?.checkForUpdatesInteractively() }
+        model.onOpenRecent = { [weak self] url in
+            self?.popover.close(animated: false)
+            _ = self?.captureCoordinator.openImageFiles([url])
+        }
+        model.onShowHistory = fromPopover { [weak self] in self?.showHistory() }
+        model.onTurnOnHistory = { [weak self] in
+            guard let self else { return }
+            self.settings.historyKeepCount = HistoryStore.defaultKeepCount
+            NotificationCenter.default.post(name: .historySettingsChanged, object: nil)
+            // Grow only once the list is loaded (it loads asynchronously).
+            self.refreshPopover { [weak self] in self?.popover.relayout() }
+        }
+    }
+
+    /// Fresh state each time the popover opens: video button, update hint, recent screenshots.
+    private func refreshPopover(then: @escaping () -> Void = {}) {
+        let model = popover.model
+        let recording = recordingCoordinator.isCapturingVideo
+        for index in model.actions.indices where model.actions[index].id == 5 {
+            model.actions[index].isEnabled = !recording
+        }
+        model.pendingUpdate = updateManager?.pendingUpdateVersion
+        model.reloadRecents(historyKeepCount: settings.historyKeepCount, folder: settings.exportLocation, then: then)
     }
 
     private func buildMenu() -> NSMenu {

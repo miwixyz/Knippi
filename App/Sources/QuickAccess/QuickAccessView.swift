@@ -4,6 +4,7 @@ import AppKit
 import CaptureKit
 import SharedKit
 import ShareKit
+import Observation
 
 struct QuickAccessView: View {
     let thumbnail: NSImage
@@ -29,6 +30,9 @@ struct QuickAccessView: View {
     let onHoverChanged: (Bool) -> Void
     var onUploadBusyChanged: (Bool) -> Void = { _ in }
     let onClose: () -> Void
+    /// Einblende-Zustand, vom Fenster gesteuert (Feder beim Erscheinen). Standard: sichtbar.
+    var reveal = QuickAccessReveal()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotionSetting
 
     @State private var isHovering = false
     @State private var hoveredAction: HoverAction?
@@ -67,7 +71,7 @@ struct QuickAccessView: View {
     private static let thumbnailSize = CGSize(width: 268, height: 142)
 
     private var reduceMotion: Bool {
-        NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        reduceMotionSetting || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
 
     var body: some View {
@@ -101,20 +105,25 @@ struct QuickAccessView: View {
                 .transition(.opacity)
             }
         }
-        .familyTintedGlass(in: RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous))
+        // Echtes Liquid Glass als Kartenrahmen, leicht getönt (das Vorschaubild selbst liegt fest
+        // darauf – Regel G1). Bei „Transparenz reduzieren“ wird es eine feste Karte.
+        .familyLiquidGlass(in: RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous),
+                           tint: FamilyTheme.glassLightTint)
         .clipShape(RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Self.panelCornerRadius, style: .continuous)
-                .stroke(panelStroke, lineWidth: 0.5)
-        )
+        .overlay { PanelRim(cornerRadius: Self.panelCornerRadius, isRevealed: isRevealed) }
         // Schatten in der Ansicht, Fenster ringsum um QuickAccessWindow.edge größer. Kleiner als
         // der allgemeine Floating-Schatten: Karten stapeln sich mit 12 pt Abstand, und zwei
         // Ränder dürfen zusammen nicht breiter sein, sonst fängt der unsichtbare Rand einer
-        // Karte die Klicks für die Nachbarkarte ab (Radius + Versatz ≤ Rand).
+        // Karte die Klicks für die Nachbarkarte ab (Radius + Versatz ≤ Rand = 6, auch beim
+        // Anheben: dann wandert die Karte 2 pt nach oben, der Schatten bleibt gleich).
         .compositingGroup()
         .shadow(color: FamilyTheme.Floating.shadowColor, radius: 4, y: 2)
-        .offset(y: isRevealed ? -2 : 0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.26), value: isRevealed)
+        // Hover hebt die Karte leicht an (Versatz + Hauch Vergrößerung, bleibt im 6-pt-Rand).
+        .scaleEffect(reduceMotion ? 1 : (reveal.isShown ? (isRevealed ? 1.012 : 1) : 0.94))
+        .offset(y: isRevealed && !reduceMotion ? -2 : 0)
+        .opacity(reveal.isShown ? 1 : 0)
+        .blur(radius: reveal.isShown || reduceMotion ? 0 : 6)
+        .animation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.hover, value: isRevealed)
         .onHover { hovering in
             isHovering = hovering
             onHoverChanged(hovering)
@@ -122,6 +131,7 @@ struct QuickAccessView: View {
         .onAppear {
             prepareDragFileIfNeeded()
             startAutoUploadIfNeeded()
+            applyMeasurementHooks()
         }
         .onChange(of: visualState) { _, state in
             switch state {
@@ -141,8 +151,23 @@ struct QuickAccessView: View {
         return false
     }
 
-    private var panelStroke: Color {
-        isRevealed ? Color.primary.opacity(0.14) : Color.primary.opacity(0.08)
+    /// Nur Testkopien (`SichttestHooksGlas2`): Hover, Upload-Zustand und gehobenen Knopf ohne Zeiger
+    /// zeigen, damit sie am echten Fenster fotografiert werden können. In der App ist alles nil.
+    private func applyMeasurementHooks() {
+        if QuickAccessDebug.forceRevealed { isHovering = true }
+        if let kind = QuickAccessDebug.hoveredTool {
+            hoveredAction = ["copy": .copy, "save": .save, "annotate": .annotate,
+                             "share": .systemShare, "drag": .drag][kind]
+        }
+        switch QuickAccessDebug.uploadState {
+        case "uploading": visualState = .uploading
+        case "failed": visualState = .failed(.network(underlying: "The request timed out."))
+        default: break
+        }
+    }
+
+    private var showsUploadTool: Bool {
+        shareCoordinator != nil || QuickAccessDebug.uploadState != nil
     }
 
     // MARK: - Thumbnail
@@ -171,8 +196,9 @@ struct QuickAccessView: View {
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(FamilyTheme.textPrimary)
                         .frame(width: 24, height: 24)
-                        .familyTintedGlass(in: Circle())
-                        .overlay(Circle().stroke(FamilyTheme.cardStroke, lineWidth: 0.5))
+                        .background(Circle().fill(FamilyTheme.glassReadableTint))
+                        .familyLiquidGlass(in: Circle(), interactive: true)
+                        .overlay(Circle().stroke(.white.opacity(0.35), lineWidth: 0.5))
                 }
                 .buttonStyle(.plain)
                 .padding(7)
@@ -222,25 +248,26 @@ struct QuickAccessView: View {
     }
 
     private var toolbar: some View {
-        HStack(spacing: 2) {
-            ForEach(visibleActions, id: \.self) { action in
+        HStack(spacing: 3) {
+            ForEach(Array(visibleActions.enumerated()), id: \.element) { index, action in
                 if startsNewGroup(action) {
                     toolDivider
                 }
                 visibleTool(action)
+                    .modifier(StaggeredReveal(isShown: isRevealed, index: index, reduceMotion: reduceMotion))
             }
             toolDivider
             overflowMenu
+                .modifier(StaggeredReveal(isShown: isRevealed, index: visibleActions.count, reduceMotion: reduceMotion))
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("Quick Access actions"))
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 2)
         .padding(.vertical, 3)
-        .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private var visibleActions: [QuickAccessActionKind] {
-        QuickAccessActionLayout.visibleActions(sharingAvailable: shareCoordinator != nil)
+        QuickAccessActionLayout.visibleActions(sharingAvailable: showsUploadTool)
     }
 
     private func startsNewGroup(_ action: QuickAccessActionKind) -> Bool {
@@ -267,7 +294,7 @@ struct QuickAccessView: View {
             toolButton(.systemShare, icon: "square.and.arrow.up", action: performSystemShare)
                 .background(SystemShareAnchorView(anchor: shareAnchor))
         case .upload:
-            if shareCoordinator != nil {
+            if showsUploadTool {
                 uploadButton
             }
         case .annotate:
@@ -325,7 +352,7 @@ struct QuickAccessView: View {
 
     @ViewBuilder
     private var uploadButton: some View {
-        if shareCoordinator != nil {
+        if showsUploadTool {
             switch visualState {
             case .idle, .failed:
                 toolButton(
@@ -334,9 +361,14 @@ struct QuickAccessView: View {
                     action: { Task { await performUpload() } }
                 )
             case .uploading:
-                ProgressView()
-                    .controlSize(.small)
-                    .frame(width: 28, height: 26)  // matches toolButton height
+                // Akzent-Ring statt Systemkreisel (der Anbieter meldet keinen Fortschritt in
+                // Prozent): kreisender Bogen um das Wolkensymbol, gleiche Größe wie die Knöpfe.
+                UploadRing(reduceMotion: reduceMotion)
+                    .frame(width: 28, height: 28)
+                    .help(Text(label(.upload)))
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(label(.upload)))
+                    .accessibilityAddTraits(.updatesFrequently)
             case .succeeded:
                 toolButton(.linkCopied, icon: "checkmark.circle.fill", action: {})
                     .foregroundStyle(FamilyTheme.success)
@@ -356,7 +388,7 @@ struct QuickAccessView: View {
                 onDragStarted: onDragStarted,
                 onDragEnded: onDragEnded
             )
-            .frame(width: 29, height: 28)
+            .frame(width: 28, height: 28)
             .disabled(dragError != nil)
             .accessibilityHidden(true)
         }
@@ -647,16 +679,36 @@ struct QuickAccessView: View {
         }
     }
 
+    /// Runder Knopf: neutrales Glas (reagiert auf Zeiger/Klick), Sichern als Akzent-Kreis.
+    @ViewBuilder
     private func toolFace(_ kind: HoverAction, icon: String, isPrimary: Bool) -> some View {
-        Image(systemName: icon)
-            .font(.system(size: 14, weight: .medium))
+        let glyph = Image(systemName: icon)
+            .font(.system(size: 13, weight: .medium))
             .symbolRenderingMode(.monochrome)
             .foregroundStyle(toolForeground(kind, isPrimary: isPrimary))
-            .frame(width: 29, height: 28)
-            .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(toolBackground(kind, isPrimary: isPrimary))
-            )
+            .frame(width: 28, height: 28)
+        let lifted = hoveredAction == kind && !reduceMotion
+        Group {
+            if isPrimary {
+                glyph.background(
+                    Circle().fill(toolBackground(kind, isPrimary: true).gradient)
+                        .overlay(Circle().strokeBorder(.white.opacity(0.22), lineWidth: 0.6))
+                        .shadow(color: FamilyTheme.accentFill.opacity(hoveredAction == kind ? 0.5 : 0.3),
+                                radius: hoveredAction == kind ? 5 : 3, y: 1)
+                )
+            } else if hoveredAction == kind {
+                // Erst beim Überfahren wird der Knopf zur runden Glaslinse (dauerhaft wirkten acht
+                // Glaskreise auf der Glaskarte schwer, gemessen 26.11. am echten Fenster).
+                glyph.familyLiquidGlass(in: Circle(), interactive: true)
+                    .shadow(color: Color(light: 0x1E2846, dark: 0x000000).opacity(0.18), radius: 3, y: 1.5)
+            } else {
+                glyph.contentShape(Circle())
+            }
+        }
+        // Hover hebt den Knopf leicht an (bleibt innerhalb der Leiste).
+        .scaleEffect(lifted ? 1.08 : 1)
+        .offset(y: lifted ? -1 : 0)
+        .familyAnimation(FamilyTheme.Motion.hover, value: lifted)
     }
 
     private func toolForeground(_ kind: HoverAction, isPrimary: Bool) -> Color {
@@ -670,7 +722,7 @@ struct QuickAccessView: View {
             // Weiße Schrift → accentFill (Weiß ≥ 5,3 : 1), nicht der helle Dunkelmodus-Akzent.
             return FamilyTheme.accentFill.opacity(hoveredAction == kind ? 1 : 0.9)
         }
-        return hoveredAction == kind ? Color.primary.opacity(0.12) : Color.clear
+        return Color.clear
     }
 
     private func shortcut(for kind: HoverAction) -> (key: KeyEquivalent, modifiers: EventModifiers)? {
@@ -801,11 +853,17 @@ private struct FailurePanel: View {
         }
         .padding(10)
         // Feste Fläche statt Glas: Die Karte ist schon Glas; Glas auf Glas ließ am Snapshot das
-        // Vorschaubild durch den Fehlertext scheinen (Design-System G1).
-        .background(FamilyTheme.card, in: RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous))
+        // Vorschaubild durch den Fehlertext scheinen (Design-System G1). Ein Hauch `danger` in
+        // Fläche und Rand zeigt den Zustand, der Text bleibt auf (fast) reiner Karte lesbar.
+        .background {
+            let shape = RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous)
+            shape.fill(FamilyTheme.card)
+                .overlay(shape.fill(FamilyTheme.danger.opacity(0.06)))
+                .shadow(color: Color(light: 0x1E2846, dark: 0x000000).opacity(0.18), radius: 6, y: 2)
+        }
         .overlay(
             RoundedRectangle(cornerRadius: FamilyTheme.Radius.field, style: .continuous)
-                .stroke(FamilyTheme.cardStroke, lineWidth: 0.5)
+                .strokeBorder(FamilyTheme.danger.opacity(0.35), lineWidth: 0.8)
         )
         .accessibilityElement(children: .contain)
     }
@@ -827,5 +885,94 @@ private struct FailurePanel: View {
         case .unknown(let detail):
             return String(localized: "Upload failed: \(detail)")
         }
+    }
+}
+
+/// Wird vom Fenster gesetzt, sobald die Karte wirklich sichtbar ist (Feder-Einblendung).
+@MainActor
+@Observable
+final class QuickAccessReveal {
+    var isShown: Bool
+    init(isShown: Bool = true) { self.isShown = isShown }
+}
+
+/// Rand der Vorschaukarte (Phase 3): feiner heller Innenrand plus leichtes Akzent-Glühen, das
+/// nur NACH INNEN strahlt – nach außen ist im 6-pt-Fensterrand kein Platz (Stapelabstand 12).
+private struct PanelRim: View {
+    let cornerRadius: CGFloat
+    let isRevealed: Bool
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        let light = colorScheme == .light
+        ZStack {
+            // Inneres Glühen: breiter Akzent-Rand, weichgezeichnet, an der Karte abgeschnitten.
+            shape.strokeBorder(
+                AngularGradient(colors: [FamilyTheme.accent, FamilyTheme.accent, FamilyTheme.iris,
+                                         FamilyTheme.accent.opacity(0.4), FamilyTheme.accent],
+                                center: .center),
+                lineWidth: 8)
+                .blur(radius: 5)
+                .opacity(isRevealed ? 0.95 : 0.7)
+                .clipShape(shape)
+            // Feine Lichtkante oben, unten auslaufend.
+            shape.strokeBorder(
+                LinearGradient(colors: [.white.opacity(light ? 0.85 : 0.28), .white.opacity(light ? 0.2 : 0.05)],
+                               startPoint: .top, endPoint: .bottom),
+                lineWidth: 0.8)
+            if contrast == .increased {
+                shape.strokeBorder(FamilyTheme.cardStroke, lineWidth: 1)
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+/// Upload läuft: kreisender Akzent-Bogen um ein Wolkensymbol (Bewegung reduzieren: Bogen steht,
+/// Symbol pulsiert nicht).
+private struct UploadRing: View {
+    let reduceMotion: Bool
+    @State private var spin = false
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(FamilyTheme.accent.opacity(0.18), lineWidth: 2.2)
+            Circle()
+                .trim(from: 0, to: 0.28)
+                .stroke(AngularGradient(colors: [FamilyTheme.accent.opacity(0), FamilyTheme.accent],
+                                        center: .center, startAngle: .zero, endAngle: .degrees(100)),
+                        style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
+                .shadow(color: FamilyTheme.accent.opacity(0.6), radius: 2)
+                .rotationEffect(.degrees(spin ? 360 : 0))
+            Image(systemName: "icloud.and.arrow.up")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(FamilyTheme.accent)
+        }
+        .padding(3)
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.linear(duration: 0.9).repeatForever(autoreverses: false)) { spin = true }
+        }
+    }
+}
+
+/// Aktionsknöpfe erscheinen beim Überfahren gestaffelt von links nach rechts.
+private struct StaggeredReveal: ViewModifier {
+    let isShown: Bool
+    let index: Int
+    let reduceMotion: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(isShown ? 1 : 0)
+            .scaleEffect(isShown || reduceMotion ? 1 : 0.7)
+            .offset(y: isShown || reduceMotion ? 0 : 4)
+            .animation(
+                reduceMotion ? FamilyTheme.Motion.reduced
+                    : (isShown ? FamilyTheme.Motion.appear.delay(Double(index) * 0.028) : .easeOut(duration: 0.12)),
+                value: isShown)
     }
 }

@@ -69,8 +69,7 @@ struct ShortcutSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Shortcuts")
-                .font(FamilyTheme.font(20, weight: .semibold))
+            PreferencesTabHeader(tab: .shortcuts)
 
             // Info banner
             HStack(spacing: 8) {

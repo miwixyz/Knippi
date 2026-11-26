@@ -18,8 +18,7 @@ struct CloudShareSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Cloud Share")
-                .font(FamilyTheme.font(20, weight: .semibold))
+            PreferencesTabHeader(tab: .cloudShare)
 
             if viewModel.isCloudShareConfigured {
                 configuredView

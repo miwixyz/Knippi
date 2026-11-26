@@ -93,34 +93,36 @@ struct AutomationURLsSheetView: View {
         )
     ])
 
+    /// Glas-Umbau Phase 3: lebender Hintergrund, Befehle auf festen Karten (G1), „Alle kopieren“
+    /// als Glas-Kapsel, „Fertig“ als leuchtende Akzent-Kapsel.
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Automation URLs")
-                        .font(FamilyTheme.font(16, weight: .semibold))
+                        .font(FamilyTheme.font(20, weight: .semibold, relativeTo: .title2))
+                        .foregroundStyle(FamilyTheme.textPrimary)
                     Text("Trigger Knippi actions from Raycast, Alfred, Shortcuts, or shell scripts.")
                         .font(FamilyTheme.font(12))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(FamilyTheme.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer()
-                Button(copiedAll ? "Copied All" : "Copy All") {
+                Button {
                     copyAllURLs()
+                } label: {
+                    Label(copiedAll ? "Copied All" : "Copy All",
+                          systemImage: copiedAll ? "checkmark" : "doc.on.doc")
+                        .font(FamilyTheme.font(12, weight: .medium))
+                        .contentTransition(.symbolEffect(.replace))
                 }
-                .controlSize(.small)
+                .buttonStyle(.familyGlass(.capsule, size: 28))
             }
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     ForEach(sections) { section in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(section.title)
-                                .font(FamilyTheme.font(11, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                                .textCase(.uppercase)
-                                .tracking(0.6)
-                                .padding(.leading, 2)
-
+                        SettingGroup(title: section.title) {
                             SettingCard {
                                 ForEach(Array(section.items.enumerated()), id: \.element.id) { index, item in
                                     commandRow(item: item, showDivider: index > 0)
@@ -130,20 +132,35 @@ struct AutomationURLsSheetView: View {
                     }
                 }
                 .padding(.vertical, 4)
+                .padding(.horizontal, 2)
             }
-            .frame(maxHeight: 360)
+            .scrollEdgeEffectStyle(.soft, for: .all)
+            // Feste Höhe: ohne sie fiel die Liste in einem Blatt am Messfoto auf 0 pt zusammen
+            // (ScrollView hat keine Wunschhöhe); die Befehle füllen 360 pt immer.
+            .frame(height: 360)
 
             HStack {
                 Spacer()
-                Button("Done") {
+                Button {
                     isPresented = false
+                } label: {
+                    Text("Done")
+                        .font(FamilyTheme.font(13, weight: .semibold))
+                        .foregroundStyle(Color.white)
+                        .padding(.horizontal, 18)
+                        .frame(height: 30)
+                        .background(FamilyTheme.accentFill.gradient, in: Capsule())
+                        .overlay(Capsule().strokeBorder(.white.opacity(0.22), lineWidth: 0.6))
+                        .shadow(color: FamilyTheme.accentFill.opacity(0.45), radius: 8, y: 2)
+                        .contentShape(Capsule())
                 }
+                .buttonStyle(.plain)
                 .keyboardShortcut(.defaultAction)
-                .controlSize(.regular)
             }
         }
         .padding(20)
         .frame(width: 520)
+        .background { HelpBackdrop() }
     }
 
     private func commandRow(item: AutomationCommandItem, showDivider: Bool) -> some View {
@@ -154,17 +171,18 @@ struct AutomationURLsSheetView: View {
                 HStack(spacing: 6) {
                     Text(item.urlString)
                         .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(copiedURL == item.urlString ? Color.green : Color.secondary)
+                        .foregroundStyle(copiedURL == item.urlString ? FamilyTheme.success : FamilyTheme.textSecondary)
 
                     Image(systemName: copiedURL == item.urlString ? "checkmark" : "doc.on.doc")
                         .font(.system(size: 10))
-                        .foregroundStyle(copiedURL == item.urlString ? Color.green : Color.secondary)
+                        .foregroundStyle(copiedURL == item.urlString ? FamilyTheme.success : FamilyTheme.textSecondary)
+                        .contentTransition(.symbolEffect(.replace))
                 }
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(
-                    Color.primary.opacity(copiedURL == item.urlString ? 0.12 : 0.05),
-                    in: RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    copiedURL == item.urlString ? FamilyTheme.success.opacity(0.14) : FamilyTheme.textPrimary.opacity(0.05),
+                    in: Capsule(style: .continuous)
                 )
             }
             .buttonStyle(.plain)

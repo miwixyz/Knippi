@@ -101,7 +101,6 @@ struct BeautifyPanel: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(.bar)
         .animation(.easeInOut(duration: 0.2), value: settings.isEnabled)
         .animation(.easeInOut(duration: 0.15), value: settings.backgroundStyle)
     }

@@ -113,6 +113,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registerGlobalShortcuts()
         performPendingAutomationURLAction()
         performPendingImageFileOpen()
+        SichttestHooks.apply(captureCoordinator: captureCoordinator)
+        SichttestHooks.demoCaptureSurfaces(settings: settings)
 
         NotificationCenter.default.addObserver(
             forName: .openScreenshotSettings,
@@ -149,60 +151,60 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func registerGlobalShortcuts() {
-        KeyboardShortcuts.onKeyDown(for: .captureArea) { [weak self] in
+        onCaptureKeyDown(for: .captureArea) { [weak self] in
             self?.captureCoordinator?.captureArea()
         }
-        KeyboardShortcuts.onKeyDown(for: .captureAllInOne) { [weak self] in
+        onCaptureKeyDown(for: .captureAllInOne) { [weak self] in
             self?.captureCoordinator?.captureAllInOne()
         }
-        KeyboardShortcuts.onKeyDown(for: .captureFullscreen) { [weak self] in
+        onCaptureKeyDown(for: .captureFullscreen) { [weak self] in
             // Not while a selection is on screen: the capture would contain the dimmed
             // overlay (audit C3, 21.11.).
             guard let coordinator = self?.captureCoordinator, !coordinator.isCaptureSelectionActive else { return }
             coordinator.captureFullscreen()
         }
-        KeyboardShortcuts.onKeyDown(for: .captureWindow) { [weak self] in
+        onCaptureKeyDown(for: .captureWindow) { [weak self] in
             // Not while a selection is on screen: the capture would contain the dimmed
             // overlay (audit C3, 21.11.).
             guard let coordinator = self?.captureCoordinator, !coordinator.isCaptureSelectionActive else { return }
             coordinator.captureWindow()
         }
-        KeyboardShortcuts.onKeyDown(for: .captureText) { [weak self] in
+        onCaptureKeyDown(for: .captureText) { [weak self] in
             self?.ocrCoordinator?.startInstantOCR()
         }
         KeyboardShortcuts.onKeyDown(for: .openHistory) { [weak self] in
             self?.menuBarController?.showHistory()
         }
         if FeatureFlags.screenRecording {
-            KeyboardShortcuts.onKeyDown(for: .recordScreen) { [weak self] in
+            onCaptureKeyDown(for: .recordScreen) { [weak self] in
                 // Only the shortcut toggles: a repeated automation URL must not stop a recording.
                 self?.recordingCoordinator?.startRecordingFlow(togglesStop: true)
             }
-            KeyboardShortcuts.onKeyDown(for: .recordFullscreen) { [weak self] in
+            onCaptureKeyDown(for: .recordFullscreen) { [weak self] in
                 self?.recordingCoordinator?.startFullScreenRecordingFlow()
             }
         }
         if FeatureFlags.scrollingCapture {
-            KeyboardShortcuts.onKeyDown(for: .captureScrolling) { [weak self] in
+            onCaptureKeyDown(for: .captureScrolling) { [weak self] in
                 self?.captureCoordinator?.captureScrolling()
             }
         }
-        KeyboardShortcuts.onKeyDown(for: .selfTimerCapture) { [weak self] in
+        onCaptureKeyDown(for: .selfTimerCapture) { [weak self] in
             self?.captureCoordinator?.captureAreaWithSelfTimer()
         }
-        KeyboardShortcuts.onKeyDown(for: .captureAreaToClipboard) { [weak self] in
+        onCaptureKeyDown(for: .captureAreaToClipboard) { [weak self] in
             self?.captureCoordinator?.captureAreaToClipboard()
         }
-        KeyboardShortcuts.onKeyDown(for: .captureAreaAndShare) { [weak self] in
+        onCaptureKeyDown(for: .captureAreaAndShare) { [weak self] in
             self?.captureCoordinator?.captureAreaAndShare()
         }
-        KeyboardShortcuts.onKeyDown(for: .captureAreaAndAnnotate) { [weak self] in
+        onCaptureKeyDown(for: .captureAreaAndAnnotate) { [weak self] in
             self?.captureCoordinator?.captureAreaAndAnnotate()
         }
-        KeyboardShortcuts.onKeyDown(for: .captureAreaAndPin) { [weak self] in
+        onCaptureKeyDown(for: .captureAreaAndPin) { [weak self] in
             self?.captureCoordinator?.captureAreaAndPin()
         }
-        KeyboardShortcuts.onKeyDown(for: .pickColor) { [weak self] in
+        onCaptureKeyDown(for: .pickColor) { [weak self] in
             self?.captureCoordinator?.pickColor()
         }
         KeyboardShortcuts.onKeyDown(for: .pinFromClipboard) { [weak self] in
@@ -214,11 +216,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         KeyboardShortcuts.onKeyDown(for: .editClipboardImage) { [weak self] in
             self?.captureCoordinator?.editClipboardImage()
         }
-        KeyboardShortcuts.onKeyDown(for: .captureLastArea) { [weak self] in
+        onCaptureKeyDown(for: .captureLastArea) { [weak self] in
             // Not while a selection is on screen: the capture would contain the dimmed
             // overlay (audit C3, 21.11.).
             guard let coordinator = self?.captureCoordinator, !coordinator.isCaptureSelectionActive else { return }
             coordinator.replayLastCapture()
+        }
+    }
+
+    /// Capture shortcuts first close the glass popover without its fade, so it never lands
+    /// in the screenshot (audit 26.11.: the panel was in the image when it was open).
+    private func onCaptureKeyDown(for name: KeyboardShortcuts.Name, action: @escaping () -> Void) {
+        KeyboardShortcuts.onKeyDown(for: name) { [weak self] in
+            self?.menuBarController?.popover.closeBeforeCapture()
+            action()
         }
     }
 

@@ -18,8 +18,7 @@ struct ExportSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Export")
-                .font(FamilyTheme.font(20, weight: .semibold))
+            PreferencesTabHeader(tab: .export)
 
             SettingGroup(title: "Quality") {
                 SettingCard {

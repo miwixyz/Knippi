@@ -10,7 +10,7 @@ struct SettingRow<Control: View>: View {
         VStack(spacing: 0) {
             if showDivider {
                 Divider()
-                    .background(Color.white.opacity(0.06))
+                    .padding(.leading, 16)
             }
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -37,9 +37,9 @@ struct SettingRow<Control: View>: View {
                     .accessibilityLabel(Text(label))
                     .accessibilityHint(sublabel.map { Text($0) } ?? Text(verbatim: ""))
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .frame(minHeight: 40)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(minHeight: 44)
         }
     }
 }

@@ -11,6 +11,12 @@ final class PinnedScreenshotContentView: NSView {
         }
     }
 
+    /// Eckenradius des Bildes; der Schatten (`PinnedScreenshotShadowWindow`) folgt ihm.
+    static let cornerRadius: CGFloat = 12
+
+    /// Zeiger betritt bzw. verlässt das Bild (für die Glas-Kapsel mit den Aktionen).
+    var onHoverChanged: ((Bool) -> Void)?
+
     override var isFlipped: Bool { true }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
@@ -19,15 +25,25 @@ final class PinnedScreenshotContentView: NSView {
         super.hitTest(point) == nil ? nil : self
     }
 
+    override func mouseEntered(with event: NSEvent) { onHoverChanged?(true) }
+    override func mouseExited(with event: NSEvent) { onHoverChanged?(false) }
+
     init(image: CGImage, frame: NSRect) {
         imageView = NSImageView(frame: frame)
         super.init(frame: frame)
 
         wantsLayer = true
-        layer?.cornerRadius = 8
+        layer?.cornerRadius = Self.cornerRadius
+        layer?.cornerCurve = .continuous
         layer?.masksToBounds = true
-        layer?.borderWidth = 1
-        layer?.borderColor = NSColor.white.withAlphaComponent(0.15).cgColor
+        layer?.borderWidth = 0.5
+        layer?.borderColor = NSColor(FamilyTheme.cardStroke).withAlphaComponent(0.8).cgColor
+        addTrackingArea(NSTrackingArea(
+            rect: .zero,
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        ))
 
         imageView.image = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
         imageView.imageScaling = .scaleProportionallyUpOrDown

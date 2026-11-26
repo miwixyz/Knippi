@@ -12,6 +12,9 @@ final class PinnedScreenshotController {
 
     private let contentWindow: PinnedScreenshotWindow
     private let chromeWindow: PinnedScreenshotChromeWindow
+    private let shadowWindow: PinnedScreenshotShadowWindow
+    /// Deckkraft, die der Nutzer gewählt hat (Kapsel oder Kontextmenü).
+    private var pinOpacity: Double = 1
 
     private var isLocked = false
     /// Pointer monitors of a locked pin (see `toggleLock`); empty while unlocked.
@@ -43,6 +46,10 @@ final class PinnedScreenshotController {
             frame: contentWindow.frame,
             activatesApp: activatesApp
         )
+        shadowWindow = PinnedScreenshotShadowWindow(
+            imageFrame: contentWindow.frame,
+            activatesApp: activatesApp
+        )
 
         contentWindow.onDidClose = { [weak self] _ in
             self?.closeAll(fromContentWindow: true)
@@ -50,19 +57,34 @@ final class PinnedScreenshotController {
 
         contentWindow.onFrameChanged = { [weak self] frame in
             self?.chromeWindow.sync(to: frame)
+            self?.shadowWindow.sync(to: frame)
         }
         contentWindow.onScaleChanged = { [weak self] percent in
             self?.chromeWindow.chromeView.showZoom(percent)
         }
+        contentWindow.onOpacityChanged = { [weak self] value in
+            guard let self else { return }
+            self.pinOpacity = value
+            self.chromeWindow.chromeView.model.opacity = value
+            self.shadowWindow.alphaValue = value
+        }
+        contentWindow.onHoverChanged = { [weak self] inside in
+            guard let model = self?.chromeWindow.chromeView.model else { return }
+            model.isPointerOverImage = inside
+            model.pointerChanged()
+        }
 
-        chromeWindow.chromeView.closeButton.target = self
-        chromeWindow.chromeView.closeButton.action = #selector(closeOverlay)
-        chromeWindow.chromeView.lockButton.target = self
-        chromeWindow.chromeView.lockButton.action = #selector(toggleLock)
+        let model = chromeWindow.chromeView.model
+        model.onCopy = onCopy
+        model.onSave = onSave
+        model.onClose = { [weak self] in self?.closeOverlay() }
+        model.onToggleLock = { [weak self] in self?.toggleLock() }
+        model.onSetOpacity = { [weak self] value in self?.contentWindow.setPinOpacity(value) }
     }
 
     func show() {
         contentWindow.show()
+        contentWindow.addChildWindow(shadowWindow, ordered: .below)
         contentWindow.addChildWindow(chromeWindow, ordered: .above)
         if activatesApp {
             chromeWindow.orderFront(nil)
@@ -79,8 +101,16 @@ final class PinnedScreenshotController {
             contentWindow.orderOut(nil)
         } else {
             contentWindow.orderFrontRegardless()
+            shadowWindow.order(.below, relativeTo: contentWindow.windowNumber)
             chromeWindow.orderFrontRegardless()
         }
+    }
+
+    /// Nur für die Sichttest-Testkopie: zeigt die Hover-Kapsel ohne Zeiger.
+    func showControlsForSichttest() {
+        let model = chromeWindow.chromeView.model
+        model.isPointerOverImage = true
+        model.pointerChanged()
     }
 
     func updateZoomHUD(scalePercent: Int) {
@@ -98,6 +128,8 @@ final class PinnedScreenshotController {
         stopHoverTracking()
         contentWindow.removeChildWindow(chromeWindow)
         chromeWindow.close()
+        contentWindow.removeChildWindow(shadowWindow)
+        shadowWindow.close()
 
         if !fromContentWindow {
             contentWindow.close()
@@ -109,7 +141,10 @@ final class PinnedScreenshotController {
     @objc private func toggleLock() {
         isLocked.toggle()
         chromeWindow.chromeView.isLocked = isLocked
-        contentWindow.alphaValue = isLocked ? 0.72 : 1.0
+        // Entsperrt zurück auf die eingestellte Deckkraft (Regler und Schatten zeigen sie auch).
+        contentWindow.alphaValue = isLocked ? 0.72 : pinOpacity
+        // Gesperrt schwebt das Bild halb durchsichtig – ohne Schatten wirkt es ruhiger.
+        shadowWindow.alphaValue = isLocked ? 0 : pinOpacity
         contentWindow.ignoresMouseEvents = isLocked
         contentWindow.contentView.map { ($0 as? PinnedScreenshotContentView)?.isResizable = !isLocked }
 

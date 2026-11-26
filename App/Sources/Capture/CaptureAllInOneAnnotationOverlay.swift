@@ -138,7 +138,8 @@ final class CaptureAllInOneAnnotationOverlay {
         panel.level = .screenSaver + 3
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        // Schwebende Glas-Kapseln werfen ihren Schatten selbst (kein Fensterrechteck).
+        panel.hasShadow = false
         panel.hidesOnDeactivate = false
         panel.acceptsMouseMovedEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
@@ -146,9 +147,6 @@ final class CaptureAllInOneAnnotationOverlay {
         let hostingView = AllInOneAnnotationToolbarHostingView(rootView: AllInOneAnnotationToolbarView(session: session))
         hostingView.wantsLayer = true
         hostingView.layer?.backgroundColor = NSColor.clear.cgColor
-        hostingView.layer?.cornerRadius = 16
-        hostingView.layer?.cornerCurve = .continuous
-        hostingView.layer?.masksToBounds = true
         panel.contentView = hostingView
         toolbarWindow = panel
         panel.orderFrontRegardless()
@@ -211,7 +209,9 @@ final class CaptureAllInOneAnnotationOverlay {
                 width = min(max(480, globalRect.width), min(840, maxToolbarWidth))
             }
         } else {
-            width = min(max(1_000, globalRect.width), min(1_000, maxToolbarWidth))
+            // Glas-Kapseln mit Editor-Knopfgrößen brauchen etwas mehr Breite als der alte Streifen;
+            // das Fenster ist durchsichtig, nur die Kapseln sind sichtbar.
+            width = min(max(1_120, globalRect.width), min(1_120, maxToolbarWidth))
         }
 
         func clampedX(width: CGFloat) -> CGFloat {
@@ -618,8 +618,6 @@ private struct AllInOneAnnotationToolbarView: View {
     }
 
     @ObservedObject var session: AllInOneAnnotationSession
-    @State private var hoveredTool: AnnotationTool?
-    @State private var hoveredTextEffect: TextEffectAction?
     @State private var showsTextStylePopover = false
 
     private var isFontSizeMode: Bool {
@@ -652,129 +650,111 @@ private struct AllInOneAnnotationToolbarView: View {
         }
     }
 
+    // Glas-Umbau Phase 3: dieselbe Sprache wie die Editor-Leiste – schwebende Glas-Kapseln je
+    // Gruppe, Werkzeugknöpfe 30 × 26 pt, eine Akzent-Pille gleitet zum aktiven Werkzeug.
     private var adaptiveToolbar: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 10) {
-                toolRow(primaryTools)
-
-                divider
-
-                if !session.usesCompactToolbar {
-                    AnnotationColorControls(
-                        currentColor: Binding(
-                            get: { session.currentColor },
-                            set: {
-                                session.currentColor = $0
-                                UserDefaults.standard.set($0.rawValue, forKey: "annotationLastColor")
-                                session.updateSelectedStyle("color")
-                            }
-                        ),
-                        swatchSize: 17,
-                        selectedRingColor: .white
-                    )
-
-                    divider
-                    primaryControls
-                } else {
-                    compactStatus
-                }
-
-                if isFontSizeMode && session.usesCompactToolbar {
-                    textStyleButton
-                }
-
-                if session.usesCompactToolbar {
-                    iconButton(
-                        systemName: session.showsOverflow ? "chevron.up" : "ellipsis",
-                        help: session.showsOverflow ? "Hide tools" : "More tools",
-                        action: { session.toggleOverflow() }
-                    )
-                } else {
-                    divider
-                    undoRedoControls
-                }
-            }
-
-            if session.usesCompactToolbar && session.showsOverflow {
+        GlassEffectContainer(spacing: 10) {
+            VStack(spacing: 8) {
                 HStack(spacing: 10) {
-                    toolRow(overflowTools)
-                    divider
-                    AnnotationColorControls(
-                        currentColor: Binding(
-                            get: { session.currentColor },
-                            set: {
-                                session.currentColor = $0
-                                UserDefaults.standard.set($0.rawValue, forKey: "annotationLastColor")
-                                session.updateSelectedStyle("color")
-                            }
-                        ),
-                        swatchSize: 17,
-                        selectedRingColor: .white
-                    )
-                    divider
-                    primaryControls
-                    divider
-                    undoRedoControls
+                    toolRow(primaryTools).captureGlassPill(readable: true)
+
+                    HStack(spacing: 8) {
+                        if !session.usesCompactToolbar {
+                            colorControls
+                            divider
+                            primaryControls
+                        } else {
+                            compactStatus
+                        }
+
+                        if isFontSizeMode && session.usesCompactToolbar {
+                            textStyleButton
+                        }
+
+                        if session.usesCompactToolbar {
+                            iconButton(
+                                systemName: session.showsOverflow ? "chevron.up" : "ellipsis",
+                                help: session.showsOverflow ? "Hide tools" : "More tools",
+                                isActive: session.showsOverflow,
+                                action: { session.toggleOverflow() }
+                            )
+                        }
+                    }
+                    .captureGlassPill(readable: true)
+
+                    if !session.usesCompactToolbar {
+                        undoRedoControls.captureGlassPill(readable: true)
+                    }
                 }
-                .transition(.opacity.combined(with: .move(edge: .top)))
+
+                if session.usesCompactToolbar && session.showsOverflow {
+                    HStack(spacing: 10) {
+                        toolRow(overflowTools).captureGlassPill(readable: true)
+                        HStack(spacing: 8) {
+                            colorControls
+                            divider
+                            primaryControls
+                        }
+                        .captureGlassPill(readable: true)
+                        undoRedoControls.captureGlassPill(readable: true)
+                    }
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .offset(y: -10)).combined(with: .scale(scale: 0.96, anchor: .top)),
+                        removal: .opacity.combined(with: .offset(y: -6))))
+                }
             }
+            .fixedSize()
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(toolbarBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color.white.opacity(0.16), lineWidth: 0.5)
-        )
-        .environment(\.colorScheme, .dark)
-        .animation(.spring(response: 0.20, dampingFraction: 0.88), value: session.showsOverflow)
+        .familyAnimation(FamilyTheme.Motion.select, value: session.showsOverflow)
+        .familyAnimation(FamilyTheme.Motion.select, value: session.currentTool)
     }
 
     private var miniToolbar: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 9) {
-                currentToolGlyph
-                    .frame(width: 30, height: 28)
-                    .background(FamilyTheme.accentFill.opacity(0.45), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        HStack(spacing: 8) {
+            currentToolGlyph
+                .foregroundStyle(.white)
+                .frame(width: CaptureGlass.toolButton.width, height: CaptureGlass.toolButton.height)
+                .background(CaptureAccentPill())
 
-                Circle()
-                    .fill(Color(cgColor: session.currentColor.cgColor))
-                    .frame(width: 18, height: 18)
-                    .overlay(Circle().stroke(Color.white.opacity(0.62), lineWidth: 1.5))
+            Circle()
+                .fill(Color(cgColor: session.currentColor.cgColor))
+                .frame(width: 17, height: 17)
+                .overlay(Circle().stroke(Color.black.opacity(0.24), lineWidth: 0.5))
+                .overlay(Circle().stroke(FamilyTheme.accent.opacity(0.55), lineWidth: 1.5).padding(-2))
 
-                Text(compactValueLabel)
-                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(.white.opacity(0.86))
-                    .frame(minWidth: 34)
+            Text(compactValueLabel)
+                .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                .foregroundStyle(FamilyTheme.textPrimary)
+                .contentTransition(.numericText())
+                .frame(minWidth: 34)
 
-                if isFontSizeMode {
-                    textStyleButton
-                }
-
-                iconButton(
-                    systemName: "ellipsis",
-                    help: "More tools",
-                    action: { session.toggleOverflow() }
-                )
+            if isFontSizeMode {
+                textStyleButton
             }
+
+            iconButton(
+                systemName: "ellipsis",
+                help: "More tools",
+                action: { session.toggleOverflow() }
+            )
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .captureGlassPill(readable: true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(toolbarBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color.white.opacity(0.16), lineWidth: 0.5)
-        )
-        .environment(\.colorScheme, .dark)
     }
 
-    private var toolbarBackground: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(.thinMaterial)
+    private var colorControls: some View {
+        AnnotationColorControls(
+            currentColor: Binding(
+                get: { session.currentColor },
+                set: {
+                    session.currentColor = $0
+                    UserDefaults.standard.set($0.rawValue, forKey: "annotationLastColor")
+                    session.updateSelectedStyle("color")
+                }
+            ),
+            swatchSize: 17
+        )
     }
 
     private var primaryTools: [AnnotationTool] {
@@ -791,14 +771,17 @@ private struct AllInOneAnnotationToolbarView: View {
         HStack(spacing: 8) {
             Circle()
                 .fill(Color(cgColor: session.currentColor.cgColor))
-                .frame(width: 18, height: 18)
-                .overlay(Circle().stroke(Color.white.opacity(0.62), lineWidth: 1.5))
+                .frame(width: 17, height: 17)
+                .overlay(Circle().stroke(Color.black.opacity(0.24), lineWidth: 0.5))
+                .overlay(Circle().stroke(FamilyTheme.accent.opacity(0.55), lineWidth: 1.5).padding(-2))
 
             Text(compactValueLabel)
-                .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.86))
+                .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                .foregroundStyle(FamilyTheme.textPrimary)
+                .contentTransition(.numericText())
                 .frame(minWidth: 36)
         }
+        .padding(.leading, 4)
     }
 
     private var primaryControls: some View {
@@ -889,10 +872,10 @@ private struct AllInOneAnnotationToolbarView: View {
         } label: {
             Image(systemName: "textformat")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 38, height: 38)
-                .background(buttonBackground(isActive: hasActiveTextEffect, isEnabled: true))
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .foregroundStyle(hasActiveTextEffect ? FamilyTheme.accent : FamilyTheme.textPrimary.opacity(0.85))
+                .frame(width: 32, height: CaptureGlass.toolButton.height)
+                .background(Capsule().fill(buttonBackground(isActive: hasActiveTextEffect, isEnabled: true)))
+                .captureHoverLift()
         }
         .buttonStyle(.plain)
         .help("Text Style")
@@ -934,7 +917,6 @@ private struct AllInOneAnnotationToolbarView: View {
             }
         }
         .padding(10)
-        .environment(\.colorScheme, .dark)
     }
 
     private func textStylePopoverButton(
@@ -954,14 +936,20 @@ private struct AllInOneAnnotationToolbarView: View {
                     .font(.system(size: 14, weight: .semibold))
 
                 Text(label)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(FamilyTheme.font(10, weight: .semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(isActive ? Color.white : FamilyTheme.textPrimary)
             .frame(width: 72, height: 48)
-            .background(buttonBackground(isActive: isActive, isEnabled: true))
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background {
+                if isActive {
+                    CaptureAccentPill(shape: RoundedRectangle(cornerRadius: 12, style: .continuous), glow: false)
+                } else {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous).fill(FamilyTheme.textPrimary.opacity(0.06))
+                }
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
         .help(label)
@@ -982,27 +970,17 @@ private struct AllInOneAnnotationToolbarView: View {
             UserDefaults.standard.set(newValue, forKey: defaultsKey)
             session.updateSelectedStyle(defaultsKey)
         } label: {
-            VStack(spacing: hoveredTextEffect == kind ? 1 : 0) {
-                Image(systemName: systemName)
-                    .font(.system(size: 13, weight: .semibold))
-                    .frame(height: hoveredTextEffect == kind ? 17 : 38)
-
-                if hoveredTextEffect == kind {
-                    Text(label)
-                        .font(.system(size: 8.5, weight: .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.68)
-                        .transition(.opacity)
-                }
-            }
-            .foregroundStyle(.white)
-            .frame(width: 32, height: 38)
-            .background(buttonBackground(isActive: isActive, isEnabled: true))
-            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            Image(systemName: systemName)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(isActive ? FamilyTheme.accent : FamilyTheme.textPrimary.opacity(0.85))
+                .frame(width: CaptureGlass.toolButton.width, height: CaptureGlass.toolButton.height)
+                .background(Capsule().fill(buttonBackground(isActive: isActive, isEnabled: true)))
+                .captureHoverLift(isEnabled: !isActive)
         }
         .buttonStyle(.plain)
-        .onHover { hoveredTextEffect = $0 ? kind : nil }
         .help(help)
+        .accessibilityLabel(Text(label))
+        .accessibilityValue(Text(isActive ? "On" : "Off"))
     }
 
     private func textEffectGlyphButton(
@@ -1019,27 +997,17 @@ private struct AllInOneAnnotationToolbarView: View {
             UserDefaults.standard.set(newValue, forKey: defaultsKey)
             session.updateSelectedStyle(defaultsKey)
         } label: {
-            VStack(spacing: hoveredTextEffect == kind ? 1 : 0) {
-                Text(verbatim: glyph)
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(height: hoveredTextEffect == kind ? 17 : 38)
-
-                if hoveredTextEffect == kind {
-                    Text(label)
-                        .font(.system(size: 8.5, weight: .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.68)
-                        .transition(.opacity)
-                }
-            }
-            .foregroundStyle(.white)
-            .frame(width: 32, height: 38)
-            .background(buttonBackground(isActive: isActive, isEnabled: true))
-            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            Text(verbatim: glyph)
+                .font(FamilyTheme.font(12, weight: .semibold))
+                .foregroundStyle(isActive ? FamilyTheme.accent : FamilyTheme.textPrimary.opacity(0.85))
+                .frame(width: CaptureGlass.toolButton.width, height: CaptureGlass.toolButton.height)
+                .background(Capsule().fill(buttonBackground(isActive: isActive, isEnabled: true)))
+                .captureHoverLift(isEnabled: !isActive)
         }
         .buttonStyle(.plain)
-        .onHover { hoveredTextEffect = $0 ? kind : nil }
         .help(help)
+        .accessibilityLabel(Text(label))
+        .accessibilityValue(Text(isActive ? "On" : "Off"))
     }
 
     private var undoRedoControls: some View {
@@ -1067,9 +1035,18 @@ private struct AllInOneAnnotationToolbarView: View {
     }
 
     private func toolRow(_ tools: [AnnotationTool]) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: CaptureGlass.toolSpacing) {
             ForEach(tools, id: \.self) { tool in
                 toolButton(tool)
+            }
+        }
+        // Eine Akzent-Pille hinter der Reihe, die beim Werkzeugwechsel hinübergleitet (wie im Editor).
+        .background(alignment: .leading) {
+            if let index = tools.firstIndex(of: session.currentTool) {
+                CaptureAccentPill()
+                    .frame(width: CaptureGlass.toolButton.width, height: CaptureGlass.toolButton.height)
+                    .offset(x: CGFloat(index) * (CaptureGlass.toolButton.width + CaptureGlass.toolSpacing))
+                    .familyAnimation(FamilyTheme.Motion.select, value: index)
             }
         }
     }
@@ -1078,13 +1055,12 @@ private struct AllInOneAnnotationToolbarView: View {
         Group {
             if session.currentTool == .text {
                 Text(verbatim: "Aa")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(FamilyTheme.font(13, weight: .semibold))
             } else {
                 Image(systemName: iconName(for: session.currentTool))
                     .font(.system(size: 14, weight: .medium))
             }
         }
-        .foregroundStyle(.white)
     }
 
     private var compactValueLabel: String {
@@ -1098,9 +1074,9 @@ private struct AllInOneAnnotationToolbarView: View {
     }
 
     private var divider: some View {
-        Rectangle()
-            .fill(Color.white.opacity(0.16))
-            .frame(width: 1, height: 30)
+        Capsule()
+            .fill(Color.primary.opacity(0.12))
+            .frame(width: 1, height: 16)
     }
 
     private var sliderRange: ClosedRange<CGFloat> {
@@ -1139,22 +1115,23 @@ private struct AllInOneAnnotationToolbarView: View {
                     session.updateSelectedStyle("redactionMode")
                 } label: {
                     Text(mode.localizedLabel)
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(FamilyTheme.font(11, weight: .semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
-                        .foregroundStyle(.white)
-                        .frame(width: 48, height: 26)
-                        .background(optionBackground(isActive: session.redactionMode == mode))
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .foregroundStyle(session.redactionMode == mode ? Color.white : FamilyTheme.textPrimary)
+                        .frame(width: 48, height: 22)
+                        .background { optionBackground(isActive: session.redactionMode == mode) }
+                        .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
                 .help(mode == .solid || mode == .erase ? mode.localizedLabel : "\(mode.localizedLabel) – \(redactionConfidentialHint)")
                 .accessibilityLabel(mode.localizedLabel)
+                .accessibilityAddTraits(session.redactionMode == mode ? .isSelected : [])
             }
         }
         .padding(2)
-        .background(optionGroupBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(Capsule().fill(optionGroupBackground))
+        .familyAnimation(FamilyTheme.Motion.select, value: session.redactionMode)
         .help("Redaction Mode")
     }
 
@@ -1171,60 +1148,57 @@ private struct AllInOneAnnotationToolbarView: View {
                     session.updateSelectedStyle("pattern")
                 } label: {
                     StrokePatternGlyph(pattern: pattern)
-                        .foregroundStyle(.white)
-                        .frame(width: 30, height: 26)
-                        .background(optionBackground(isActive: session.strokePattern == pattern))
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .foregroundStyle(session.strokePattern == pattern ? Color.white : FamilyTheme.textPrimary)
+                        .frame(width: 30, height: 22)
+                        .background { optionBackground(isActive: session.strokePattern == pattern) }
+                        .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
                 .help(Text(pattern.rawValue.capitalized))
+                .accessibilityAddTraits(session.strokePattern == pattern ? .isSelected : [])
             }
         }
         .padding(2)
-        .background(optionGroupBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(Capsule().fill(optionGroupBackground))
+        .familyAnimation(FamilyTheme.Motion.select, value: session.strokePattern)
         .help("Stroke Pattern")
     }
 
     private var optionGroupBackground: Color {
-        Color.white.opacity(0.09)
+        FamilyTheme.textPrimary.opacity(0.07)
     }
 
-    private func optionBackground(isActive: Bool) -> Color {
-        isActive ? FamilyTheme.accentFill.opacity(0.48) : Color.white.opacity(0.001)
+    @ViewBuilder
+    private func optionBackground(isActive: Bool) -> some View {
+        if isActive {
+            CaptureAccentPill(glow: false)
+        } else {
+            Color.clear
+        }
     }
 
     @ViewBuilder
     private func toolButton(_ tool: AnnotationTool) -> some View {
+        let isActive = session.currentTool == tool
         Button(action: { session.switchTool(tool) }) {
-            VStack(spacing: hoveredTool == tool ? 1 : 0) {
-                Group {
-                    if tool == .text {
-                        Text(verbatim: "Aa")
-                            .font(.system(size: 13, weight: .semibold))
-                    } else {
-                        Image(systemName: iconName(for: tool))
-                            .font(.system(size: 14, weight: .medium))
-                    }
-                }
-                .frame(height: hoveredTool == tool ? 17 : 38)
-
-                if hoveredTool == tool {
-                    Text(toolHoverLabel(for: tool))
-                        .font(.system(size: 8.5, weight: .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.68)
-                        .transition(.opacity)
+            Group {
+                if tool == .text {
+                    Text(verbatim: "Aa")
+                        .font(FamilyTheme.font(13, weight: .semibold))
+                } else {
+                    Image(systemName: iconName(for: tool))
+                        .font(.system(size: 14, weight: .medium))
                 }
             }
-            .foregroundStyle(.white)
-            .frame(width: 29, height: 38)
-            .background(session.currentTool == tool ? FamilyTheme.accentFill.opacity(0.45) : Color.white.opacity(0.001))
-            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            // Auf der Akzent-Pille weiß (accentFill ist für Weiß gerechnet).
+            .foregroundStyle(isActive ? Color.white : FamilyTheme.textPrimary.opacity(0.85))
+            .frame(width: CaptureGlass.toolButton.width, height: CaptureGlass.toolButton.height)
+            .captureHoverLift(isEnabled: !isActive)
         }
         .buttonStyle(.plain)
-        .onHover { hoveredTool = $0 ? tool : nil }
         .help(tool.localizedShortcutHelpTitle)
+        .accessibilityLabel(Text(toolHoverLabel(for: tool)))
+        .accessibilityAddTraits(isActive ? .isSelected : [])
     }
 
     private func iconButton(
@@ -1237,10 +1211,10 @@ private struct AllInOneAnnotationToolbarView: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 30, height: 28)
-                .background(buttonBackground(isActive: isActive, isEnabled: isEnabled))
-                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .foregroundStyle(isActive ? FamilyTheme.accent : FamilyTheme.textPrimary.opacity(0.85))
+                .frame(width: 32, height: CaptureGlass.toolButton.height)
+                .background(Capsule().fill(buttonBackground(isActive: isActive, isEnabled: isEnabled)))
+                .captureHoverLift(isEnabled: isEnabled && !isActive)
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled)
@@ -1248,10 +1222,9 @@ private struct AllInOneAnnotationToolbarView: View {
         .help(help)
     }
 
+    /// Zustand „an“ wie im Editor: leiser Akzentgrund, Symbol im Akzent.
     private func buttonBackground(isActive: Bool, isEnabled: Bool) -> Color {
-        if !isEnabled { return Color.white.opacity(0.06) }
-        if isActive { return FamilyTheme.accentFill.opacity(0.45) }
-        return Color.white.opacity(0.10)
+        isActive && isEnabled ? FamilyTheme.accent.opacity(0.18) : Color.clear
     }
 
     private func iconName(for tool: AnnotationTool) -> String {

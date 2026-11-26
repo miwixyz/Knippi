@@ -4,12 +4,16 @@ import EditorKit
 struct RecordingEditorView: View {
     @Bindable var coordinator: EditorCoordinator
 
+    /// Glas-Umbau Phase 2: lebender Hintergrund über die ganze Fläche (Titelleiste unsichtbar),
+    /// die Vorschau als feste Karte, die Wiedergabe als schwebende Glas-Kapsel über der Zeitleiste,
+    /// das Effekt-Panel als schwebende Glas-Insel wie in den Einstellungen.
     var body: some View {
         HStack(spacing: 0) {
-            VStack(spacing: 0) {
+            VStack(spacing: FamilyTheme.Space.m) {
                 ZStack {
                     EditorPreviewView(coordinator: coordinator)
-                        .padding(16)
+                        .shadow(color: Self.cardShadow, radius: 18, y: 8)
+                        .padding(.horizontal, FamilyTheme.Space.xl)
                         .animation(Animation.easeInOut(duration: 0.2), value: coordinator.project.backgroundStyle.enabled)
                         .animation(Animation.easeInOut(duration: 0.15), value: coordinator.project.backgroundStyle.padding)
                         .animation(Animation.easeInOut(duration: 0.15), value: coordinator.project.backgroundStyle.cornerRadius)
@@ -19,36 +23,42 @@ struct RecordingEditorView: View {
                         exportOverlay
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                // Platz für die Ampelknöpfe über der Vorschau.
+                .padding(.top, 40)
+                // Die Vorschau gibt nach, Wiedergabe und Zeitleiste behalten ihre Höhe.
+                .layoutPriority(-1)
 
-                hairline(vertical: false)
+                EditorPlaybackControls(coordinator: coordinator)
+                    .padding(.leading, 6)
+                    .padding(.trailing, FamilyTheme.Space.m)
+                    .padding(.vertical, 6)
+                    .familyLiquidGlass(in: Capsule(), tint: FamilyTheme.glassLightTint)
+                    .padding(.horizontal, FamilyTheme.Space.l)
 
-                VStack(spacing: FamilyTheme.Space.s) {
-                    EditorPlaybackControls(coordinator: coordinator)
-                    EditorTimelineView(coordinator: coordinator)
-                }
-                .padding(.horizontal, FamilyTheme.Space.l)
-                .padding(.vertical, FamilyTheme.Space.m)
-                .frame(height: 226)
+                EditorTimelineView(coordinator: coordinator)
+                    .padding(FamilyTheme.Space.m)
+                    .frame(height: 194)
+                    .familyCard(radius: FamilyTheme.Radius.tile)
+                    .padding(.horizontal, FamilyTheme.Space.l)
+                    .padding(.bottom, FamilyTheme.Space.l)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            hairline(vertical: true)
-
             EditorSettingsPanel(coordinator: coordinator)
                 .frame(width: 280)
+                .frame(maxHeight: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .familyLiquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous),
+                                   tint: FamilyTheme.glassLightTint)
+                .padding(10)
         }
-        // Fester Fensterkörper aus dem Familien-Verlauf (keine vom Schreibtisch getönte Systemfläche).
-        .background(FamilyTheme.backgroundGradient.ignoresSafeArea())
+        .background(AmbientBackdrop(glow: 1.3).ignoresSafeArea())
+        .ignoresSafeArea()
         .foregroundStyle(FamilyTheme.textPrimary)
     }
 
-    /// Feine Trennlinie statt eigenem Streifen (Design-System, Flächen).
-    private func hairline(vertical: Bool) -> some View {
-        Rectangle()
-            .fill(FamilyTheme.cardStroke)
-            .frame(width: vertical ? 0.8 : nil, height: vertical ? nil : 0.8)
-    }
+    private static let cardShadow = Color(light: 0x1E2846, dark: 0x000000).opacity(0.22)
 
     private var exportOverlay: some View {
         ZStack {

@@ -146,9 +146,14 @@ final class RecordingSelectionModeWindow: NSPanel {
         onHover(false)
     }
 
+    /// Auswahl als beobachtbarer Zustand: die Leiste bleibt dieselbe Ansicht, damit die
+    /// Akzent-Pille zur neuen Art gleiten kann (vorher wurde die Ansicht neu gebaut).
+    private let railModel = RecordingSelectionModeRailModel()
+
     private func makeContentView() -> NSView {
+        railModel.selectedMode = selectedMode
         let view = NSHostingView(rootView: RecordingSelectionModeRail(
-            selectedMode: selectedMode,
+            model: railModel,
             canUseLastArea: canUseLastArea,
             onSelect: { [weak self] mode in self?.selectMode(mode) }
         ))
@@ -162,24 +167,35 @@ final class RecordingSelectionModeWindow: NSPanel {
     }
 
     private func updateContent() {
-        contentView = makeContentView()
+        railModel.selectedMode = selectedMode
         makeFirstResponder(contentView)
     }
 }
 
+@MainActor
+@Observable
+private final class RecordingSelectionModeRailModel {
+    var selectedMode: RecordingSelectionMode = .area
+}
+
+/// Modus-Auswahl als schwebende Glas-Kapsel; die gewählte Art trägt die leuchtende
+/// Akzent-Pille, die beim Wechsel hinübergleitet (Glas-Umbau Phase 3).
 private struct RecordingSelectionModeRail: View {
-    let selectedMode: RecordingSelectionMode
+    let model: RecordingSelectionModeRailModel
     let canUseLastArea: Bool
     let onSelect: (RecordingSelectionMode) -> Void
+
+    @Namespace private var pill
+    @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 4) {
             ForEach(RecordingSelectionMode.allCases, id: \.self) { mode in
-                let isSelected = selectedMode == mode
-                // Aktiv: Akzentfläche mit `onAccent` (nie festes Weiß, Design-System G2).
-                let foregroundColor: Color = isSelected ? FamilyTheme.onAccent : FamilyTheme.textPrimary
-                let shortcutColor: Color = isSelected ? FamilyTheme.onAccent.opacity(0.78) : FamilyTheme.textSecondary
-                let backgroundColor: Color = isSelected ? FamilyTheme.accent : .clear
+                let isSelected = model.selectedMode == mode
+                // Auf der Akzent-Pille weiß (accentFill ist für weiße Schrift gerechnet).
+                let foregroundColor: Color = isSelected ? .white : FamilyTheme.textPrimary
+                let shortcutColor: Color = isSelected ? .white.opacity(0.8) : FamilyTheme.textSecondary
 
                 Button {
                     onSelect(mode)
@@ -188,28 +204,39 @@ private struct RecordingSelectionModeRail: View {
                         Image(systemName: mode.systemImage)
                             .font(.system(size: 13, weight: .semibold))
                         Text(mode.title)
-                            .font(FamilyTheme.font(12, weight: .medium))
+                            .font(FamilyTheme.font(12, weight: .semibold))
                             .lineLimit(1)
                         Text(mode.shortcut)
-                            .font(FamilyTheme.font(10, weight: .semibold))
+                            .font(FamilyTheme.font(10, weight: .bold))
                             .foregroundStyle(shortcutColor)
                     }
-                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .frame(maxWidth: .infinity, minHeight: 40)
                     .foregroundStyle(foregroundColor)
-                    .background(
-                        backgroundColor,
-                        in: RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    )
-                    .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    .background {
+                        if isSelected {
+                            CaptureAccentPill()
+                                .matchedGeometryEffect(id: "selectedMode", in: pill)
+                        }
+                    }
+                    .contentShape(Capsule())
+                    .captureHoverLift(isEnabled: !isSelected)
                 }
                 .buttonStyle(RecordingModeButtonStyle())
                 .disabled(mode == .lastArea && !canUseLastArea)
                 .help(mode == .lastArea && !canUseLastArea ? "Record an area once to enable Last Area" : "")
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
         .padding(6)
-        .frame(width: 520, height: 56)
-        .familyFloatingSurface(in: RoundedRectangle(cornerRadius: FamilyTheme.Floating.radius, style: .continuous))
+        .frame(width: 520, height: 52)
+        .familyAnimation(FamilyTheme.Motion.select, value: model.selectedMode)
+        .familyLiquidGlass(in: Capsule(), tint: FamilyTheme.glassReadableTint)
+        .captureAppear(appeared, reduceMotion: reduceMotion)
+        .padding(.vertical, 2)
+        .padding(FamilyTheme.Floating.edge)
+        .onAppear {
+            withAnimation(reduceMotion ? FamilyTheme.Motion.reduced : FamilyTheme.Motion.appear) { appeared = true }
+        }
     }
 }
 

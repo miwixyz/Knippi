@@ -46,8 +46,9 @@ struct ZoomableScrollContainer<Content: View>: NSViewRepresentable {
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = true
         scrollView.autohidesScrollers = true
-        scrollView.drawsBackground = true
-        scrollView.backgroundColor = NSColor(white: 0.12, alpha: 1)
+        // Durchsichtig: dahinter liegt der lebende Hintergrund des Editors (Glas-Umbau Phase 2).
+        scrollView.drawsBackground = false
+        scrollView.contentView.drawsBackground = false
         scrollView.minScale = minScale
         scrollView.maxScale = maxScale
         scrollView.currentScale = zoomScale

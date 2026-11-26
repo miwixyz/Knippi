@@ -120,6 +120,12 @@ enum FamilyTheme {
     /// Tönung für große Glasflächen (siehe `familyTintedGlass`). Mitte des Verlaufs,
     /// 78 % Deckkraft — ruhig, aber das Glas bleibt als Glas erkennbar.
     static let glassTint = Color(light: 0xF3F5F9, dark: 0x161A25).opacity(0.78)
+    /// Leichte Tönung für kleines echtes Liquid Glass (Vorschaukarte, Hinweis, Aufnahmeleiste):
+    /// nimmt dem Schreibtisch die Farbe, lässt aber Lichtbrechung und Rand sichtbar.
+    static let glassLightTint = Color(light: 0xF3F5F9, dark: 0x161A25).opacity(0.42)
+    /// Etwas kräftigere Tönung für Glas, auf dem Text steht (Hinweis): bleibt auch über
+    /// dunklen Fenstern lesbar (gemessen 26.11.: 0,42 über dunklem Fenster nur mittelgrau).
+    static let glassReadableTint = Color(light: 0xF3F5F9, dark: 0x161A25).opacity(0.66)
     /// Hauptknopf der schwebenden Leiste („+“): dunkel im Hellen, hell im Dunklen.
     static let primaryFill = Color(light: 0x1E2433, dark: 0xECEFF6)
     static let onPrimary   = Color(light: 0xFFFFFF, dark: 0x1E2433)
@@ -238,6 +244,35 @@ enum FamilyTheme {
         LinearGradient(colors: [backgroundTop, backgroundMiddle, backgroundBottom],
                        startPoint: .top, endPoint: .bottom)
     }
+
+    /// Ruhiger Fensterverlauf für Inhaltsbereiche mit Glas-Seitenleiste (Einstellungen):
+    /// diagonal, kaum sichtbar, damit das Glas darüber etwas zum Brechen hat.
+    static var calmGradient: LinearGradient {
+        LinearGradient(colors: [backgroundTop, backgroundMiddle], startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+
+    /// Arbeitsfläche hinter dem Bild im Editor (wie Vorschau: hell im Hellen, dunkel im Dunklen).
+    /// Fest — darüber schweben die Glas-Kapseln der Werkzeugleiste.
+    static let canvasBackdrop = Color(light: 0xDCE0E9, dark: 0x10131B)
+    #if canImport(AppKit) && !canImport(UIKit)
+    static let canvasBackdropNS = NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(hex: 0x10131B) : NSColor(hex: 0xDCE0E9)
+    }
+    #endif
+
+    /// Bewegung der Familie: ruhige Federn ohne Nachwippen. Bei „Bewegung reduzieren“
+    /// liefern die Bausteine unten `nil` bzw. eine kurze Überblendung.
+    enum Motion {
+        /// Auswahl wechselt, Kapsel gleitet (Werkzeug, Seitenleiste).
+        static let select = Animation.spring(response: 0.34, dampingFraction: 0.86)
+        /// Schwebendes erscheint (Vorschaukarte, Hinweis).
+        static let appear = Animation.spring(response: 0.46, dampingFraction: 0.8)
+        /// Hover hebt an.
+        static let hover = Animation.spring(response: 0.28, dampingFraction: 0.9)
+        /// Ersatz bei „Bewegung reduzieren“: nur Deckkraft, kurz.
+        static let reduced = Animation.easeOut(duration: 0.15)
+    }
 }
 
 // MARK: - Bausteine
@@ -283,14 +318,90 @@ extension View {
 
     /// Glas-Element (Kapsel, runder Knopf, schwebende Leiste). NUR für Bedienelemente,
     /// die über Inhalt schweben — nie für Inhaltsflächen (siehe Design-System, Regel G1).
-    @ViewBuilder
     func familyGlass<S: Shape>(in shape: S) -> some View {
-        if #available(macOS 26.0, iOS 26.0, *) {
-            glassEffect(.regular, in: shape)
+        modifier(FamilyGlassModifier(shape: shape))
+    }
+}
+
+/// `familyGlass`: bei „Transparenz reduzieren“ eine feste Familien-Fläche statt Glas
+/// (bei `familyTintedGlass` liegt die Tönung dann deckend darauf).
+private struct FamilyGlassModifier<S: Shape>: ViewModifier {
+    let shape: S
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    func body(content: Content) -> some View {
+        if reduceTransparency {
+            content
+                .background(shape.fill(FamilyTheme.card))
+                .overlay(shape.stroke(FamilyTheme.cardStroke, lineWidth: 0.8))
+        } else if #available(macOS 26.0, iOS 26.0, *) {
+            content.glassEffect(.regular, in: shape)
         } else {
-            background(.ultraThinMaterial, in: shape)
+            content
+                .background(.ultraThinMaterial, in: shape)
                 .overlay { shape.stroke(.white.opacity(0.35), lineWidth: 0.8) }
         }
+    }
+}
+
+// MARK: - Liquid Glass mit Bedienungshilfen
+
+/// Echtes Liquid Glass (macOS 26) für Schwebendes, das selbst auf die Bedienungshilfen hört:
+/// „Transparenz reduzieren“ → feste Fläche (`card`), „Kontrast erhöhen“ → sichtbarer Rand.
+/// `tint` färbt das Glas leicht (z. B. `FamilyTheme.accent.opacity(0.25)` für die aktive Pille),
+/// `interactive` lässt es auf Zeiger und Klick reagieren (Aufleuchten, leichtes Nachgeben).
+private struct FamilyLiquidGlassModifier<S: Shape>: ViewModifier {
+    let shape: S
+    let tint: Color?
+    let interactive: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    func body(content: Content) -> some View {
+        let increased = contrast == .increased
+        Group {
+            if reduceTransparency {
+                // Feste Fläche; eine (halbdurchsichtige) Tönung liegt deckend darauf, nie über dem Schreibtisch.
+                content
+                    .background { if let tint { shape.fill(tint) } }
+                    .background(shape.fill(FamilyTheme.card))
+                    .overlay(shape.stroke(FamilyTheme.cardStroke, lineWidth: increased ? 1 : 0.8))
+            } else if #available(macOS 26.0, iOS 26.0, *) {
+                content
+                    .glassEffect(Glass.regular.tint(tint).interactive(interactive), in: shape)
+                    .overlay {
+                        if increased { shape.stroke(FamilyTheme.cardStroke, lineWidth: 1) }
+                    }
+            } else {
+                content
+                    .background(.ultraThinMaterial, in: shape)
+                    .overlay(shape.stroke(.white.opacity(0.35), lineWidth: 0.8))
+            }
+        }
+    }
+}
+
+/// Animation, die „Bewegung reduzieren“ achtet: dann nur eine kurze Überblendung.
+private struct FamilyAnimationModifier<V: Equatable>: ViewModifier {
+    let animation: Animation
+    let value: V
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content.animation(reduceMotion ? FamilyTheme.Motion.reduced : animation, value: value)
+    }
+}
+
+extension View {
+    /// Liquid Glass der Familie für schwebende Bedienelemente (Leisten, Kapseln, Karten-Rahmen).
+    /// Nie für Inhaltsflächen (Regel G1).
+    func familyLiquidGlass<S: Shape>(in shape: S, tint: Color? = nil, interactive: Bool = false) -> some View {
+        modifier(FamilyLiquidGlassModifier(shape: shape, tint: tint, interactive: interactive))
+    }
+
+    /// `.animation(_:value:)` mit Rücksicht auf „Bewegung reduzieren“.
+    func familyAnimation<V: Equatable>(_ animation: Animation, value: V) -> some View {
+        modifier(FamilyAnimationModifier(animation: animation, value: value))
     }
 }
 

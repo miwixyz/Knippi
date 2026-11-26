@@ -7,8 +7,7 @@ struct RecordingSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Recording")
-                .font(FamilyTheme.font(20, weight: .semibold))
+            PreferencesTabHeader(tab: .recording)
 
             SettingGroup(title: "Cursor") {
                 SettingCard {

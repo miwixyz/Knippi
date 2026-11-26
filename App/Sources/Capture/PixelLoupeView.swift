@@ -31,6 +31,10 @@ enum PixelLoupeView {
     ///   - centerPixel: image pixel under the sample point.
     ///   - cursor: sample point in view coordinates; the loupe is offset from it.
     ///   - label: colour text shown below the pixels (nil hides the colour row content).
+    ///   - drawsLabel: false leaves the label row empty – the caller shows it as a glass
+    ///     capsule (Glas-Umbau Phase 3). The pixels stay drawn here, unchanged.
+    /// - Returns: the label row's rect (view coordinates), for the caller's capsule.
+    @discardableResult
     static func draw(
         image: CGImage,
         centerPixel: CGPoint,
@@ -38,18 +42,27 @@ enum PixelLoupeView {
         bounds: CGRect,
         color: SharedKit.RGBColor?,
         label: String?,
+        drawsLabel: Bool = true,
         in context: CGContext
-    ) {
+    ) -> CGRect {
         let total = size(forLabel: label)
         let origin = PixelLoupeGeometry.loupeOrigin(cursor: cursor, loupeSize: total, bounds: bounds)
         let frame = CGRect(origin: origin, size: total)
         let loupeSide = CGFloat(side) * zoom
         let pixelRect = CGRect(x: frame.midX - loupeSide / 2, y: frame.maxY - loupeSide, width: loupeSide, height: loupeSide)
-        let framePath = CGPath(roundedRect: frame, cornerWidth: cornerRadius, cornerHeight: cornerRadius, transform: nil)
+        let labelWidth = min(total.width, label.map {
+            8 + 12 + 6 + ($0 as NSString).size(withAttributes: labelAttributes).width.rounded(.up) + 10
+        } ?? total.width)
+        let labelRect = CGRect(x: frame.midX - labelWidth / 2, y: frame.minY, width: labelWidth, height: labelHeight - 2)
+        // Ohne eigene Beschriftung umrahmt die Lupe nur die Pixel, etwas runder (Familienradius).
+        let outline = drawsLabel ? frame : pixelRect
+        let radius = drawsLabel ? cornerRadius : 14
+        let framePath = CGPath(roundedRect: outline, cornerWidth: radius, cornerHeight: radius, transform: nil)
 
         context.saveGState()
         // Soft shadow so the loupe separates from any background.
-        context.setShadow(offset: CGSize(width: 0, height: -2), blur: 12, color: NSColor.black.withAlphaComponent(0.45).cgColor)
+        context.setShadow(offset: CGSize(width: 0, height: -3), blur: drawsLabel ? 12 : 16,
+                          color: NSColor.black.withAlphaComponent(drawsLabel ? 0.45 : 0.32).cgColor)
         context.setFillColor(NSColor.black.withAlphaComponent(0.85).cgColor)
         context.addPath(framePath)
         context.fillPath()
@@ -102,6 +115,21 @@ enum PixelLoupeView {
         context.setStrokeColor(NSColor.white.cgColor)
         context.stroke(centre)
 
+        guard drawsLabel else {
+            context.restoreGState()
+            // Feiner Rand: hell innen, dunkler Hauch außen – auf jedem Hintergrund klar.
+            context.setStrokeColor(NSColor.black.withAlphaComponent(0.28).cgColor)
+            context.setLineWidth(1)
+            context.addPath(CGPath(roundedRect: outline.insetBy(dx: -0.5, dy: -0.5), cornerWidth: radius + 0.5,
+                                   cornerHeight: radius + 0.5, transform: nil))
+            context.strokePath()
+            context.setStrokeColor(NSColor.white.withAlphaComponent(0.55).cgColor)
+            context.addPath(CGPath(roundedRect: outline.insetBy(dx: 0.5, dy: 0.5), cornerWidth: radius - 0.5,
+                                   cornerHeight: radius - 0.5, transform: nil))
+            context.strokePath()
+            return labelRect
+        }
+
         // Label bar.
         let bar = CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: labelHeight)
         context.setFillColor(NSColor.black.withAlphaComponent(0.85).cgColor)
@@ -131,5 +159,6 @@ enum PixelLoupeView {
         context.addPath(CGPath(roundedRect: frame.insetBy(dx: 0.5, dy: 0.5), cornerWidth: cornerRadius,
                                cornerHeight: cornerRadius, transform: nil))
         context.strokePath()
+        return labelRect
     }
 }

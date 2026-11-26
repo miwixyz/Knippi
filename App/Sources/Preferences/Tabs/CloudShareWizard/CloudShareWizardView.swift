@@ -22,54 +22,61 @@ struct CloudShareWizardView: View {
         _model = State(initialValue: model)
     }
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(spacing: 0) {
             header
-            WizardDivider()
 
             ZStack {
-                // Cross-fade between steps
+                // Schritte gleiten weich herein (Bewegung reduzieren: nur Überblendung).
                 stepContent
                     .id(model.step)
-                    .transition(.opacity)
+                    .transition(reduceMotion
+                                ? .opacity
+                                : .asymmetric(insertion: .opacity.combined(with: .offset(y: 12)), removal: .opacity))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            WizardDivider()
             footer
         }
         .frame(width: 640, height: 560)
-        // Fester Fensterkörper aus dem Familien-Verlauf (Regel G1), Hell und Dunkel folgen dem System.
-        .background(FamilyTheme.backgroundGradient)
+        // Glas-Umbau Phase 3: lebender Hintergrund wie Einstellungen; Inhalte bleiben feste Karten (G1).
+        .background { WizardBackdrop() }
         .foregroundStyle(FamilyTheme.textPrimary)
-        .animation(.easeInOut(duration: 0.18), value: model.step)
+        .familyAnimation(FamilyTheme.Motion.appear, value: model.step)
     }
 
     // MARK: Header (title bar surrogate)
 
     private var header: some View {
-        HStack(spacing: FamilyTheme.Space.s) {
-            Text(String(localized: "Cloud Share Setup"))
-                .font(FamilyTheme.font(.headline))
-                .foregroundStyle(FamilyTheme.textPrimary)
-            Spacer()
-            Button {
-                onComplete()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(FamilyTheme.textSecondary)
-                    .frame(width: 24, height: 24)
-                    .background(Circle().fill(FamilyTheme.card))
-                    .overlay(Circle().strokeBorder(FamilyTheme.cardStroke, lineWidth: 0.8))
-                    .contentShape(Circle())
+        ZStack {
+            HStack(spacing: FamilyTheme.Space.s) {
+                Text(String(localized: "Cloud Share Setup"))
+                    .font(FamilyTheme.font(13, weight: .semibold))
+                    .foregroundStyle(FamilyTheme.textPrimary)
+                Spacer()
+                Button {
+                    onComplete()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(FamilyTheme.textPrimary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .floatingGlassIsland(in: Circle())
+                .help(String(localized: "Close"))
+                .keyboardShortcut(.cancelAction)
             }
-            .buttonStyle(.plain)
-            .help(String(localized: "Close"))
-            .keyboardShortcut(.cancelAction)
+            // Schritt-Leiste: schwebende Glas-Kapsel, die Akzent-Pille gleitet zum aktuellen Schritt.
+            WizardStepCapsule(current: model.step.rawValue,
+                              total: CloudShareWizardModel.WizardStep.allCases.count)
         }
         .padding(.horizontal, FamilyTheme.Space.l)
-        .padding(.vertical, FamilyTheme.Space.m)
+        .padding(.top, FamilyTheme.Space.m)
+        .padding(.bottom, FamilyTheme.Space.xs)
     }
 
     // MARK: Body content
@@ -96,11 +103,11 @@ struct CloudShareWizardView: View {
 
     private var footer: some View {
         HStack(spacing: FamilyTheme.Space.m) {
-            ProgressDots(current: model.step.rawValue, total: CloudShareWizardModel.WizardStep.allCases.count)
             Text("\(model.step.rawValue + 1) of \(CloudShareWizardModel.WizardStep.allCases.count)")
                 .font(FamilyTheme.font(11, weight: .medium))
                 .foregroundStyle(FamilyTheme.textSecondary)
                 .monospacedDigit()
+                .contentTransition(.numericText(value: Double(model.step.rawValue)))
             Spacer()
 
             if model.step != .welcome && model.step != .done {
@@ -111,8 +118,7 @@ struct CloudShareWizardView: View {
                         .font(FamilyTheme.font(13, weight: .medium))
                         .frame(minWidth: 64)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
+                .buttonStyle(.familyGlass(.capsule, size: 32))
                 // No .cancelAction here — the close (X) button owns Escape.
                 // Two cancelAction shortcuts in the same scene have undefined behavior.
             }
@@ -952,9 +958,7 @@ private struct URLPrefixStep: View {
         case .success(let dt):
             VStack(alignment: .leading, spacing: FamilyTheme.Space.m) {
                 HStack(spacing: FamilyTheme.Space.m) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(FamilyTheme.success)
+                    SuccessCheck(systemName: "checkmark.circle.fill", size: 20)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(String(localized: "Connection works."))
                             .font(FamilyTheme.font(13, weight: .semibold))
@@ -1050,13 +1054,16 @@ private struct DoneStep: View {
         VStack(spacing: FamilyTheme.Space.xl) {
             Spacer()
             ZStack {
+                // Weiches Erfolgs-Leuchten hinter einer Glaslinse, das Siegel hüpft beim Erscheinen.
                 Circle()
-                    .fill(FamilyTheme.success.opacity(0.12))
+                    .fill(FamilyTheme.success.opacity(0.34))
+                    .frame(width: 150, height: 150)
+                    .blur(radius: 36)
+                    .accessibilityHidden(true)
+                Color.clear
                     .frame(width: 136, height: 136)
-                    .overlay(Circle().strokeBorder(FamilyTheme.success.opacity(0.26), lineWidth: 0.8))
-                Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 72, weight: .regular))
-                    .foregroundStyle(FamilyTheme.success)
+                    .floatingGlassIsland(in: Circle(), tint: FamilyTheme.success.opacity(0.10))
+                SuccessCheck(systemName: "checkmark.seal.fill", size: 72)
             }
 
             Text(String(localized: "Cloud Share is ready"))
@@ -1088,12 +1095,104 @@ private struct DoneStep: View {
                 }
                 .foregroundStyle(FamilyTheme.accent)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            .buttonStyle(.familyGlass(.capsule, size: 32))
 
             Spacer()
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+/// Erfolgs-Häkchen mit einmaligem Hüpfer beim Erscheinen (Bewegung reduzieren: still).
+private struct SuccessCheck: View {
+    let systemName: String
+    let size: CGFloat
+    @State private var bounce = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: size, weight: .regular))
+            .foregroundStyle(FamilyTheme.success)
+            .symbolEffect(.bounce, options: .nonRepeating, value: bounce)
+            .onAppear {
+                guard !reduceMotion else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { bounce = true }
+            }
+            .accessibilityHidden(true)
+    }
+}
+
+/// Lebender Hintergrund des Assistenten: AmbientBackdrop plus Akzent-Licht oben links, damit
+/// die Glas-Kapseln etwas zum Brechen haben (wie in den Einstellungen).
+private struct WizardBackdrop: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            AmbientBackdrop(glow: 1.1)
+            if !reduceTransparency && contrast != .increased {
+                Ellipse()
+                    .fill(FamilyTheme.accent.opacity(colorScheme == .light ? 0.40 : 0.34))
+                    .frame(width: 420, height: 200)
+                    .blur(radius: 70)
+                    .offset(x: 90, y: -90)
+                Ellipse()
+                    .fill(FamilyTheme.iris.opacity(0.22))
+                    .frame(width: 360, height: 240)
+                    .blur(radius: 90)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .offset(x: 100, y: 80)
+            }
+        }
+        .accessibilityHidden(true)
+        .ignoresSafeArea()
+    }
+}
+
+/// Schritt-Leiste als schwebende Glas-Kapsel: erledigte Schritte mit Häkchen, der aktuelle als
+/// leuchtende Akzent-Pille mit Nummer, die per matchedGeometryEffect weitergleitet.
+/// Nur Anzeige (die Logik des Assistenten bleibt bei Weiter/Zurück).
+private struct WizardStepCapsule: View {
+    let current: Int
+    let total: Int
+    @Namespace private var space
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(0..<total, id: \.self) { i in
+                ZStack {
+                    if i == current {
+                        Capsule(style: .continuous)
+                            .fill(FamilyTheme.accentFill.gradient)
+                            .overlay(Capsule().strokeBorder(.white.opacity(contrast == .increased ? 0.6 : 0.22),
+                                                            lineWidth: 0.6))
+                            .shadow(color: FamilyTheme.accentFill.opacity(0.45), radius: 7, y: 2)
+                            .matchedGeometryEffect(id: "step", in: space)
+                    }
+                    Group {
+                        if i < current {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(FamilyTheme.accent)
+                        } else {
+                            Text(verbatim: "\(i + 1)")
+                                .font(FamilyTheme.font(11, weight: i == current ? .bold : .medium))
+                                .foregroundStyle(i == current ? Color.white : FamilyTheme.textSecondary)
+                                .monospacedDigit()
+                        }
+                    }
+                }
+                .frame(width: i == current ? 38 : 24, height: 24)
+            }
+        }
+        .padding(3)
+        .floatingGlassIsland(in: Capsule(style: .continuous))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(current + 1) of \(total)"))
     }
 }
 
@@ -1223,9 +1322,11 @@ private struct ProviderCard: View {
     let onTap: () -> Void
 
     @State private var hovered = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: FamilyTheme.Radius.tile, style: .continuous)
+        let lifted = hovered && enabled && !reduceMotion
         Button(action: onTap) {
             HStack(spacing: FamilyTheme.Space.m) {
                 // Kürzel-Kachel: neutral im App-Akzent statt Markenfarben (keine bunten Kacheln).
@@ -1259,7 +1360,13 @@ private struct ProviderCard: View {
             }
             .padding(.horizontal, FamilyTheme.Space.l)
             .padding(.vertical, FamilyTheme.Space.m)
-            .background(shape.fill(hovered && enabled && !selected ? FamilyTheme.backgroundTop : FamilyTheme.card))
+            // Feste Karte (G1) mit weicher Tiefe; Hover hebt sie an, Auswahl leuchtet am Rand.
+            .background {
+                shape.fill(FamilyTheme.card)
+                    .shadow(color: Color(light: 0x1E2846, dark: 0x000000).opacity(lifted ? 0.16 : 0.08),
+                            radius: lifted ? 16 : 10, y: lifted ? 7 : 4)
+                    .shadow(color: FamilyTheme.accent.opacity(selected ? 0.38 : 0), radius: 12)
+            }
             .overlay(
                 shape.strokeBorder(selected ? FamilyTheme.accent : FamilyTheme.cardStroke,
                                    lineWidth: selected ? 1.5 : 0.8)
@@ -1267,9 +1374,13 @@ private struct ProviderCard: View {
             .contentShape(shape)
         }
         .buttonStyle(.plain)
+        .scaleEffect(lifted ? 1.012 : 1)
+        .offset(y: lifted ? -2 : 0)
         .opacity(enabled ? 1.0 : 0.50)
         .disabled(!enabled)
         .onHover { hovered = $0 && enabled }
+        .familyAnimation(FamilyTheme.Motion.hover, value: hovered)
+        .familyAnimation(FamilyTheme.Motion.select, value: selected)
     }
 }
 
@@ -1467,26 +1578,6 @@ private struct WizardPrimaryButton: View {
         .controlSize(.large)
         .disabled(!isEnabled)
         .keyboardShortcut(.defaultAction)
-    }
-}
-
-/// Schritt-Anzeige: aktueller Schritt im Akzent (breiter), erledigte im Akzent gedämpft.
-private struct ProgressDots: View {
-    let current: Int
-    let total: Int
-
-    var body: some View {
-        HStack(spacing: FamilyTheme.Space.s) {
-            ForEach(0..<total, id: \.self) { i in
-                Capsule()
-                    .fill(i == current ? FamilyTheme.accent
-                          : i < current ? FamilyTheme.accent.opacity(0.40) : FamilyTheme.cardStroke)
-                    .frame(width: i == current ? 20 : 8, height: 8)
-                    .animation(.easeInOut(duration: 0.2), value: current)
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(current + 1) of \(total)"))
     }
 }
 

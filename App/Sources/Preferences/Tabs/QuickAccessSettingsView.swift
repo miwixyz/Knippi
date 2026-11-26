@@ -7,8 +7,7 @@ struct QuickAccessSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Quick Access")
-                .font(FamilyTheme.font(20, weight: .semibold))
+            PreferencesTabHeader(tab: .quickAccess)
 
             SettingGroup(title: "Position") {
                 SettingCard {

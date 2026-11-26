@@ -48,6 +48,13 @@ struct AnnotationToolbar: View {
     var onApplyPreset: (AnnotationStylePreset) -> Void = { _ in }
     var onSavePreset: () -> Void = {}
     var onRemovePreset: (AnnotationStylePreset) -> Void = { _ in }
+    /// Meldet die Höhe der oberen Kapselzeile (ohne Zweitreihe), damit das Bild darunter beginnt.
+    var onMainRowHeight: (CGFloat) -> Void = { _ in }
+
+    /// Abstand der Kapselzeile zur Fensteroberkante (Titelleiste ist unsichtbar).
+    static let topPadding: CGFloat = 10
+    /// Platz links für die Ampelknöpfe: die Leiste liegt nie darüber.
+    static let trafficLightReserve: CGFloat = 68
 
     /// The size slider serves multiple tools: in text / editing mode it means
     /// font size; for other tools it retains its existing role.
@@ -67,8 +74,16 @@ struct AnnotationToolbar: View {
     private static let baseColors: [AnnotationColor] = [.red, .orange, .yellow, .green, .blue]
 
     var body: some View {
-        VStack(spacing: 6) {
-            HStack(alignment: .top, spacing: 12) {
+        // Glas-Umbau Phase 2: schwebende Liquid-Glass-Kapseln über der Arbeitsfläche, kein Streifen.
+        // Links (neben den Ampelknöpfen) Rückgängig, mittig die Werkzeuge, rechts Hintergrund und
+        // die Aktionskapsel. Ein Container, damit benachbarte Kapseln wie ein Glas wirken.
+        GlassEffectContainer(spacing: 10) {
+        VStack(spacing: 8) {
+            HStack(alignment: .top, spacing: 10) {
+                Color.clear
+                    .frame(width: Self.trafficLightReserve, height: 1)
+                    .accessibilityHidden(true)
+                undoGroup.toolbarGlassPill().fixedSize()
                 // Only the editing area adapts. Undo, Background and the actions stay
                 // pinned so Save/Copy/Close never slide out of reach (issue #236).
                 // No keyboard shortcuts live inside the adaptive part: ViewThatFits
@@ -83,32 +98,48 @@ struct AnnotationToolbar: View {
                     // Last resort on very narrow windows: the two rows scroll.
                     ScrollView(.horizontal, showsIndicators: false) { twoRowEditingArea }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity)
 
-                HStack(spacing: 12) {
-                    undoGroup
-                    toolbarDivider
+                HStack(spacing: 10) {
                     // Pinned like the actions: in a narrow editor the scrolling row hid
                     // them without any hint (Michael, 21.11.: "wo kann ich den Hintergrund ändern?").
-                    findSensitiveButton
-                    beautifyGroup
-                    toolbarDivider
-                    actionGroup
+                    HStack(spacing: 2) {
+                        findSensitiveButton
+                        beautifyGroup
+                    }
+                    .toolbarGlassPill()
+                    actionGroup.toolbarGlassPill()
                 }
                 .fixedSize()
             }
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { toolbarWidth = $0 }
-
-            if isFontSizeMode {
-                textEffectsGroup
-                    .transition(.opacity)
-            } else if currentTool == .pixelate {
-                redactionModeGroup
-                    .transition(.opacity)
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
+                toolbarWidth = size.width
+                onMainRowHeight(size.height)
             }
+
+            // Zweitreihe (Text-Effekte, Schwärzen) gleitet weich unter den Werkzeugen ein und
+            // schwebt über dem Bild – deshalb getöntes Glas, damit die Beschriftung lesbar bleibt.
+            Group {
+                if isFontSizeMode {
+                    textEffectsGroup
+                        .fixedSize()
+                        .toolbarGlassPill(readable: true)
+                } else if currentTool == .pixelate {
+                    redactionModeGroup
+                        .fixedSize()
+                        .toolbarGlassPill(readable: true)
+                }
+            }
+            .transition(.asymmetric(
+                insertion: .opacity.combined(with: .offset(y: -10)).combined(with: .scale(scale: 0.96, anchor: .top)),
+                removal: .opacity.combined(with: .offset(y: -6))))
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        }
+        .familyAnimation(FamilyTheme.Motion.select, value: currentTool)
+        .familyAnimation(FamilyTheme.Motion.select, value: isEditingText)
+        .padding(.horizontal, 12)
+        .padding(.top, Self.topPadding)
+        .padding(.bottom, 6)
         .onHover { hovering in
             if hovering {
                 NSCursor.arrow.set()
@@ -123,9 +154,9 @@ struct AnnotationToolbar: View {
 
     @ViewBuilder
     private func editingArea(_ density: Density) -> some View {
-        HStack(spacing: 12) {
-            toolGroup
-            toolbarDivider
+        HStack(spacing: 10) {
+            toolGroup.toolbarGlassPill()
+            HStack(spacing: 8) {
             switch density {
             case .full:
                 colorGroup
@@ -147,14 +178,16 @@ struct AnnotationToolbar: View {
             presetsMenu
             toolbarDivider
             cropGroup
+            }
+            .toolbarGlassPill()
         }
         .fixedSize()
     }
 
     private var twoRowEditingArea: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            toolGroup
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
+            toolGroup.toolbarGlassPill()
+            HStack(spacing: 8) {
                 compactColorGroup(showsBaseColors: true)
                 toolbarDivider
                 styleButton
@@ -162,6 +195,7 @@ struct AnnotationToolbar: View {
                 toolbarDivider
                 cropGroup
             }
+            .toolbarGlassPill()
         }
         .fixedSize()
     }
@@ -200,9 +234,8 @@ struct AnnotationToolbar: View {
                 }
                 .padding(.horizontal, 6)
                 .frame(height: 26)
-                .background(toolbarButtonBackground(isActive: showColorPopover))
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(toolbarButtonStroke)
+                .background(toolbarButtonBackground(isActive: showColorPopover), in: Capsule())
+                .toolbarHover()
             }
             .buttonStyle(.plain)
             .help(String(localized: "More Colors"))
@@ -221,11 +254,10 @@ struct AnnotationToolbar: View {
                 .labelStyle(.titleAndIcon)
                 .font(FamilyTheme.font(12, weight: .medium))
                 .foregroundStyle(toolbarIconForeground(isActive: showStylePopover))
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 9)
                 .frame(height: 26)
-                .background(toolbarButtonBackground(isActive: showStylePopover))
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(toolbarButtonStroke)
+                .background(toolbarButtonBackground(isActive: showStylePopover), in: Capsule())
+                .toolbarHover()
         }
         .buttonStyle(.plain)
         .disabled(currentTool == .pixelate && (redactionMode == .solid || redactionMode == .erase))
@@ -236,8 +268,15 @@ struct AnnotationToolbar: View {
         }
     }
 
+    /// Reihenfolge der Werkzeugknöpfe: bestimmt, wohin die Akzent-Pille gleitet.
+    private static let toolOrder: [AnnotationTool] = [
+        .select, .arrow, .line, .rectangle, .ellipse, .text, .freehand, .pixelate, .counter, .highlighter, .spotlight,
+    ]
+    private static let toolButtonSize = CGSize(width: 30, height: 26)
+    private static let toolSpacing: CGFloat = 4
+
     private var toolGroup: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Self.toolSpacing) {
             toolButton(.select, icon: "cursorarrow")
             toolButton(.arrow, icon: "arrow.up.right")
             toolButton(.line, icon: "line.diagonal")
@@ -250,17 +289,31 @@ struct AnnotationToolbar: View {
             toolButton(.highlighter, icon: "highlighter")
             toolButton(.spotlight, icon: "flashlight.on.fill")
         }
+        // Eine einzige Akzent-Pille hinter der Reihe, die beim Werkzeugwechsel hinübergleitet.
+        // Bewusst Versatz statt matchedGeometryEffect: ViewThatFits hält mehrere Varianten der
+        // Leiste gleichzeitig, dieselbe Geometrie-ID gäbe es dann mehrfach.
+        .background(alignment: .leading) {
+            if let index = Self.toolOrder.firstIndex(of: currentTool) {
+                Capsule()
+                    .fill(FamilyTheme.accentFill)
+                    .overlay(Capsule().strokeBorder(.white.opacity(0.22), lineWidth: 0.6))
+                    // Leichtes Glühen um die aktive Pille.
+                    .shadow(color: FamilyTheme.accentFill.opacity(0.55), radius: 8, y: 1)
+                    .frame(width: Self.toolButtonSize.width, height: Self.toolButtonSize.height)
+                    .offset(x: CGFloat(index) * (Self.toolButtonSize.width + Self.toolSpacing))
+                    .familyAnimation(FamilyTheme.Motion.select, value: index)
+                    .accessibilityHidden(true)
+            }
+        }
     }
 
     private func toolButton(_ tool: AnnotationTool, icon: String) -> some View {
         Button(action: { currentTool = tool }) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(toolbarIconForeground(isActive: currentTool == tool))
-                .frame(width: 30, height: 26)
-                .background(toolbarButtonBackground(isActive: currentTool == tool))
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(toolbarButtonStroke)
+                .foregroundStyle(toolIconForeground(isActive: currentTool == tool))
+                .frame(width: Self.toolButtonSize.width, height: Self.toolButtonSize.height)
+                .toolbarHover(isEnabled: currentTool != tool)
         }
         .buttonStyle(.plain)
         .help(tool.localizedShortcutHelpTitle)
@@ -280,11 +333,9 @@ struct AnnotationToolbar: View {
         Button(action: { currentTool = .text }) {
             Text(verbatim: "Aa")
                 .font(FamilyTheme.font(13, weight: .semibold))
-                .foregroundStyle(toolbarIconForeground(isActive: currentTool == .text))
-                .frame(width: 30, height: 26)
-                .background(toolbarButtonBackground(isActive: currentTool == .text))
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(toolbarButtonStroke)
+                .foregroundStyle(toolIconForeground(isActive: currentTool == .text))
+                .frame(width: Self.toolButtonSize.width, height: Self.toolButtonSize.height)
+                .toolbarHover(isEnabled: currentTool != .text)
         }
         .buttonStyle(.plain)
         .help(AnnotationTool.text.localizedShortcutHelpTitle)
@@ -444,9 +495,7 @@ struct AnnotationToolbar: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(toolbarIconForeground(isActive: false))
                 .frame(width: 30, height: 26)
-                .background(toolbarButtonBackground(isActive: false))
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(toolbarButtonStroke)
+                .toolbarHover()
         }
         .buttonStyle(.plain)
         .opacity(isExportBlocked ? 0.45 : 1)
@@ -467,9 +516,8 @@ struct AnnotationToolbar: View {
                 }
             }
             .frame(width: 30, height: 26)
-            .background(toolbarButtonBackground(isActive: isFindingSensitiveData))
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .overlay(toolbarButtonStroke)
+            .background(toolbarButtonBackground(isActive: isFindingSensitiveData), in: Capsule())
+            .toolbarHover()
         }
         .buttonStyle(.plain)
         .help(isFindingSensitiveData ? "Finding Sensitive Data…" : "Find Sensitive Data")
@@ -491,11 +539,10 @@ struct AnnotationToolbar: View {
                 .font(FamilyTheme.font(12, weight: .medium))
                 .frame(minWidth: 30)
                 .foregroundStyle(toolbarIconForeground(isActive: showBeautifyPanel))
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 9)
                 .frame(height: 26)
-                .background(toolbarButtonBackground(isActive: showBeautifyPanel))
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(toolbarButtonStroke)
+                .background(toolbarButtonBackground(isActive: showBeautifyPanel), in: Capsule())
+                .toolbarHover()
         }
         .buttonStyle(.plain)
         .help(String(localized: "Background and format (16:9, 1:1, 4:5)"))
@@ -506,30 +553,37 @@ struct AnnotationToolbar: View {
     private var isNarrow: Bool { toolbarWidth > 0 && toolbarWidth < 1000 }
 
     private var undoGroup: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 2) {
             // Off while a text is edited: ⌘Z then belongs to the text field, and the
             // document undo would act on objects behind the open editor.
             Button(action: onUndo) {
-                Image(systemName: "arrow.uturn.backward")
+                undoFace("arrow.uturn.backward", isEnabled: canUndo && !isEditingText)
             }
             .disabled(!canUndo || isEditingText)
             .keyboardShortcut("z", modifiers: .command)
             .help("Undo")
             .accessibilityLabel(Text("Undo"))
             Button(action: onRedo) {
-                Image(systemName: "arrow.uturn.forward")
+                undoFace("arrow.uturn.forward", isEnabled: canRedo && !isEditingText)
             }
             .disabled(!canRedo || isEditingText)
             .keyboardShortcut("z", modifiers: [.command, .shift])
             .help("Redo")
             .accessibilityLabel(Text("Redo"))
         }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
+        .buttonStyle(.plain)
+    }
+
+    private func undoFace(_ icon: String, isEnabled: Bool) -> some View {
+        Image(systemName: icon)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(Color.primary.opacity(isEnabled ? 0.82 : 0.28))
+            .frame(width: 30, height: 26)
+            .toolbarHover(isEnabled: isEnabled)
     }
 
     private var actionGroup: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 2) {
             actionButton(icon: "xmark", help: "Close", isDestructive: true, action: onCancel)
 
             dragActionButton
@@ -565,7 +619,7 @@ struct AnnotationToolbar: View {
                 onDragStarted: onDragStarted,
                 onDragEnded: { _ in onDragEnded() }
             )
-            .frame(width: 34, height: 26)
+            .frame(width: 32, height: 26)
             .disabled(isDragDisabled)
             .accessibilityHidden(true)
         }
@@ -651,39 +705,35 @@ struct AnnotationToolbar: View {
         Image(systemName: icon)
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(actionIconForeground(isPrimary: isPrimary, isDestructive: isDestructive))
-            .frame(width: 34, height: 26)
-            .background(actionButtonBackground(isPrimary: isPrimary, isDestructive: isDestructive))
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .overlay(actionButtonStroke(isPrimary: isPrimary))
+            .frame(width: isPrimary ? 40 : 32, height: 26)
+            .background(actionButtonBackground(isPrimary: isPrimary, isDestructive: isDestructive), in: Capsule())
+            .toolbarHover(isEnabled: !isPrimary)
     }
 
     private var toolbarDivider: some View {
-        Rectangle()
+        Capsule()
             .fill(Color.primary.opacity(0.12))
-            .frame(width: 1, height: 24)
+            .frame(width: 1, height: 16)
     }
 
     private func toolbarButtonBackground(isActive: Bool) -> Color {
-        isActive ? FamilyTheme.accent.opacity(0.18) : Color.primary.opacity(0.04)
+        isActive ? FamilyTheme.accent.opacity(0.18) : Color.clear
     }
 
     private func toolbarIconForeground(isActive: Bool) -> Color {
         isActive ? FamilyTheme.accent : Color.primary.opacity(0.82)
     }
 
-    private var toolbarButtonStroke: some View {
-        RoundedRectangle(cornerRadius: 6, style: .continuous)
-            .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+    /// Werkzeugsymbol: auf der Akzent-Pille weiß (accentFill ist für Weiß gerechnet).
+    private func toolIconForeground(isActive: Bool) -> Color {
+        isActive ? .white : Color.primary.opacity(0.82)
     }
 
     private func actionButtonBackground(isPrimary: Bool, isDestructive: Bool) -> Color {
         if isPrimary {
             return FamilyTheme.accentFill   // weißes Symbol darauf
         }
-        if isDestructive {
-            return Color.primary.opacity(0.045)
-        }
-        return Color.primary.opacity(0.055)
+        return Color.clear
     }
 
     private func actionIconForeground(isPrimary: Bool, isDestructive: Bool) -> Color {
@@ -696,9 +746,43 @@ struct AnnotationToolbar: View {
         return Color.primary.opacity(0.84)
     }
 
-    private func actionButtonStroke(isPrimary: Bool) -> some View {
-        RoundedRectangle(cornerRadius: 6, style: .continuous)
-            .stroke(isPrimary ? Color.white.opacity(0.18) : Color.primary.opacity(0.08), lineWidth: 0.5)
+}
+
+// MARK: - Glas-Kapseln und Hover
+
+private struct ToolbarHoverModifier: ViewModifier {
+    var isEnabled: Bool
+    @State private var isHovered = false
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let lifted = isEnabled && isHovered
+        content
+            .background {
+                Capsule()
+                    .fill(Color.primary.opacity(lifted ? 0.10 : 0))
+            }
+            .contentShape(Capsule())
+            // Knöpfe heben sich beim Überfahren leicht an (ohne bei „Bewegung reduzieren“).
+            .scaleEffect(lifted && !reduceMotion ? 1.08 : 1)
+            .offset(y: lifted && !reduceMotion ? -1 : 0)
+            .onHover { isHovered = $0 }
+            .familyAnimation(FamilyTheme.Motion.hover, value: isHovered)
+    }
+}
+
+private extension View {
+    /// Leise Hover-Hervorhebung (neutrale Kapsel), wie Leistenknöpfe in macOS 26.
+    func toolbarHover(isEnabled: Bool = true) -> some View {
+        modifier(ToolbarHoverModifier(isEnabled: isEnabled))
+    }
+
+    /// Schwebende Glas-Kapsel um eine Knopfgruppe der Werkzeugleiste.
+    func toolbarGlassPill(readable: Bool = false) -> some View {
+        padding(.horizontal, 5)
+            .padding(.vertical, 4)
+            .familyLiquidGlass(in: Capsule(), tint: readable ? FamilyTheme.glassReadableTint : nil)
     }
 }
 

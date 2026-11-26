@@ -18,8 +18,7 @@ struct ScreenshotSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Screenshots")
-                .font(FamilyTheme.font(20, weight: .semibold))
+            PreferencesTabHeader(tab: .screenshots)
 
             SettingGroup(title: "After Capture") {
                 SettingCard {

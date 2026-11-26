@@ -31,32 +31,37 @@ final class PreferencesWindow {
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: PreferencesView.windowSize),
-            styleMask: [.titled, .closable],
+            styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         window.identifier = DockPresenceController.windowIdentifier
         window.title = String(localized: "Knippi Settings")
-        window.minSize = PreferencesView.windowSize
-        window.maxSize = PreferencesView.windowSize
+        // Glas-Umbau Phase 2: keine sichtbare Titelleiste, der lebende Hintergrund reicht über die
+        // ganze Fläche, die Ampelknöpfe liegen über der schwebenden Glas-Insel. Der Fenstertitel
+        // bleibt für Fenster-Menü und Bedienungshilfen gesetzt.
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.titlebarSeparatorStyle = .none
+        // Leere Werkzeugleiste nur für die höhere Titelzone: die Ampelknöpfe rücken dadurch nach
+        // innen und sitzen IN der Glas-Insel statt auf ihrer Kante (wie Finder/Systemeinstellungen).
+        let toolbar = NSToolbar(identifier: "KnippiSettingsToolbar")
+        toolbar.showsBaselineSeparator = false
+        window.toolbar = toolbar
+        window.toolbarStyle = .unified
+        window.backgroundColor = FamilyTheme.canvasBackdropNS
         window.isReleasedWhenClosed = false
-        window.center()
-
-        // App-Familie G1: fester Fensterkörper statt Behind-Window-Blur
-        // (der Schreibtisch würde sonst den Inhalt einfärben).
-        let visualEffect = NSView()
-        window.contentView = visualEffect
 
         let viewModel = PreferencesViewModel(settings: settings, permissionManager: permissionManager)
-        let hostingView = NSHostingView(rootView: PreferencesView(viewModel: viewModel, updateManager: updateManager, initialTab: tab))
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
-        visualEffect.addSubview(hostingView)
-        NSLayoutConstraint.activate([
-            hostingView.topAnchor.constraint(equalTo: visualEffect.topAnchor),
-            hostingView.bottomAnchor.constraint(equalTo: visualEffect.bottomAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: visualEffect.leadingAnchor),
-            hostingView.trailingAnchor.constraint(equalTo: visualEffect.trailingAnchor),
-        ])
+        let hosting = NSHostingController(rootView: PreferencesView(
+            viewModel: viewModel, updateManager: updateManager, initialTab: tab))
+        // Größe kommt fest vom Fenster, nicht aus der SwiftUI-Wunschgröße.
+        hosting.sizingOptions = []
+        window.contentViewController = hosting
+        window.setContentSize(PreferencesView.windowSize)
+        window.contentMinSize = PreferencesView.windowSize
+        window.contentMaxSize = PreferencesView.windowSize
+        window.center()
 
         self.window = window
         window.makeKeyAndOrderFront(nil)

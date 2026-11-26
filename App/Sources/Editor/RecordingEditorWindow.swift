@@ -11,7 +11,7 @@ final class RecordingEditorWindow: NSPanel {
         let contentRect = NSRect(x: 0, y: 0, width: 960, height: 640)
         super.init(
             contentRect: contentRect,
-            styleMask: [.titled, .closable, .resizable, .miniaturizable],
+            styleMask: [.titled, .closable, .resizable, .miniaturizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -21,7 +21,11 @@ final class RecordingEditorWindow: NSPanel {
         minSize = NSSize(width: 800, height: 540)
         isReleasedWhenClosed = false
         hidesOnDeactivate = false
-        titlebarAppearsTransparent = false
+        // Glas-Umbau Phase 2: Titelleiste unsichtbar, der lebende Hintergrund reicht bis oben.
+        titlebarAppearsTransparent = true
+        titleVisibility = .hidden
+        titlebarSeparatorStyle = .none
+        backgroundColor = FamilyTheme.canvasBackdropNS
 
         // Fester Fensterkörper: Der Familien-Verlauf kommt aus RecordingEditorView. Vorher lag
         // hier ein NSVisualEffectView (.sidebar, behindWindow), das vom Schreibtischbild
