@@ -319,13 +319,13 @@ public enum CaptureError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .noDisplayFound:
-            return "No display found for capture."
+            return String(localized: "No display found for capture.")
         case .windowNotFound(let id):
-            return "Window with ID \(id) not found."
+            return String(localized: "Window with ID \(id) not found.")
         case .capturePermissionDenied:
-            return "Screen recording permission is required."
+            return String(localized: "Screen recording permission is required.")
         case .captureFailed(let reason):
-            return "Capture failed: \(reason)"
+            return String(localized: "Capture failed: \(reason)")
         }
     }
 }

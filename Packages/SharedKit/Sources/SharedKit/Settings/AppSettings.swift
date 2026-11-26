@@ -400,6 +400,13 @@ public final class AppSettings: @unchecked Sendable {
         set { defaults.set(newValue, forKey: "showKeyPressesWhileRecording") }
     }
 
+    /// When `true` (default), the keystroke overlay shows only shortcuts (⌘/⌃ combinations),
+    /// never plain typing, so passwords and private text don't end up in the video.
+    public var showOnlyShortcutKeyPresses: Bool {
+        get { defaults.object(forKey: "showOnlyShortcutKeyPresses") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "showOnlyShortcutKeyPresses") }
+    }
+
     /// Last dragged offset of the key-press overlay from the recording frame origin
     /// (AppKit bottom-left). `nil` means default bottom-leading placement inside the capture.
     public var keyPressOverlayOffsetX: Double? {

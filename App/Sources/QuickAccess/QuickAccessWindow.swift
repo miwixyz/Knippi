@@ -384,7 +384,9 @@ final class QuickAccessWindow: NSPanel {
         stopAutoDismissTimer()
         cancelEntranceTransition()
         var target = frame
-        target.origin.x = -(target.width + 40)
+        // Relative to the preview's own screen: on a second display to the right
+        // an absolute -width would fly across the main display.
+        target.origin.x = targetScreen.frame.minX - (target.width + 40)
         NSAnimationContext.runAnimationGroup({ ctx in
             ctx.duration = 0.38
             ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)

@@ -9,6 +9,7 @@ struct CloudShareSettingsView: View {
     @State private var testing = false
     @State private var testResult: TestResultAlert?
     @State private var showingAutoUploadConfirmation = false
+    @State private var showingResetConfirmation = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -44,6 +45,17 @@ struct CloudShareSettingsView: View {
         } message: {
             Text(String(localized: "Every new screenshot and recording will be uploaded to your configured storage. Each successful share link will replace the current clipboard contents."))
         }
+        .alert(
+            String(localized: "Reset Cloud Share?"),
+            isPresented: $showingResetConfirmation
+        ) {
+            Button(String(localized: "Cancel"), role: .cancel) {}
+            Button(String(localized: "Reset"), role: .destructive) {
+                resetConfig()
+            }
+        } message: {
+            Text(String(localized: "This removes the provider settings and deletes the access keys from Keychain. Files already uploaded stay in your storage."))
+        }
     }
 
     private var notConfiguredView: some View {
@@ -75,7 +87,7 @@ struct CloudShareSettingsView: View {
                     SettingRow(label: "Provider") {
                         HStack(spacing: 6) {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
+                                .foregroundStyle(FamilyTheme.success)
                                 .font(.system(size: 12))
                             Text(currentProvider?.displayName ?? viewModel.cloudShareProvider ?? "—")
                                 .font(FamilyTheme.font(12))
@@ -161,7 +173,7 @@ struct CloudShareSettingsView: View {
                     }
                     SettingRow(label: "Reset Configuration", sublabel: "Remove all Cloud Share credentials", showDivider: true) {
                         Button(String(localized: "Reset"), role: .destructive) {
-                            resetConfig()
+                            showingResetConfirmation = true
                         }
                         .controlSize(.small)
                     }
@@ -289,12 +301,12 @@ struct CloudShareSettingsView: View {
             do {
                 try keychain.delete(account: "accessKey")
             } catch {
-                keychainErrors.append("\(provider.displayName) Access Key (\(error.localizedDescription))")
+                keychainErrors.append("\(provider.displayName) \(String(localized: "Access Key")) (\(error.localizedDescription))")
             }
             do {
                 try keychain.delete(account: "secretKey")
             } catch {
-                keychainErrors.append("\(provider.displayName) Secret Access Key (\(error.localizedDescription))")
+                keychainErrors.append("\(provider.displayName) \(String(localized: "Secret Access Key")) (\(error.localizedDescription))")
             }
         }
 

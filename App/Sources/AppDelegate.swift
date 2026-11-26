@@ -242,8 +242,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             logAutomationURL("Ignored unsupported request")
             return
         }
+        // Asked before = the user already decided; a fresh "Don't Allow" needs no toast.
+        let alreadyAsked = settings.automationURLsAsked
         guard settings.automationURLsEnabled || askToAllowAutomationURLs(for: actionURL) else {
             logAutomationURL("Ignored request because Automation URLs are disabled")
+            if alreadyAsked { showAutomationBlockedNotice() }
             return
         }
 
@@ -375,6 +378,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             iconColor: .systemOrange
         )
         featureUnavailableToast?.show(autoDismissAfter: 3)
+    }
+
+    private var automationBlockedNoticeAt: Date?
+
+    /// A blocked `knippi://` command says so instead of vanishing; at most every
+    /// 30 s, so a looping caller can't flood the screen with toasts.
+    private func showAutomationBlockedNotice(now: Date = Date()) {
+        if let last = automationBlockedNoticeAt, now.timeIntervalSince(last) < 30 { return }
+        automationBlockedNoticeAt = now
+        featureUnavailableToast?.orderOut(nil)
+        featureUnavailableToast = ToastWindow(
+            message: String(localized: "Another app tried to control Knippi. You can allow this in Settings → General."),
+            icon: "hand.raised.fill",
+            iconColor: .systemOrange
+        )
+        featureUnavailableToast?.show(autoDismissAfter: 4)
     }
 
     private func logAutomationURL(_ message: String) {

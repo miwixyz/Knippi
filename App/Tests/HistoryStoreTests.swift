@@ -315,13 +315,12 @@ final class HistoryStoreTests: XCTestCase {
         return store
     }
 
-    func testPlainClickChoosesOnlyThatOneAndCopiesIt() async throws {
+    func testPlainClickChoosesOnlyThatOneWithoutCopying() async throws {
         let store = try await loaded(["a.png", "b.png"])
         store.click(store.items[0], extend: true)
         store.click(store.items[1], extend: false)
         XCTAssertEqual(store.selected, [store.items[1].url])
-        XCTAssertNotNil(NSImage(pasteboard: pasteboard))
-        XCTAssertEqual(store.notice?.text, String(localized: "Copied"))
+        XCTAssertNil(NSImage(pasteboard: pasteboard))
     }
 
     func testExtendedClickAddsAndRemovesWithoutCopying() async throws {

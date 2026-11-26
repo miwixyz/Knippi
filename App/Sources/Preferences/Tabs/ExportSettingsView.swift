@@ -30,7 +30,7 @@ struct ExportSettingsView: View {
                                 .foregroundStyle(.primary)
                             Text("Applies to video and GIF exports")
                                 .font(FamilyTheme.font(11))
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(FamilyTheme.textSecondary)
                         }
                         Picker("", selection: $viewModel.exportQuality) {
                             Text("Maximum").tag(ExportQuality.maximum)
@@ -155,7 +155,7 @@ struct ExportSettingsView: View {
                             .foregroundStyle(.primary)
                         Text("Extension is added automatically")
                             .font(FamilyTheme.font(11))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(FamilyTheme.textSecondary)
                     }
                     Spacer()
                     Button {

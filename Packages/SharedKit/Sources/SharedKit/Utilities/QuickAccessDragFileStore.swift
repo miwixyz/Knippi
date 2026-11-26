@@ -26,7 +26,7 @@ public final class QuickAccessDragFileStore {
         encoder: Encoder? = nil
     ) {
         self.directory = directory ?? fileManager.temporaryDirectory
-            .appendingPathComponent("com.lifeisgoodlabs.Knippi", isDirectory: true)
+            .appendingPathComponent("dev.mwlr.knippi", isDirectory: true)
             .appendingPathComponent("QuickAccessDragFiles", isDirectory: true)
         self.staleFileAge = staleFileAge
         self.fileManager = fileManager

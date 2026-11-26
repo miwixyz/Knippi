@@ -19,7 +19,7 @@ struct SettingGroup<Content: View>: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(FamilyTheme.font(11, weight: .semibold))
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(FamilyTheme.textSecondary)
                 .textCase(.uppercase)
                 .tracking(0.8)
                 .padding(.leading, 2)

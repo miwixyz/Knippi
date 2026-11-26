@@ -123,6 +123,20 @@ final class ScrollCaptureOverlay {
             options: .defaultTap,
             eventsOfInterest: eventMask,
             callback: { _, type, event, refcon in
+                // macOS disables a tap whose callback was too slow or on certain user
+                // input; without re-enabling, ESC and Return silently stop working.
+                // The tap's run-loop source is on the main run loop.
+                if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                    if let refcon {
+                        let overlay = Unmanaged<ScrollCaptureOverlay>.fromOpaque(refcon).takeUnretainedValue()
+                        MainActor.assumeIsolated {
+                            if let tap = overlay.keyEventTap {
+                                CGEvent.tapEnable(tap: tap, enable: true)
+                            }
+                        }
+                    }
+                    return Unmanaged.passUnretained(event)
+                }
                 guard type == .keyDown,
                       let refcon else {
                     return Unmanaged.passUnretained(event)

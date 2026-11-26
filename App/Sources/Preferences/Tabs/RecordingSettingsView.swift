@@ -31,6 +31,16 @@ struct RecordingSettingsView: View {
                             .toggleStyle(.switch)
                             .controlSize(.small)
                     }
+                    SettingRow(
+                        label: "Only Show Shortcuts",
+                        sublabel: "Show only ⌘ and ⌃ combinations, never plain typing. Nothing is shown in password fields.",
+                        showDivider: true
+                    ) {
+                        Toggle("", isOn: $viewModel.showOnlyShortcutKeyPresses)
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                            .disabled(!viewModel.showKeyPressesWhileRecording)
+                    }
                     // TODO: Re-enable "Cursor Smoothing" once Bézier interpolation
                     // of the cursor path is actually implemented in the recording
                     // pipeline. AppSettings.cursorSmoothing is stored but never

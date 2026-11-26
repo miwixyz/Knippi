@@ -86,6 +86,8 @@ public final class ScrollCaptureController: @unchecked Sendable {
     /// Last captured frame and its position below `shotA` (nil: track lost).
     private var previousFrame: CGImage?
     private var previousFrameProfile: RowProfileMatcher.Profile?
+    /// Pixel bytes of the frame the next one is compared against.
+    private var comparisonData: (frame: CGImage, data: CFData)?
     private var previousPosition: Int? = 0
     private var trackingLost = false
     private var debugFrameIndex = 0
@@ -201,9 +203,19 @@ public final class ScrollCaptureController: @unchecked Sendable {
             }
 
             // Skip if identical to the previous frame (user not scrolling)
+            // The bytes of the previous frame are kept, so each tick copies
+            // only the new frame instead of both.
             let previous = previousFrame ?? shotA
-            if let dataA = previous.dataProvider?.data,
-               let dataB = shotB.dataProvider?.data,
+            let previousData: CFData?
+            if let cached = comparisonData, cached.frame === previous {
+                previousData = cached.data
+            } else {
+                previousData = previous.dataProvider?.data
+                comparisonData = previousData.map { (frame: previous, data: $0) }
+            }
+            let newData = shotB.dataProvider?.data
+            if let dataA = previousData,
+               let dataB = newData,
                CFDataGetLength(dataA) == CFDataGetLength(dataB),
                memcmp(CFDataGetBytePtr(dataA)!, CFDataGetBytePtr(dataB)!, CFDataGetLength(dataA)) == 0 {
                 // Auto mode: the page no longer moves, so its end is reached.
@@ -249,6 +261,7 @@ public final class ScrollCaptureController: @unchecked Sendable {
             )
 
             previousFrame = shotB
+            comparisonData = newData.map { (frame: shotB, data: $0) }
             previousFrameProfile = profileB
             previousPosition = position
             if (position == nil) != trackingLost {

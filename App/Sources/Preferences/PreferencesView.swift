@@ -155,6 +155,7 @@ private struct SidebarButton: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(isSelected ? FamilyTheme.textPrimary : FamilyTheme.textSecondary)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .onHover { isHovered = $0 }
     }
 }

@@ -106,6 +106,61 @@ struct SensitiveDataDetectorTests {
         #expect(!d.matches(in: "4111 1111 1111 Stück").contains { $0.kind == .card })
     }
 
+    // Keyword values, short keys and secrets wrapped onto the next OCR line.
+    @Test func passwordBehindKeyword() {
+        #expect(covered("Sommer2026!", in: "Passwort: Sommer2026!"))
+        #expect(!covered("Passwort", in: "Passwort: Sommer2026!"))
+    }
+    @Test func shortApiKeyBehindKeyword() { #expect(covered("7f3a9c2e1b4d8f6a0c5e", in: "API-Key: 7f3a9c2e1b4d8f6a0c5e")) }
+    @Test func pinBehindKeyword() { #expect(covered("4821", in: "PIN = 4821")) }
+    @Test func keywordValueCoversRestOfLine() { #expect(covered("geheim wort", in: "Kennwort: geheim wort  ")) }
+    @Test func shortHexKeyWithoutKeyword() {
+        #expect(verifiedText(.secret, in: "Schlüssel 7f3a9c2e1b4d8f6a0c5e hier") == "7f3a9c2e1b4d8f6a0c5e")
+    }
+    @Test func plainLongNumberIsNotAHexKey() { #expect(d.matches(in: "Auftrag 1234567890123456789 ok").allSatisfy { $0.kind != .secret }) }
+    @Test func tokenWrappedOntoNextLine() throws {
+        let line = "token: " + "gh" + "p_ABCDEFGHIJKLMNOPQRSTUV"
+        let next = "WXYZ0123456789abcdef"
+        #expect(covered("gh" + "p_ABCDEFGHIJKLMNOPQRSTUV", in: line))
+        let last = try #require(d.matches(in: line).last)
+        let rest = try #require(d.continuation(of: last, in: line, nextLine: next))
+        #expect(rest.kind == .secret)
+        #expect(String(next[rest.range]) == next)
+    }
+    @Test func ordinaryWordAfterSecretStaysVisible() throws {
+        let line = "Passwort: Sommer2026!"
+        let last = try #require(d.matches(in: line).last)
+        #expect(d.continuation(of: last, in: line, nextLine: "Bitte nach dem Login ändern") == nil)
+    }
+    @Test func cardWrappedOntoNextLine() throws {
+        let line = "Visa 4111 1111 1111"
+        let next = "1111 gültig bis 12/28"
+        let first = try #require(d.matches(in: line).first)
+        let rest = try #require(d.continuation(of: first, in: line, nextLine: next))
+        #expect(String(next[rest.range]) == "1111")
+    }
+    @Test func ibanWrappedOntoNextLine() throws {
+        let line = "IBAN DE89 3704 0044"
+        let next = "0532 0130 00"
+        let first = try #require(d.matches(in: line).first { $0.kind == .iban })
+        let rest = try #require(d.continuation(of: first, in: line, nextLine: next))
+        #expect(String(next[rest.range]) == "0532 0130 00")
+    }
+    @Test func hitMidLineHasNoContinuation() throws {
+        let line = "Karte 4111 1111 1111 1111 ok"
+        let first = try #require(d.matches(in: line).first)
+        #expect(d.continuation(of: first, in: line, nextLine: "1234") == nil)
+    }
+    @Test func nextLineIsTheOneDirectlyBelow() {
+        // Vision-normalized, bottom-left origin: 0 = top line, 1 = far below, 2 = directly below, 3 = other column.
+        let boxes = [CGRect(x: 0.1, y: 0.80, width: 0.5, height: 0.05),
+                     CGRect(x: 0.1, y: 0.50, width: 0.5, height: 0.05),
+                     CGRect(x: 0.1, y: 0.73, width: 0.3, height: 0.05),
+                     CGRect(x: 0.7, y: 0.73, width: 0.2, height: 0.05)]
+        #expect(TextRecognizer.nextLineIndex(after: 0, boxes: boxes) == 2)
+        #expect(TextRecognizer.nextLineIndex(after: 1, boxes: boxes) == nil)
+    }
+
     private func verifiedText(_ kind: SensitiveMatch.Kind, in s: String) -> String? {
         d.matches(in: s).first { $0.kind == kind && $0.isVerified }.map { String(s[$0.range]) }
     }

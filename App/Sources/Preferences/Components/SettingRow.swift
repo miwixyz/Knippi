@@ -20,11 +20,17 @@ struct SettingRow<Control: View>: View {
                     if let sublabel {
                         Text(sublabel)
                             .font(FamilyTheme.font(11))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(FamilyTheme.textSecondary)
                     }
                 }
                 Spacer()
+                // Most controls here are `Toggle("")`/`Picker("")` without a label of
+                // their own: the group carries the row's name, so VoiceOver reads
+                // "Automatically Check for Updates, switch" instead of just "switch".
                 control
+                    .accessibilityElement(children: .contain)
+                    .accessibilityLabel(Text(label))
+                    .accessibilityHint(sublabel.map { Text($0) } ?? Text(verbatim: ""))
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)

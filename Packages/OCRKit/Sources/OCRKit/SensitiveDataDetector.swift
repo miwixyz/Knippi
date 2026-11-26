@@ -53,8 +53,36 @@ public struct SensitiveDataDetector: Sendable {
         for p in Self.secretPatterns {
             result += regexMatches(in: text, pattern: p, kind: .secret)
         }
+        result += regexMatches(in: text, pattern: Self.shortHexPattern, kind: .secret) { Self.isMixedHex($0) }
         result += regexMatches(in: text, pattern: Self.genericTokenPattern, kind: .secret) { Self.isMixedToken($0) }
+        result += keywordValueMatches(in: text)
         return Self.removingOverlaps(result).sorted { $0.range.lowerBound < $1.range.lowerBound }
+    }
+
+    /// A hit that ends at the end of its OCR line may continue on the next line
+    /// (wrapped token, IBAN or card number). Returns the continuation in `nextLine`
+    /// as an unverified match of the same kind, or nil.
+    ///
+    /// Secrets continue with the first word of the next line when it looks like a
+    /// token piece (token characters, 4+, with a digit or one of `+/_=-`), so an
+    /// ordinary following word ("Bitte …") stays visible. IBAN and card continue
+    /// only when the hit itself is unverified (cut off), with the leading groups.
+    public func continuation(of match: SensitiveMatch, in line: String, nextLine: String) -> SensitiveMatch? {
+        guard line[match.range.upperBound...].allSatisfy({ $0 == " " || $0 == "\t" }) else { return nil }
+        let pattern: String
+        switch match.kind {
+        case .secret: pattern = Self.secretContinuationPattern
+        case .iban where !match.isVerified: pattern = Self.ibanContinuationPattern
+        case .card where !match.isVerified: pattern = Self.cardContinuationPattern
+        default: return nil
+        }
+        guard let re = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
+              let m = re.firstMatch(in: nextLine, range: NSRange(nextLine.startIndex..., in: nextLine)),
+              let range = Range(m.range(at: 1), in: nextLine) else { return nil }
+        let piece = nextLine[range]
+        if match.kind == .secret, !piece.contains(where: { $0.isNumber || "+/_=-".contains($0) }) { return nil }
+        if match.kind == .iban, !piece.contains(where: \.isNumber) { return nil }
+        return SensitiveMatch(kind: match.kind, range: range, isVerified: false)
     }
 
     static let ibanPattern = #"\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){2,7}(?: ?[A-Z0-9]{1,3})?\b"#
@@ -63,7 +91,16 @@ public struct SensitiveDataDetector: Sendable {
     static let ibanAtLineEndPattern = #"\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){1,}(?=[ \t]*$)"#
     /// Digit groups for card detection; groups joined by one space or dash form a run.
     static let digitGroupPattern = #"\d+"#
-    static let genericTokenPattern = #"[A-Za-z0-9+/_-]{32,}={0,2}"#
+    static let genericTokenPattern = #"[A-Za-z0-9+/_-]{20,}={0,2}"#
+    /// Short hex keys (16–39 chars); 40+ is covered by the plain hex pattern below.
+    static let shortHexPattern = #"\b[A-Fa-f0-9]{16,39}\b"#
+    /// Keyword followed by ":" or "=": the rest of the line is the value
+    /// ("Passwort: Sommer2026!", "API-Key: 7f3a…", "PIN = 1234"). Group 1 is the value.
+    static let keywordValuePattern = #"\b(?:passwor[dt]|passwd|pwd|kennwort|passphrase|token|secret|geheimnis|api[ _-]?key|access[ _-]?key|secret[ _-]?key|private[ _-]?key|key|schl(?:ü|ue)ssel|pin|puk|code|otp|tan)\b[ \t]*[:=][ \t]*(\S[^\n]*?)[ \t]*$"#
+    /// Continuations at the start of the next OCR line; group 1 is the piece.
+    static let secretContinuationPattern = #"^[ \t]*([A-Za-z0-9+/_=-]{4,})(?=\s|$)"#
+    static let ibanContinuationPattern = #"^[ \t]*([A-Z0-9]{1,4}(?: [A-Z0-9]{1,4}){0,7})\b"#
+    static let cardContinuationPattern = #"^[ \t]*(\d+(?:[ -]\d+)*)\b"#
 
     static let secretPatterns = [
         #"\bsk-[A-Za-z0-9_-]{20,}"#,
@@ -77,7 +114,23 @@ public struct SensitiveDataDetector: Sendable {
     ]
 
     static var allPatterns: [String] {
-        [ibanPattern, ibanAtLineEndPattern, digitGroupPattern, genericTokenPattern] + secretPatterns
+        [ibanPattern, ibanAtLineEndPattern, digitGroupPattern, genericTokenPattern, shortHexPattern,
+         keywordValuePattern, secretContinuationPattern, ibanContinuationPattern, cardContinuationPattern]
+            + secretPatterns
+    }
+
+    /// Values behind a keyword are unverified (heuristic): a specific secret pattern
+    /// inside the value stays the verified hit, the whole value is still covered.
+    private func keywordValueMatches(in text: String) -> [SensitiveMatch] {
+        guard let re = try? NSRegularExpression(pattern: Self.keywordValuePattern,
+                                                options: [.caseInsensitive, .anchorsMatchLines]) else {
+            assertionFailure("Bad keyword pattern")
+            return []
+        }
+        return re.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { m in
+            guard let range = Range(m.range(at: 1), in: text) else { return nil }
+            return SensitiveMatch(kind: .secret, range: range, isVerified: false)
+        }
     }
 
     private func dataDetectorMatches(in text: String) -> [SensitiveMatch] {
@@ -170,6 +223,12 @@ public struct SensitiveDataDetector: Sendable {
     /// so long ordinary words don't qualify.
     static func isMixedToken(_ s: String) -> Bool {
         s.contains(where: \.isNumber) && s.contains(where: \.isLowercase) && s.contains(where: \.isUppercase)
+    }
+
+    /// Short hex keys need a digit and a letter, so plain numbers and words like
+    /// "deadbeefcafebabe…" without digits don't qualify.
+    static func isMixedHex(_ s: String) -> Bool {
+        s.contains(where: \.isNumber) && s.contains(where: \.isLetter)
     }
 
     static func isValidIBAN(_ raw: String) -> Bool {

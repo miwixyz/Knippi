@@ -163,6 +163,7 @@ struct QuickAccessView: View {
                 .padding(7)
                 .transition(.opacity)
                 .help("Close")
+                .accessibilityLabel(Text("Close"))
             }
         }
     }
@@ -696,6 +697,7 @@ private struct FailureToast: View {
                 Image(systemName: "xmark")
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text("Close"))
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)

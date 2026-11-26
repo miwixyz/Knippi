@@ -240,6 +240,15 @@ private struct SquareCenterLockKeyRecorder: View {
                 }
             }
         }
+        // Stop listening when the window loses focus or the tab goes away, so the
+        // monitor never keeps swallowing keys in the background.
+        .onDisappear { isRecording = false }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { _ in
+            isRecording = false
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
+            isRecording = false
+        }
     }
 }
 
@@ -276,6 +285,8 @@ private struct CenterLockKeyCapture: NSViewRepresentable {
         func install() {
             guard monitor == nil else { return }
             monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                // ⌘ combinations (⌘W, ⌘Q, ⌘,) keep working while recording.
+                if event.modifierFlags.contains(.command) { return event }
                 self?.onKeyDown(event)
                 return nil
             }
@@ -329,7 +340,7 @@ private struct SystemScreenshotShortcutsCard: View {
             if systemShortcutsOn {
                 banner(
                     icon: "exclamationmark.triangle",
-                    tint: .orange,
+                    tint: FamilyTheme.warning,
                     text: "macOS still uses ⇧⌘3, ⇧⌘4 and ⇧⌘5 for its own screenshots. To use them for Knippi, turn off the shortcuts under Keyboard Shortcuts → Screenshots."
                 ) {
                     Button("Open Keyboard Settings") { NSWorkspace.shared.open(SystemScreenshotShortcuts.settingsURL) }
@@ -337,7 +348,7 @@ private struct SystemScreenshotShortcutsCard: View {
             } else if !knippiUsesAny {
                 banner(
                     icon: "keyboard",
-                    tint: .blue,
+                    tint: FamilyTheme.accent,
                     text: "The macOS screenshot shortcuts are off. Knippi can take them over: ⇧⌘3 Capture Fullscreen, ⇧⌘4 Capture Area, ⇧⌘5 All-in-One."
                 ) {
                     Button("Use ⇧⌘3 / ⇧⌘4 / ⇧⌘5") {

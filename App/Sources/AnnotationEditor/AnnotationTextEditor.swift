@@ -128,7 +128,9 @@ final class AnnotationTextEditor: NSScrollView {
         textView.isVerticallyResizable = true
         textView.minSize = .zero
         textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
-        textView.insertionPointColor = .white
+        // In the text colour, not fixed white: a white caret vanished on light
+        // screenshots. It follows the colour in `applyAttributes`.
+        textView.insertionPointColor = textColor
     }
 
     func beginEditing(initialText: String) {
@@ -189,6 +191,7 @@ final class AnnotationTextEditor: NSScrollView {
     }
 
     private func applyAttributes() {
+        textView.insertionPointColor = textColor
         textView.typingAttributes = attributes
         if let storage = textView.textStorage, storage.length > 0 {
             storage.setAttributes(attributes, range: NSRange(location: 0, length: storage.length))

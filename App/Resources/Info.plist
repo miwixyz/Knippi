@@ -73,7 +73,7 @@
     <key>SURequireSignedFeed</key>
     <true/>
     <key>SUEnableAutomaticChecks</key>
-    <true/>
+    <false/>
     <key>SUScheduledCheckInterval</key>
     <integer>86400</integer>
 </dict>

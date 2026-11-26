@@ -24,15 +24,17 @@ public enum RecordingError: Error, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .noMatchingDisplay: return "No matching display."
-        case .writerSetupFailed(let r): return "Writer setup: \(r)"
-        case .writerFailedToStart: return "Writer failed to start."
-        case .writerFailed(let e): return "Writer: \(e?.localizedDescription ?? "?")"
-        case .notRecording: return "Not recording."
-        case .alreadyRecording: return "Already recording."
-        case .cancelled: return "Cancelled."
-        case .noFramesCaptured: return "No frames captured."
-        case .windowNotFound(let id): return "Window not found: \(id)."
+        case .noMatchingDisplay: return String(localized: "No matching display.")
+        case .writerSetupFailed(let r): return String(localized: "The recording file could not be prepared: \(r)")
+        case .writerFailedToStart: return String(localized: "The recording file could not be started.")
+        case .writerFailed(let e):
+            let reason = e?.localizedDescription ?? String(localized: "Unknown error")
+            return String(localized: "The recording file could not be written: \(reason)")
+        case .notRecording: return String(localized: "Not recording.")
+        case .alreadyRecording: return String(localized: "Already recording.")
+        case .cancelled: return String(localized: "Cancelled.")
+        case .noFramesCaptured: return String(localized: "No frames captured.")
+        case .windowNotFound(let id): return String(localized: "Window not found: \(id).")
         }
     }
 }

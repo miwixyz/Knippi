@@ -3250,6 +3250,40 @@
         }
       }
     },
+    "Access Key" : {
+      "comment" : "Credential name in the list of Keychain entries that couldn't be removed.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access Key"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access Key"
+          }
+        }
+      }
+    },
+    "Access keys are usually at least 16 characters long. Check that you copied the whole key." : {
+      "comment" : "Cloud Share wizard: access key looks too short (providers other than R2).",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access Keys haben meist mindestens 16 Zeichen. Prüfe, ob du den ganzen Schlüssel kopiert hast."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las claves de acceso suelen tener al menos 16 caracteres. Comprueba que has copiado la clave completa."
+          }
+        }
+      }
+    },
     "Access Key ID" : {
       "localizations" : {
         "de" : {
@@ -5061,6 +5095,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "另一個 App 使用 Knippi 擷取了你的螢幕。"
+          }
+        }
+      }
+    },
+    "Another app tried to control Knippi. You can allow this in Settings → General." : {
+      "comment" : "Toast when a knippi:// command is ignored because other apps may not control Knippi (at most every 30 s).",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine andere App wollte Knippi steuern. Erlauben kannst du das unter Einstellungen → Allgemein."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otra app intentó controlar Knippi. Puedes permitirlo en Ajustes → General."
           }
         }
       }
@@ -31192,18 +31243,18 @@
         }
       }
     },
-    "Open Image..." : {
+    "Open Image…" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bild öffnen ..."
+            "value" : "Bild öffnen …"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abrir imagen..."
+            "value" : "Abrir imagen…"
           }
         },
         "fr" : {
@@ -38231,6 +38282,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錄製時顯示按鍵需要此權限"
+          }
+        }
+      }
+    },
+    "Reset Cloud Share?" : {
+      "comment" : "Confirmation title before Cloud Share settings and Keychain keys are removed.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud Share zurücksetzen?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Restablecer Cloud Share?"
+          }
+        }
+      }
+    },
+    "This removes the provider settings and deletes the access keys from Keychain. Files already uploaded stay in your storage." : {
+      "comment" : "Confirmation message before resetting Cloud Share.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das entfernt die Anbieter-Einstellungen und löscht die Zugangsschlüssel aus dem Schlüsselbund. Bereits hochgeladene Dateien bleiben in deinem Speicher."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto elimina los ajustes del proveedor y borra las claves de acceso del llavero. Los archivos ya subidos permanecen en tu almacenamiento."
           }
         }
       }
@@ -52403,16 +52488,6 @@
         }
       }
     },
-    "No sensitive data found" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine vertraulichen Daten gefunden"
-          }
-        }
-      }
-    },
     "Finding sensitive data failed: %@" : {
       "localizations" : {
         "de" : {
@@ -53049,7 +53124,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Diese Aufnahme verwerfen?"
+            "value" : "Aufnahme verwerfen?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Descartar esta grabación?"
           }
         }
       }
@@ -53670,6 +53751,224 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mögliches Gesicht. Klicken, um den Bereich zu behalten oder auszulassen"
+          }
+        }
+      }
+    },
+    "Paused" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausiert"
+          }
+        }
+      }
+    },
+    "Area too small" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereich zu klein"
+          }
+        }
+      }
+    },
+    "Desktop icons could not be hidden" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Schreibtischsymbole konnten nicht ausgeblendet werden"
+          }
+        }
+      }
+    },
+    "Unknown error" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbekannter Fehler"
+          }
+        }
+      }
+    },
+    "Couldn't recover recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme konnte nicht wiederhergestellt werden"
+          }
+        }
+      }
+    },
+    "Camera stopped – it is no longer shown" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera gestoppt – sie wird nicht mehr angezeigt"
+          }
+        }
+      }
+    },
+    "Your cuts and effects haven't been exported and will be lost." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Schnitte und Effekte wurden nicht exportiert und gehen verloren."
+          }
+        }
+      }
+    },
+    "No display found for capture." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Bildschirm für die Aufnahme gefunden."
+          }
+        }
+      }
+    },
+    "Screen recording permission is required." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Freigabe für die Bildschirmaufnahme fehlt."
+          }
+        }
+      }
+    },
+    "No matching display." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein passender Bildschirm."
+          }
+        }
+      }
+    },
+    "The recording file could not be started." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufnahmedatei konnte nicht gestartet werden."
+          }
+        }
+      }
+    },
+    "Not recording." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es läuft keine Aufnahme."
+          }
+        }
+      }
+    },
+    "Already recording." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es läuft bereits eine Aufnahme."
+          }
+        }
+      }
+    },
+    "Cancelled." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abgebrochen."
+          }
+        }
+      }
+    },
+    "No frames captured." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Bilder aufgenommen."
+          }
+        }
+      }
+    },
+    "Opacity" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deckkraft"
+          }
+        }
+      }
+    },
+    "Only Show Shortcuts" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur Kurzbefehle zeigen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar solo atajos"
+          }
+        }
+      }
+    },
+    "Show only ⌘ and ⌃ combinations, never plain typing. Nothing is shown in password fields." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt nur ⌘- und ⌃-Kombinationen, nie normales Tippen. In Passwortfeldern wird nichts angezeigt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra solo combinaciones con ⌘ y ⌃, nunca texto normal. En campos de contraseña no se muestra nada."
+          }
+        }
+      }
+    },
+    "The recording hasn't been saved and will be lost." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufnahme wurde nicht gesichert und geht verloren."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La grabación no se ha guardado y se perderá."
+          }
+        }
+      }
+    },
+    "No matches for the known patterns" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Treffer der bekannten Muster"
           }
         }
       }

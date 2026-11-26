@@ -266,10 +266,10 @@ struct CheckForUpdatesView: View {
                             .controlSize(.small)
                     case .success:
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
+                            .foregroundStyle(FamilyTheme.success)
                     case .error:
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.yellow)
+                            .foregroundStyle(FamilyTheme.warning)
                     }
 
                     Text(status.message)

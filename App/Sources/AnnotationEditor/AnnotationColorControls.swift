@@ -30,6 +30,8 @@ struct AnnotationColorControls: View {
                 }
                 .buttonStyle(.plain)
                 .help(Text(color.displayName))
+                .accessibilityLabel(Text(color.displayName))
+                .accessibilityAddTraits(currentColor == color ? .isSelected : [])
             }
 
             Button(action: showCustomColorPanel) {
@@ -48,6 +50,7 @@ struct AnnotationColorControls: View {
             }
             .buttonStyle(.plain)
             .help("Custom Color")
+            .accessibilityLabel(Text("Custom Color"))
 
             Button(action: pickScreenColor) {
                 Image(systemName: "eyedropper")
@@ -58,6 +61,7 @@ struct AnnotationColorControls: View {
             }
             .buttonStyle(.plain)
             .help("Pick Color From Screen")
+            .accessibilityLabel(Text("Pick Color From Screen"))
 
             Button(action: copyCurrentHex) {
                 Text(currentColor.hexRGB)
@@ -69,6 +73,8 @@ struct AnnotationColorControls: View {
             }
             .buttonStyle(.plain)
             .help("Copy HEX Color")
+            .accessibilityLabel(Text("Copy HEX Color"))
+            .accessibilityValue(Text(verbatim: currentColor.hexRGB))
         }
     }
 

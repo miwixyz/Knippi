@@ -379,7 +379,8 @@ final class CloudShareWizardModel {
 
     /// Returns nil if the value passes the heuristic, or a localized error message.
     var accountIDError: String? {
-        guard blurredAccountID, !accountID.isEmpty else { return nil }
+        // Account IDs exist only for R2; a value left over from R2 must not block other providers.
+        guard provider == .r2, blurredAccountID, !accountID.isEmpty else { return nil }
         let trimmed = accountID.trimmingCharacters(in: .whitespaces)
         let hex = CharacterSet(charactersIn: "0123456789abcdefABCDEF")
         let isAllHex = trimmed.unicodeScalars.allSatisfy { hex.contains($0) }
@@ -411,6 +412,9 @@ final class CloudShareWizardModel {
         guard blurredAccessKey, !accessKey.isEmpty else { return nil }
         let trimmed = accessKey.trimmingCharacters(in: .whitespaces)
         if trimmed.count < 16 {
+            guard provider == .r2 else {
+                return String(localized: "Access keys are usually at least 16 characters long. Check that you copied the whole key.")
+            }
             return String(localized: "Cloudflare R2 Access Key IDs are typically 32+ chars. This looks like an API token instead — verify you created an R2 token, not a regular API token.")
         }
         return nil

@@ -45,6 +45,44 @@ final class MetalPreviewRenderer: NSObject {
     private var lastCompositedFrame: CIImage?
     /// Set to true when compositor/zoom/cursor settings change, forcing a re-composite of lastRawFrame.
     private var needsRecomposite = false
+    /// Drawable size of the last presented frame; a resize must draw again.
+    private var lastPresentedSize: CGSize = .zero
+
+    // MARK: - Idle handling
+
+    /// The view this renderer draws into; the display link is paused while nothing changes.
+    weak var mtkView: MTKView?
+    private var idleTicks = 0
+    private var rateObservation: NSKeyValueObservation?
+    private var timeJumpObserver: NSObjectProtocol?
+
+    /// Restarts drawing after an idle pause (new settings, seek, play, resize).
+    func wake() {
+        idleTicks = 0
+        mtkView?.isPaused = false
+    }
+
+    /// Wakes the view on play/pause and on seeks (`timeJumpedNotification`).
+    func startObservingPlayer() {
+        rateObservation = player.observe(\.rate, options: [.new]) { [weak self] _, _ in
+            Task { @MainActor in self?.wake() }
+        }
+        if let item = player.currentItem {
+            timeJumpObserver = NotificationCenter.default.addObserver(
+                forName: AVPlayerItem.timeJumpedNotification, object: item, queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in self?.wake() }
+            }
+        }
+    }
+
+    func stopObservingPlayer() {
+        rateObservation = nil
+        if let timeJumpObserver {
+            NotificationCenter.default.removeObserver(timeJumpObserver)
+        }
+        timeJumpObserver = nil
+    }
 
     // MARK: - Init
 
@@ -118,20 +156,34 @@ final class MetalPreviewRenderer: NSObject {
     /// Core rendering work — pulls a pixel buffer, composites it, and blits it to the drawable.
     /// Must be called on the main thread.
     private func renderFrame(in view: MTKView) {
+        let drawableSize = view.drawableSize
+        guard drawableSize.width > 0, drawableSize.height > 0 else { return }
+
+        // 0. Paused and nothing changed: the layer still shows the last frame,
+        //    so skip compositing and presenting instead of redoing it 30× a second.
+        let currentTime = player.currentTime()
+        let hasNewFrame = videoOutput.hasNewPixelBuffer(forItemTime: currentTime)
+        if !hasNewFrame, !needsRecomposite, lastCompositedFrame != nil, drawableSize == lastPresentedSize {
+            // Idle for about a third of a second and not playing: stop the display link
+            // altogether. `wake()` restarts it on a settings change, a seek, a play, or a resize.
+            idleTicks += 1
+            if idleTicks > 10, player.rate == 0 {
+                view.isPaused = true
+            }
+            return
+        }
+        idleTicks = 0
+
         // 1. Obtain a drawable. Bail early if Metal isn't ready.
         guard
             let drawable = view.currentDrawable,
             let commandBuffer = commandQueue.makeCommandBuffer()
         else { return }
 
-        let drawableSize = view.drawableSize
-        guard drawableSize.width > 0, drawableSize.height > 0 else { return }
-
         // 2. Pull a fresh CVPixelBuffer from the video output, if one is available.
-        let currentTime = player.currentTime()
         var rawFrame: CIImage?
 
-        if videoOutput.hasNewPixelBuffer(forItemTime: currentTime),
+        if hasNewFrame,
            let pixelBuffer = videoOutput.copyPixelBuffer(forItemTime: currentTime, itemTimeForDisplay: nil) {
             rawFrame = CIImage(cvPixelBuffer: pixelBuffer)
             lastRawFrame = rawFrame
@@ -222,6 +274,7 @@ final class MetalPreviewRenderer: NSObject {
 
         commandBuffer.present(drawable)
         commandBuffer.commit()
+        lastPresentedSize = drawableSize
     }
 }
 
@@ -231,6 +284,8 @@ extension MetalPreviewRenderer: MTKViewDelegate {
 
     nonisolated func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         // No stored size — drawableSize is read fresh each frame from view.drawableSize.
+        // A paused view must draw once more at the new size.
+        MainActor.assumeIsolated { wake() }
     }
 
     nonisolated func draw(in view: MTKView) {

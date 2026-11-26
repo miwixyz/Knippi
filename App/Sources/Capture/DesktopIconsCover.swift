@@ -54,6 +54,7 @@ final class DesktopIconsCover {
         observers = []
         windows.forEach { $0.orderOut(nil) }
         windows = []
+        didReportFailure = false
     }
 
     private func rebuildWindows() {
@@ -66,14 +67,41 @@ final class DesktopIconsCover {
         Task { [weak self] in
             let images = await Self.wallpaperImages(for: screens)
             guard let self, self.windows == current else { return }
+            var failed = false
             for (window, image) in zip(current, images) {
-                if let image {
-                    window.contentView?.layer?.contents = image
-                    window.contentView?.layer?.contentsGravity = .resizeAspectFill
+                // Without the wallpaper the cover would show as a grey sheet over
+                // the desktop, so it stays invisible and the user is told instead.
+                guard let image else {
+                    failed = true
+                    continue
                 }
+                window.contentView?.layer?.contents = image
+                window.contentView?.layer?.contentsGravity = .resizeAspectFill
                 window.alphaValue = 1
             }
+            if failed { self.reportCaptureFailure() }
         }
+    }
+
+    /// Reported once per hide session, not again on every Space or screen change.
+    private var didReportFailure = false
+    private var toastWindow: ToastWindow?
+
+    private func reportCaptureFailure() {
+        guard !didReportFailure else { return }
+        didReportFailure = true
+        if !CGPreflightScreenCaptureAccess() {
+            CapturePermissionNotice.show()
+            return
+        }
+        toastWindow?.close()
+        toastWindow = ToastWindow(
+            message: String(localized: "Desktop icons could not be hidden"),
+            icon: "exclamationmark.triangle",
+            iconColor: .systemYellow,
+            screen: nil
+        )
+        toastWindow?.show()
     }
 
     /// Captures the system's own wallpaper window for each screen, which works

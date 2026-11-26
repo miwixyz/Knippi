@@ -12,6 +12,10 @@ final class PinnedScreenshotWindow: NSPanel {
     var onDidClose: (UUID) -> Void
     private var screenshotView: PinnedScreenshotContentView!
 
+    /// Longest side of a new pin in points.
+    private static let maxStartLongSide: CGFloat = 800
+    /// Width of the pin at 100 % (the capture's size in points).
+    private let naturalWidth: CGFloat
     private var currentScale: CGFloat = 1.0
     var onFrameChanged: ((CGRect) -> Void)?
     var onScaleChanged: ((Int) -> Void)?
@@ -38,18 +42,28 @@ final class PinnedScreenshotWindow: NSPanel {
         activatesAppWhenShown = activatesApp
         self.onDidClose = onDidClose
 
-        let imageWidth = CGFloat(image.width)
-        let imageHeight = CGFloat(image.height)
-        let maxLongSide: CGFloat = 800
-        let scale = min(1.0, maxLongSide / max(imageWidth, imageHeight))
-        let width = max(100, imageWidth * scale)
-        let height = max(100, imageHeight * scale)
-
-        let screen = anchorRect
+        let anchorScreen = anchorRect
             .flatMap { anchor in NSScreen.screens.first(where: { $0.visibleFrame.intersects(anchor) }) }
+        let screen = anchorScreen
             ?? NSScreen.main
             ?? NSScreen.screens.first!
         let visible = screen.visibleFrame
+
+        // A capture is pinned at its size in points on the display it came from
+        // (a Retina capture has twice as many pixels as points). Images without
+        // a source display (clipboard) keep one point per pixel.
+        let pixelsPerPoint = anchorScreen?.backingScaleFactor ?? 1
+        let imageWidth = CGFloat(image.width) / pixelsPerPoint
+        let imageHeight = CGFloat(image.height) / pixelsPerPoint
+        naturalWidth = imageWidth
+        let scale = min(
+            1.0,
+            Self.maxStartLongSide / max(imageWidth, imageHeight),
+            max(100, visible.height - 32) / imageHeight
+        )
+        let width = max(100, imageWidth * scale)
+        let height = max(100, imageHeight * scale)
+
         let x = min(max(visible.midX - width / 2, visible.minX + 16), visible.maxX - width - 16)
         let y = min(max(visible.midY - height / 2, visible.minY + 16), visible.maxY - height - 16)
 
@@ -67,6 +81,7 @@ final class PinnedScreenshotWindow: NSPanel {
         hidesOnDeactivate = false
         isMovableByWindowBackground = false
         collectionBehavior = [.canJoinAllSpaces]
+        currentScale = width / baseDisplayWidth
         contentAspectRatio = NSSize(width: image.width, height: image.height)
 
         let minScale = max(100 / imageWidth, 100 / imageHeight)
@@ -116,15 +131,15 @@ final class PinnedScreenshotWindow: NSPanel {
     private func makeContextMenu() -> NSMenu {
         let menu = NSMenu()
 
-        let copyItem = NSMenuItem(title: "Copy", action: #selector(copyImage), keyEquivalent: "")
+        let copyItem = NSMenuItem(title: String(localized: "Copy"), action: #selector(copyImage), keyEquivalent: "")
         copyItem.target = self
         menu.addItem(copyItem)
 
-        let saveItem = NSMenuItem(title: "Save", action: #selector(saveImage), keyEquivalent: "")
+        let saveItem = NSMenuItem(title: String(localized: "Save"), action: #selector(saveImage), keyEquivalent: "")
         saveItem.target = self
         menu.addItem(saveItem)
 
-        let closeItem = NSMenuItem(title: "Close", action: #selector(closeWindow), keyEquivalent: "")
+        let closeItem = NSMenuItem(title: String(localized: "Close"), action: #selector(closeWindow), keyEquivalent: "")
         closeItem.target = self
         menu.addItem(closeItem)
 
@@ -139,7 +154,7 @@ final class PinnedScreenshotWindow: NSPanel {
             opacityMenu.addItem(item)
         }
 
-        let opacityItem = NSMenuItem(title: "Opacity", action: nil, keyEquivalent: "")
+        let opacityItem = NSMenuItem(title: String(localized: "Opacity"), action: nil, keyEquivalent: "")
         menu.addItem(opacityItem)
         menu.setSubmenu(opacityMenu, for: opacityItem)
         return menu
@@ -154,15 +169,28 @@ final class PinnedScreenshotWindow: NSPanel {
         alphaValue = value
     }
 
+    /// 100 % is the capture's own size in points, so the zoom readout matches it.
     private var baseDisplayWidth: CGFloat {
-        max(100, CGFloat(image.width) * min(1.0, 400 / max(CGFloat(image.width), CGFloat(image.height))))
+        max(1, naturalWidth)
+    }
+
+    /// Pin size for a requested width: within 160…1400 points wide and never
+    /// taller than the screen the pin is on.
+    private func clampedSize(forWidth requestedWidth: CGFloat) -> NSSize {
+        let aspect = CGFloat(image.height) / CGFloat(image.width)
+        var newWidth = min(max(160, requestedWidth), 1400)
+        if let maxHeight = (screen ?? NSScreen.main)?.visibleFrame.height,
+           newWidth * aspect > maxHeight {
+            newWidth = maxHeight / aspect
+        }
+        return NSSize(width: newWidth, height: newWidth * aspect)
     }
 
     private func adjustScale(by factor: CGFloat, animate: Bool = true) {
         let oldFrame = frame
-        let newWidth = min(max(160, oldFrame.width * factor), 1400)
-        let aspect = CGFloat(image.height) / CGFloat(image.width)
-        let newHeight = newWidth * aspect
+        let size = clampedSize(forWidth: oldFrame.width * factor)
+        let newWidth = size.width
+        let newHeight = size.height
 
         let newOrigin = NSPoint(
             x: oldFrame.midX - newWidth / 2,
@@ -213,9 +241,9 @@ final class PinnedScreenshotWindow: NSPanel {
             let dy = startMouse.y - currentMouse.y
             let delta = max(dx, dy)
 
-            let aspect = CGFloat(image.height) / CGFloat(image.width)
-            let newWidth = min(max(160, startFrame.width + delta), 1400)
-            let newHeight = newWidth * aspect
+            let size = clampedSize(forWidth: startFrame.width + delta)
+            let newWidth = size.width
+            let newHeight = size.height
             let newFrame = NSRect(
                 x: startFrame.minX,
                 y: startFrame.maxY - newHeight,

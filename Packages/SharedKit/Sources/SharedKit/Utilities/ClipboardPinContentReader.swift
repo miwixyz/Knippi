@@ -14,8 +14,8 @@ public enum ClipboardPinContentReader {
     private static let maxTextLength = 100_000
     private static let maxRichDataSize = 4 * 1_024 * 1_024
     private static let maxEncodedImageSize = 128 * 1_024 * 1_024
-    private static let maxImagePixelCount = 40_000_000
-    private static let maxImageDimension = 32_768
+    nonisolated private static let maxImagePixelCount = 40_000_000
+    nonisolated private static let maxImageDimension = 32_768
 
     private enum ImageReadResult {
         case image(CGImage)
@@ -23,7 +23,8 @@ public enum ClipboardPinContentReader {
         case unsupported
     }
 
-    static func isSafeImageDimensions(width: Int, height: Int) -> Bool {
+    /// Also used by `ClipboardImageReader` (not main-actor bound).
+    nonisolated static func isSafeImageDimensions(width: Int, height: Int) -> Bool {
         guard width > 0, height > 0,
               width <= maxImageDimension, height <= maxImageDimension else {
             return false

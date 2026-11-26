@@ -476,6 +476,17 @@ final class PreferencesViewModel {
             }
         }
     }
+    var showOnlyShortcutKeyPresses: Bool {
+        get {
+            access(keyPath: \.showOnlyShortcutKeyPresses)
+            return settings.showOnlyShortcutKeyPresses
+        }
+        set {
+            withMutation(keyPath: \.showOnlyShortcutKeyPresses) {
+                settings.showOnlyShortcutKeyPresses = newValue
+            }
+        }
+    }
     var cursorSmoothing: Bool {
         get {
             access(keyPath: \.cursorSmoothing)

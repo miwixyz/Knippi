@@ -10,6 +10,11 @@ struct ScreenshotSettingsView: View {
     @State private var newWidth = ""
     @State private var newHeight = ""
     @State private var newName = ""
+    /// Draft of the timestamp color: the setting normalizes every write, so binding
+    /// the field directly turned "#F" into "#FFFFFF" mid-typing. Only a full,
+    /// valid hex is written; Return on an invalid value restores the stored one.
+    @State private var timestampColorDraft: String?
+    @AppStorage(SensitiveSuggestionsModel.findFacesKey) private var findFaces = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -153,6 +158,19 @@ struct ScreenshotSettingsView: View {
                 }
             }
 
+            SettingGroup(title: "Sensitive Data") {
+                SettingCard {
+                    SettingRow(
+                        label: "Also Look for Faces",
+                        sublabel: "Finds clearly visible faces. Small or partly hidden ones can be missed, so please check."
+                    ) {
+                        Toggle("", isOn: $findFaces)
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                    }
+                }
+            }
+
             SettingGroup(title: "Timestamp") {
                 SettingCard {
                     SettingRow(label: "Add Timestamp", sublabel: "Draw the capture time onto screenshots") {
@@ -183,10 +201,19 @@ struct ScreenshotSettingsView: View {
                         }
 
                         SettingRow(label: "Color", showDivider: true) {
-                            TextField("#FFFFFF", text: $viewModel.screenshotTimestampColorHex)
+                            TextField("#FFFFFF", text: Binding(
+                                get: { timestampColorDraft ?? viewModel.screenshotTimestampColorHex },
+                                set: { draft in
+                                    timestampColorDraft = draft
+                                    if let hex = ScreenshotTimestampOptions.normalizedColorHex(draft) {
+                                        viewModel.screenshotTimestampColorHex = hex
+                                    }
+                                }
+                            ))
                                 .textFieldStyle(.roundedBorder)
                                 .font(.system(size: 12, design: .monospaced))
                                 .frame(width: 88)
+                                .onSubmit { timestampColorDraft = nil }
                         }
 
                         SettingRow(label: "Font Size", showDivider: true) {

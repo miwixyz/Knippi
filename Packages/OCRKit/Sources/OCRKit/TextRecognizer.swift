@@ -194,20 +194,28 @@ public enum TextRecognizer {
                     return
                 }
                 let observations = request.results as? [VNRecognizedTextObservation] ?? []
+                let lines = observations.compactMap { o in o.topCandidates(1).first.map { (o, $0) } }
+                let boxes = lines.map(\.0.boundingBox)
                 var regions: [SensitiveRegion] = []
-                for observation in observations {
-                    guard let candidate = observation.topCandidates(1).first else { continue }
-                    let text = candidate.string
+                func append(_ match: SensitiveMatch, line: (VNRecognizedTextObservation, VNRecognizedText)) {
+                    let normalized = (try? line.1.boundingBox(for: match.range))?.boundingBox ?? line.0.boundingBox
+                    regions.append(SensitiveRegion(
+                        kind: match.kind,
+                        text: String(line.1.string[match.range]),
+                        boundingBox: imageRect(fromNormalized: normalized,
+                                               imageWidth: imageWidth, imageHeight: imageHeight),
+                        isVerified: match.isVerified
+                    ))
+                }
+                for (index, line) in lines.enumerated() {
+                    let text = line.1.string
                     for match in detector.matches(in: text) {
-                        let normalized = (try? candidate.boundingBox(for: match.range))?.boundingBox
-                            ?? observation.boundingBox
-                        regions.append(SensitiveRegion(
-                            kind: match.kind,
-                            text: String(text[match.range]),
-                            boundingBox: imageRect(fromNormalized: normalized,
-                                                   imageWidth: imageWidth, imageHeight: imageHeight),
-                            isVerified: match.isVerified
-                        ))
+                        append(match, line: line)
+                        // A hit cut off at line end: also cover the start of the next line.
+                        if let next = nextLineIndex(after: index, boxes: boxes),
+                           let rest = detector.continuation(of: match, in: text, nextLine: lines[next].1.string) {
+                            append(rest, line: lines[next])
+                        }
                     }
                 }
                 oneShot.resume(returning: regions)
@@ -225,6 +233,23 @@ public enum TextRecognizer {
                 }
             }
         }
+    }
+
+    /// The OCR line directly below line `index` in the same column, or nil.
+    /// Boxes are Vision-normalized (bottom-left origin). "Below": the other line's top
+    /// lies under this line's middle, the gap is at most one line height, and the two
+    /// overlap horizontally. The closest such line wins.
+    static func nextLineIndex(after index: Int, boxes: [CGRect]) -> Int? {
+        let box = boxes[index]
+        return boxes.indices
+            .filter { j in
+                let other = boxes[j]
+                return j != index
+                    && other.maxY <= box.midY
+                    && box.minY - other.maxY <= box.height
+                    && other.minX < box.maxX && other.maxX > box.minX
+            }
+            .max { boxes[$0].maxY < boxes[$1].maxY }
     }
 
     /// Prewarm Vision's text-recognition models so the first real OCR request

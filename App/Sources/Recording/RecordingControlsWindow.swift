@@ -62,11 +62,14 @@ private struct RecordingControlsView: View {
             }
             .buttonStyle(.plain)
             .help("Stop recording")
+            .accessibilityLabel(String(localized: "Stop recording"))
 
+            // While paused the time turns grey, so the pause is visible at a glance.
             Text(formatTime(recorder.elapsedTime))
                 .font(.system(size: 14, weight: .semibold, design: .monospaced))
-                .foregroundStyle(.red.opacity(0.95))
+                .foregroundStyle(recorder.state == .paused ? Color.white.opacity(0.45) : Color.red.opacity(0.95))
                 .frame(minWidth: 52, alignment: .leading)
+                .accessibilityValue(recorder.state == .paused ? String(localized: "Paused") : "")
 
             Divider().frame(height: 18)
 
@@ -86,6 +89,9 @@ private struct RecordingControlsView: View {
             }
             .buttonStyle(.plain)
             .help(recorder.state == .paused ? "Resume recording" : "Pause recording")
+            .accessibilityLabel(recorder.state == .paused
+                ? String(localized: "Resume recording")
+                : String(localized: "Pause recording"))
 
             Button(action: onRestart) {
                 Image(systemName: "arrow.counterclockwise")
@@ -97,6 +103,7 @@ private struct RecordingControlsView: View {
             }
             .buttonStyle(.plain)
             .help("Restart recording")
+            .accessibilityLabel(String(localized: "Restart recording"))
 
             Button(action: onDelete) {
                 Image(systemName: "trash")
@@ -108,6 +115,7 @@ private struct RecordingControlsView: View {
             }
             .buttonStyle(.plain)
             .help("Delete recording")
+            .accessibilityLabel(String(localized: "Delete recording"))
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)

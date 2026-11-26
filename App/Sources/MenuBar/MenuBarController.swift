@@ -68,6 +68,8 @@ final class MenuBarController: NSObject {
             button.image = NSImage(named: "MenuBarIcon")
             button.image?.size = NSSize(width: 18, height: 18)
             button.image?.isTemplate = true
+            // VoiceOver otherwise reads the image name ("MenuBarIcon").
+            button.setAccessibilityLabel("Knippi")
         }
         statusItem?.menu = buildMenu()
     }
@@ -127,7 +129,7 @@ final class MenuBarController: NSObject {
         editClipboardImage.toolTip = String(localized: "Open the image currently copied to the clipboard in Annotate")
         menu.addItem(editClipboardImage)
 
-        let openImageFile = menuItem(String(localized: "Open Image..."), action: #selector(openImageFile), key: "o", modifiers: [.command])
+        let openImageFile = menuItem(String(localized: "Open Image…"), action: #selector(openImageFile), key: "o", modifiers: [.command])
         openImageFile.toolTip = String(localized: "Open an image file in Annotate")
         menu.addItem(openImageFile)
         let history = menuItem(String(localized: "Screenshot History…"), action: #selector(openHistory))
@@ -166,7 +168,7 @@ final class MenuBarController: NSObject {
         menu.addItem(menuItem(String(localized: "Hide Desktop Icons"), action: #selector(toggleDesktopIcons)))
         menu.addItem(.separator())
 
-        menu.addItem(menuItem(String(localized: "Preferences..."), action: #selector(openPreferences), key: ",", modifiers: [.command]))
+        menu.addItem(menuItem(String(localized: "Settings…"), action: #selector(openPreferences), key: ",", modifiers: [.command]))
         menu.addItem(menuItem(String(localized: "Knippi Help"), action: #selector(openHelp), key: "?", modifiers: [.command]))
         menu.addItem(menuItem(String(localized: "Get Stream Deck Plugin…"), action: #selector(getStreamDeckPlugin)))
         menu.addItem(menuItem(String(localized: "About Knippi"), action: #selector(openAbout)))

@@ -135,6 +135,8 @@ struct AnnotationToolbar: View {
         }
         .buttonStyle(.plain)
         .help(tool.localizedShortcutHelpTitle)
+        .accessibilityLabel(Text(tool.localizedToolName))
+        .accessibilityAddTraits(currentTool == tool ? .isSelected : [])
     }
 
     /// Text-tool button. Rendered as a literal "Aa" glyph rather than the
@@ -157,6 +159,8 @@ struct AnnotationToolbar: View {
         }
         .buttonStyle(.plain)
         .help(AnnotationTool.text.localizedShortcutHelpTitle)
+        .accessibilityLabel(Text(AnnotationTool.text.localizedToolName))
+        .accessibilityAddTraits(currentTool == .text ? .isSelected : [])
     }
 
     private var colorGroup: some View {
@@ -301,6 +305,7 @@ struct AnnotationToolbar: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Style Presets")
+        .accessibilityLabel(Text("Style Presets"))
         .disabled(isEditingText)
     }
 
@@ -317,6 +322,7 @@ struct AnnotationToolbar: View {
         .buttonStyle(.plain)
         .opacity(isExportBlocked ? 0.45 : 1)
         .help(isExportBlocked ? "Still looking for sensitive data …" : "Crop")
+        .accessibilityLabel(Text("Crop"))
         .disabled(isEditingText)
     }
 
@@ -363,18 +369,22 @@ struct AnnotationToolbar: View {
 
     private var undoGroup: some View {
         HStack(spacing: 4) {
+            // Off while a text is edited: ⌘Z then belongs to the text field, and the
+            // document undo would act on objects behind the open editor.
             Button(action: onUndo) {
                 Image(systemName: "arrow.uturn.backward")
             }
-            .disabled(!canUndo)
+            .disabled(!canUndo || isEditingText)
             .keyboardShortcut("z", modifiers: .command)
             .help("Undo")
+            .accessibilityLabel(Text("Undo"))
             Button(action: onRedo) {
                 Image(systemName: "arrow.uturn.forward")
             }
-            .disabled(!canRedo)
+            .disabled(!canRedo || isEditingText)
             .keyboardShortcut("z", modifiers: [.command, .shift])
             .help("Redo")
+            .accessibilityLabel(Text("Redo"))
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
@@ -441,6 +451,7 @@ struct AnnotationToolbar: View {
         let button = actionButton(
             icon: "doc.on.doc",
             help: "Copy Image and Close (⌘C · ⏎ · ⌘⇧C)",
+            label: "Copy",
             isBlockable: true,
             action: onCopy
         )
@@ -475,6 +486,7 @@ struct AnnotationToolbar: View {
     private func actionButton(
         icon: String,
         help: LocalizedStringKey,
+        label: LocalizedStringKey? = nil,
         isPrimary: Bool = false,
         isDestructive: Bool = false,
         isBlockable: Bool = false,
@@ -489,6 +501,8 @@ struct AnnotationToolbar: View {
         }
         .buttonStyle(.plain)
         .help(isBlocked ? "Still looking for sensitive data …" : help)
+        // VoiceOver read only the SF Symbol name ("xmark", "pin").
+        .accessibilityLabel(Text(label ?? help))
     }
 
     private func actionButtonFace(

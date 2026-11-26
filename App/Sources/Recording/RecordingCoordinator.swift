@@ -91,6 +91,9 @@ final class RecordingCoordinator {
     init(settings: AppSettings) {
         self.settings = settings
         cameraManager.refreshDevices()
+        cameraManager.onInterrupted = { [weak self] in
+            self?.handleCameraInterrupted()
+        }
         recorder.onStreamInterrupted = { [weak self] error in
             self?.handleRecordingInterrupted(error: error)
         }
@@ -991,10 +994,13 @@ final class RecordingCoordinator {
     }
 
     private func restartRecording() {
-        guard let format = currentRecordingFormat else { return }
+        // A Stop already in progress owns the file; restarting now would race it.
+        guard !isStopping, let format = currentRecordingFormat else { return }
         let restoredCameraPiPState = currentCameraEnabled ? cameraPiPWindow?.restartRestorationState : nil
+        isStopping = true
 
         Task {
+            defer { isStopping = false }
             do {
                 let result = try await recorder.stopRecording()
                 // Discard temp file — restart should not show preview.
@@ -1031,6 +1037,8 @@ final class RecordingCoordinator {
     }
 
     private func confirmDeleteRecording() {
+        // A Stop already in progress owns the file; deleting now would race it.
+        guard !isStopping else { return }
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = String(localized: "Delete this recording?")
@@ -1039,9 +1047,11 @@ final class RecordingCoordinator {
         alert.addButton(withTitle: String(localized: "Cancel"))
 
         let response = alert.runModal()
-        guard response == .alertFirstButtonReturn else { return }
+        guard response == .alertFirstButtonReturn, !isStopping else { return }
+        isStopping = true
 
         Task {
+            defer { isStopping = false }
             do {
                 let result = try await recorder.stopRecording()
                 InterruptedRecording.clear(ifMarking: result.fileURL)
@@ -1104,14 +1114,25 @@ final class RecordingCoordinator {
     }
 
     func recoverInterruptedRecording() {
-        guard let url = InterruptedRecording.take() else { return }
+        // The marker stays until the export succeeded (`exportRecording` clears it),
+        // so a failed recovery is retried on the next launch instead of lost.
+        guard let url = InterruptedRecording.pending() else { return }
         Task {
             let duration = (try? await AVURLAsset(url: url).load(.duration).seconds) ?? 0
             guard duration > 0 else {
+                InterruptedRecording.clear(ifMarking: url)
                 try? FileManager.default.removeItem(at: url)
                 return
             }
-            guard let savedURL = await exportRecording(url, format: .video) else { return }
+            guard let savedURL = await exportRecording(url, format: .video) else {
+                let alert = NSAlert()
+                alert.alertStyle = .warning
+                alert.messageText = String(localized: "Couldn't recover recording")
+                alert.informativeText = String(localized: "Knippi quit unexpectedly during a recording, and saving what was captured failed. The file is still at \(url.path).")
+                alert.addButton(withTitle: String(localized: "OK"))
+                alert.runModal()
+                return
+            }
             CaptureCoordinator.postNotification(
                 title: String(localized: "Recording recovered"),
                 body: String(localized: "Knippi quit unexpectedly during a recording. What was captured has been saved to \(savedURL.deletingLastPathComponent().path).")
@@ -1175,6 +1196,11 @@ final class RecordingCoordinator {
                 if let cursorTelemetryURL {
                     try? FileManager.default.removeItem(at: cursorTelemetryURL)
                 }
+                // The editor closes only after a finished export or a confirmed discard
+                // (RecordingEditorWindow.performClose), so the source recording in tmp
+                // is no longer needed. Without this every recording stayed behind
+                // (several hundred MB each).
+                try? FileManager.default.removeItem(at: tempURL)
                 self?.editorWindow?.close()
                 self?.editorWindow = nil
                 self?.editorCoordinator = nil
@@ -1292,6 +1318,17 @@ final class RecordingCoordinator {
     private var savedToast: ToastWindow?
 
     /// The chosen camera is gone (unplugged) – the recording runs without the speaker view.
+    /// The camera failed or was taken away mid-session: no frozen or empty bubble in
+    /// the video. The camera manager has already stopped itself.
+    private func handleCameraInterrupted() {
+        cameraPiPWindow?.orderOut(nil)
+        cameraPiPWindow?.close()
+        cameraPiPWindow = nil
+        savedToast?.close()
+        savedToast = ToastWindow(message: String(localized: "Camera stopped – it is no longer shown"))
+        savedToast?.show(autoDismissAfter: 3)
+    }
+
     private func showCameraUnavailableToast() {
         savedToast?.close()
         savedToast = ToastWindow(message: String(localized: "Camera not available – recording without it"))
@@ -1489,7 +1526,10 @@ final class RecordingCoordinator {
         // Prefer detailed callback so command-ish keys (⌘/⌃) start a new bezel line (KeyCastr).
         monitor.onKeyDisplayDetailed = { [weak self] label, isCommand in
             Task { @MainActor in
-                self?.keyPressOverlayWindow?.appendChip(label, isCommand: isCommand)
+                guard let self else { return }
+                // Plain typing only if the user opted in; read live so the switch works mid-recording.
+                if self.settings.showOnlyShortcutKeyPresses, !isCommand { return }
+                self.keyPressOverlayWindow?.appendChip(label, isCommand: isCommand)
             }
         }
         monitor.start()

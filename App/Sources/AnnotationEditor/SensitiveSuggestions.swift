@@ -66,7 +66,7 @@ final class SensitiveSuggestionsModel {
                 if suggestions.isEmpty {
                     self.phase = .idle
                     SensitiveSuggestionsToast.show(
-                        String(localized: "No sensitive data found"),
+                        String(localized: "No matches for the known patterns"),
                         icon: "checkmark.circle.fill",
                         color: .systemGreen,
                         screen: screen

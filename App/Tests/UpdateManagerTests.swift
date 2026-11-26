@@ -33,12 +33,13 @@ final class FakeSoftwareUpdater: SoftwareUpdating {
 /// The values Sparkle starts from before the user picks anything, which live in
 /// the app's Info.plist rather than in code.
 ///
-/// These are deliberately unchanged by this feature: an existing install has
-/// nothing stored for them, so editing the plist would silently move everyone
-/// who upgrades. Anyone who wants a different interval can pick one.
+/// Automatic checks are off from the start (privacy: no request to GitHub
+/// without the user's say-so, decided 2026-11-26). An existing install that
+/// never touched the switch follows this default after updating. The interval
+/// is unchanged: anyone who wants a different one can pick one.
 final class ShippedUpdateDefaultsTests: XCTestCase {
-    func testAutomaticChecksAreOnByDefault() {
-        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "SUEnableAutomaticChecks") as? Bool, true)
+    func testAutomaticChecksAreOffByDefault() {
+        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "SUEnableAutomaticChecks") as? Bool, false)
     }
 
     func testAutomaticInstallIsOffByDefault() {

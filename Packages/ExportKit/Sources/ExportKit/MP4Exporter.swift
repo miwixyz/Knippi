@@ -21,6 +21,22 @@ enum MP4Exporter {
         // first one — so the shared file sounds silent even though both tracks
         // are present. Merge them into a single mixed track. (issue #55)
         if audioTracks.count > 1 {
+            // The merge passes the video through unchanged, which ignored the
+            // Social/Web size. For those, mix into a temporary file first and
+            // export that (now one audio track) with the preset below.
+            if quality != .maximum {
+                let premixed = try await sourceWithMergedAudio(source)
+                defer {
+                    if premixed.isTemporary { try? FileManager.default.removeItem(at: premixed.url) }
+                }
+                return try await export(
+                    source: premixed.url,
+                    quality: quality,
+                    destination: destination,
+                    progress: progress,
+                    status: status
+                )
+            }
             status?(ExportStatus(stage: .encoding, fractionCompleted: 0.05))
             return try await exportWithMergedAudio(
                 asset: asset,
@@ -72,8 +88,11 @@ enum MP4Exporter {
         do {
             try await session.export(to: destination, as: .mp4)
         } catch is CancellationError {
+            // A half-written file must not stay behind as if it were the export.
+            try? FileManager.default.removeItem(at: destination)
             throw ExportError.cancelled
         } catch {
+            try? FileManager.default.removeItem(at: destination)
             throw ExportError.exportSessionFailed(error.localizedDescription)
         }
 
@@ -141,6 +160,16 @@ enum MP4Exporter {
             writer = try AVAssetWriter(outputURL: destination, fileType: .mp4)
         } catch {
             throw ExportError.exportSessionFailed(error.localizedDescription)
+        }
+        // On any failure below: stop the writer and reader and remove the
+        // half-written file, so no broken MP4 is left at the destination.
+        var completed = false
+        defer {
+            if !completed {
+                if writer.status == .writing { writer.cancelWriting() }
+                if reader.status == .reading { reader.cancelReading() }
+                try? FileManager.default.removeItem(at: destination)
+            }
         }
         writer.shouldOptimizeForNetworkUse = true
         status?(ExportStatus(stage: .encoding, fractionCompleted: 0.1))
@@ -225,6 +254,7 @@ enum MP4Exporter {
         if writer.status != .completed {
             throw ExportError.exportSessionFailed(writer.error?.localizedDescription ?? "Writer did not complete")
         }
+        completed = true
 
         status?(ExportStatus(stage: .finalizing, fractionCompleted: 1.0))
         progress?(1.0)

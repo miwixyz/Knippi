@@ -138,8 +138,17 @@ final class EditorCoordinator {
             .min() ?? duration
     }
 
-    func setHeadTrim(to time: TimeInterval) {
+    /// Smallest playable span the head and tail handles must leave between them;
+    /// without it the handles could cross and the export would be empty.
+    private static let minimumTrimmedDuration: TimeInterval = 0.2
+
+    /// Distance a timeline cut keeps from both ends. A cut touching 0 or the
+    /// end would otherwise be read as head or tail trim and leave the timeline.
+    private static let cutEdgeMargin: TimeInterval = 0.02
+
+    func setHeadTrim(to requestedTime: TimeInterval) {
         project.trimRegions.removeAll { $0.startTime < 0.01 }
+        let time = min(requestedTime, max(0, effectiveEndTime - Self.minimumTrimmedDuration))
         if time > 0.01 {
             project.trimRegions.append(
                 TrimRegion(startTime: 0, endTime: min(time, duration))
@@ -150,8 +159,9 @@ final class EditorCoordinator {
         }
     }
 
-    func setTailTrim(to time: TimeInterval) {
+    func setTailTrim(to requestedTime: TimeInterval) {
         project.trimRegions.removeAll { $0.endTime >= duration - 0.01 }
+        let time = max(requestedTime, min(duration, effectiveStartTime + Self.minimumTrimmedDuration))
         if time < duration - 0.01 {
             project.trimRegions.append(
                 TrimRegion(startTime: max(0, time), endTime: duration)
@@ -203,7 +213,8 @@ final class EditorCoordinator {
     func moveCutRegion(id: UUID, to newStart: TimeInterval) {
         guard let index = project.trimRegions.firstIndex(where: { $0.id == id }) else { return }
         let dur = project.trimRegions[index].duration
-        let clamped = max(0, min(duration - dur, newStart))
+        let margin = Self.cutEdgeMargin
+        let clamped = max(margin, min(duration - dur - margin, newStart))
         project.trimRegions[index].startTime = clamped
         project.trimRegions[index].endTime = clamped + dur
         if currentTime >= clamped && currentTime < clamped + dur {
@@ -214,10 +225,10 @@ final class EditorCoordinator {
     func resizeCutRegion(id: UUID, newStart: TimeInterval? = nil, newEnd: TimeInterval? = nil) {
         guard let index = project.trimRegions.firstIndex(where: { $0.id == id }) else { return }
         if let newStart {
-            project.trimRegions[index].startTime = max(0, min(project.trimRegions[index].endTime - 0.2, newStart))
+            project.trimRegions[index].startTime = max(Self.cutEdgeMargin, min(project.trimRegions[index].endTime - 0.2, newStart))
         }
         if let newEnd {
-            project.trimRegions[index].endTime = min(duration, max(project.trimRegions[index].startTime + 0.2, newEnd))
+            project.trimRegions[index].endTime = min(duration - Self.cutEdgeMargin, max(project.trimRegions[index].startTime + 0.2, newEnd))
         }
     }
 

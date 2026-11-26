@@ -1054,6 +1054,14 @@ final class CaptureCoordinator {
         // already-frozen desktop.
         NotificationCenter.default.post(name: .knippiCaptureDidFreezeDesktop, object: nil)
         guard !frozenScreens.isEmpty else {
+            // Without Screen Recording permission the selection could only end
+            // in an error, so the notice comes before the overlay, as for the
+            // colour picker.
+            if !CGPreflightScreenCaptureAccess() {
+                handleSelectionCancelled()
+                CapturePermissionNotice.show()
+                return
+            }
             showOverlay(mode: mode, areaSelected: areaSelected)
             return
         }
@@ -1240,7 +1248,12 @@ final class CaptureCoordinator {
                         // Capture the real desktop behind the window (excluding the
                         // window itself) for the frosted glass background.
                         // Padding = 4% of the shorter side, plus room for shadow blur.
-                        let shorter = min(CGFloat(result.image.width), CGFloat(result.image.height))
+                        // In points, like the crop it is applied to: a Retina window
+                        // image has twice as many pixels as points.
+                        let pixelsPerPoint = NSScreen.screens
+                            .first(where: { $0.displayID == result.displayID })?
+                            .backingScaleFactor ?? 1
+                        let shorter = min(CGFloat(result.image.width), CGFloat(result.image.height)) / pixelsPerPoint
                         let padding = max(30, shorter * 0.04) + 20
                         desktopBg = try await ScreenCaptureManager.captureDesktopBehindWindow(
                             windowID: windowID,
@@ -1477,6 +1490,13 @@ final class CaptureCoordinator {
         guard !clampedSelection.isNull,
               clampedSelection.width >= 2,
               clampedSelection.height >= 2 else {
+            pendingAction = .default
+            showToast(
+                String(localized: "Area too small"),
+                icon: "exclamationmark.triangle",
+                iconColor: .systemYellow,
+                screen: screen
+            )
             return
         }
 
@@ -2861,6 +2881,9 @@ final class CaptureCoordinator {
     /// Reports a failed capture visibly instead of only logging it.
     private func handleCaptureFailure(_ error: Error, context: String) {
         pendingAction = .default
+        // A failed automated capture must not flag the user's next own capture
+        // as "taken by another app".
+        automatedCaptureDeadline = nil
         switch CaptureErrorPresentation.forError(error) {
         case .permissionMissing:
             Self.captureLogger.error("\(context, privacy: .public) failed: permission missing")

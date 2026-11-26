@@ -82,7 +82,7 @@ Pfeil, Linie, Rechteck, Ellipse, Text, Freihand, Textmarker, Zähler, Spotlight 
 
 Der Knopf **„Vertrauliches finden“** im Schnellzugriff und im Editor sucht E-Mail-Adressen, Telefonnummern, IBAN, Kartennummern und Zugangsschlüssel und verpixelt sie grob: Die Klötzchen sind so groß wie die Zeile hoch ist und bekommen eine zufällige Helligkeit, der Text lässt sich praktisch nicht zurückrechnen. „Alle verpixeln“ übernimmt alle Vorschläge. Ein gestrichelter Rahmen ist ein unsicherer Treffer: Klicken behält ihn oder lässt ihn aus.
 
-**Gesichter:** Die Suche schlägt auch Gesichter vor (Einstellungen → Allgemein → „Gesichter mitsuchen“, ab Werk an). Das ist eine Hilfe, kein Schutz: Knippi findet gut sichtbare Gesichter, kleine, verdeckte oder abgewandte können fehlen, und manchmal wird ein Zeichentrick- oder Plakatgesicht mitgerahmt. Sieh das Bild deshalb vor dem Teilen an und ergänze fehlende Stellen von Hand. Jedes Gesicht ist ein eigener Rahmen (gestrichelt = unsicher), er wird etwas größer als das Gesicht gezogen und grob verpixelt.
+**Gesichter:** Die Suche schlägt auch Gesichter vor (Einstellungen → Bildschirmfotos → „Gesichter mitsuchen“, ab Werk an). Das ist eine Hilfe, kein Schutz: Knippi findet gut sichtbare Gesichter, kleine, verdeckte oder abgewandte können fehlen, und manchmal wird ein Zeichentrick- oder Plakatgesicht mitgerahmt. Sieh das Bild deshalb vor dem Teilen an und ergänze fehlende Stellen von Hand. Jedes Gesicht ist ein eigener Rahmen (gestrichelt = unsicher), er wird etwas größer als das Gesicht gezogen und grob verpixelt.
 
 Offene Vorschläge werden vor jedem Kopieren, Sichern und Teilen verpixelt. Die Suche läuft vollständig auf deinem Mac.
 
@@ -130,7 +130,7 @@ Der Verlauf liest nur Aufnahmen im Sicherungsordner. Ist „Automatisch sichern�
 
 ## Updates
 
-Knippi sucht im Hintergrund nach neuen Versionen. Von Hand: Menüleiste → „Nach Updates suchen …“ oder Einstellungen → Allgemein → „Nach Updates suchen“. Findet Knippi im Hintergrund eine neue Version, steht oben im Menü „Update auf … verfügbar“. Updates sind signiert; Knippi installiert nur Versionen, deren Signatur stimmt.
+Ab Werk fragt Knippi nicht von selbst bei GitHub nach neuen Versionen. Von Hand: Menüleiste → „Nach Updates suchen …“ oder Einstellungen → Allgemein → „Nach Updates suchen“. Die automatische Suche schaltest du unter Einstellungen → Allgemein → Updates ein. Findet Knippi dann im Hintergrund eine neue Version, steht oben im Menü „Update auf … verfügbar“. Updates sind signiert; Knippi installiert nur Versionen, deren Signatur stimmt.
 
 ## Datenschutz
 

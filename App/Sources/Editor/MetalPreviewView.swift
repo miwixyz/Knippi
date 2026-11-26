@@ -93,6 +93,8 @@ struct MetalPreviewView: NSViewRepresentable {
             renderer.updateCursor(image: cursorCIImage, provider: cursorOverlayProvider)
             view.device = MTLCreateSystemDefaultDevice()
             view.delegate = renderer
+            renderer.mtkView = view
+            renderer.startObservingPlayer()
             context.coordinator.renderer = renderer
         }
 
@@ -118,6 +120,7 @@ struct MetalPreviewView: NSViewRepresentable {
         renderer.updateEffects(effectSegments)
         renderer.updateCursorTimeline(cursorTimeline)
         renderer.updateCursor(image: cursorCIImage, provider: cursorOverlayProvider)
+        renderer.wake()
         // Keep container-level rounding in sync with the slider value.
         nsView.layer?.cornerRadius = cornerRadius
         nsView.layer?.masksToBounds = true
@@ -130,6 +133,7 @@ struct MetalPreviewView: NSViewRepresentable {
            item.outputs.contains(where: { $0 === output }) {
             item.remove(output)
         }
+        coordinator.renderer?.stopObservingPlayer()
         coordinator.mtkView?.delegate = nil
         coordinator.videoOutput = nil
         coordinator.renderer = nil

@@ -31,30 +31,44 @@ enum ShareSigning {
     }
 }
 
+/// Signed uploads and deletes never follow a redirect: a 3xx from the store (or a
+/// proxy in between) would resend the request, including its signed headers, to a
+/// host the user never configured. The 3xx then surfaces as an ordinary HTTP error.
+final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, Sendable {
+    static let shared = NoRedirectDelegate()
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest
+    ) async -> URLRequest? {
+        nil
+    }
+}
+
 enum ShareHTTP {
     static func upload(request: URLRequest, file: URL) async throws {
-        let (_, response) = try await URLSession.shared.upload(for: request, fromFile: file)
-        try validate(response: response)
+        let (body, response) = try await URLSession.shared.upload(
+            for: request, fromFile: file, delegate: NoRedirectDelegate.shared
+        )
+        try validate(response: response, body: body)
     }
 
     static func data(request: URLRequest) async throws {
-        let (_, response) = try await URLSession.shared.data(for: request)
-        try validate(response: response)
+        let (body, response) = try await URLSession.shared.data(for: request, delegate: NoRedirectDelegate.shared)
+        try validate(response: response, body: body)
     }
 
-    private static func validate(response: URLResponse) throws {
+    /// Aliyun OSS and Tencent COS answer with S3-style XML (`<Code>…</Code>`), so the
+    /// S3 mapping applies: only real auth codes mean "invalid credentials"; others
+    /// (e.g. `RequestTimeTooSkewed`, `NoSuchBucket`) keep their own message.
+    private static func validate(response: URLResponse, body: Data) throws {
         guard let http = response as? HTTPURLResponse else {
             throw ShareError.network(underlying: "Missing HTTP response")
         }
         guard (200..<300).contains(http.statusCode) else {
-            switch http.statusCode {
-            case 401, 403:
-                throw ShareError.invalidCredentials
-            case 413, 507:
-                throw ShareError.quotaExceeded
-            default:
-                throw ShareError.unknown("HTTP \(http.statusCode)")
-            }
+            throw S3CompatibleHTTP.mapResponseError(statusCode: http.statusCode, body: body)
         }
     }
 }

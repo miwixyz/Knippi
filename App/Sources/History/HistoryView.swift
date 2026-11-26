@@ -113,10 +113,7 @@ struct HistoryView: View {
                             .contextMenu {
                                 let targets = store.targets(for: item)
                                 Button(String(localized: "Copy")) { store.copy(targets) }
-                                Button(String(localized: "Quick Look")) {
-                                    if !store.selected.contains(item.url) { store.click(item, extend: true) }
-                                    store.quickLook()
-                                }
+                                Button(String(localized: "Quick Look")) { store.quickLook(item) }
                                 Button(String(localized: "Share…")) { store.share(targets) }
                                 Divider()
                                 Button(String(localized: "Open")) { store.open(item) }
@@ -135,12 +132,16 @@ struct HistoryView: View {
     }
 
     /// Keys on the grid: Space Quick Look, Delete to the Trash, Esc clears the choice,
-    /// ⌘A chooses all, ⌘Z puts the last move to the Trash back.
+    /// ⌘A chooses all, ⌘Z puts the last move to the Trash back, ⌘C or Return copies the choice.
     private func handleKey(_ press: KeyPress) -> KeyPress.Result {
         let command = press.modifiers.contains(.command)
         switch press.key {
         case .space:
             store.quickLook()
+            return .handled
+        case .return:
+            guard !store.selected.isEmpty else { return .ignored }
+            store.copySelection()
             return .handled
         case .delete, .deleteForward:
             guard !store.selected.isEmpty else { return .ignored }
@@ -152,6 +153,7 @@ struct HistoryView: View {
             return .handled
         default:
             if command, press.characters == "a" { store.selectAll(); return .handled }
+            if command, press.characters == "c", !store.selected.isEmpty { store.copySelection(); return .handled }
             if command, press.characters == "z", store.canUndoTrash { store.undoTrash(); return .handled }
             return .ignored
         }

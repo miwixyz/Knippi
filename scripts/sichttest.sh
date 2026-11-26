@@ -44,6 +44,9 @@ PLIST="$DEST/Contents/Info.plist"
     -c 'Set CFBundleName Knippi Sichttest' \
     -c 'Set :CFBundleURLTypes:0:CFBundleURLSchemes:0 knippi-sichttest' "$PLIST"
 /usr/libexec/PlistBuddy -c 'Delete SUFeedURL' "$PLIST" >/dev/null 2>&1 || true
+# Testkopie fragt nie selbst nach Updates (auch wenn das Original es später wieder tut).
+/usr/libexec/PlistBuddy -c 'Set SUEnableAutomaticChecks false' "$PLIST" >/dev/null 2>&1 \
+    || /usr/libexec/PlistBuddy -c 'Add SUEnableAutomaticChecks bool false' "$PLIST"
 
 codesign --force --deep --options runtime \
     --entitlements App/Entitlements/Knippi.entitlements \

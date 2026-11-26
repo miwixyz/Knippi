@@ -43,6 +43,34 @@ final class RecordingEditorWindow: NSPanel {
 
     private var hasClosed = false
 
+    /// Red close button and ⌘W. Programmatic `close()` (after a finished export)
+    /// does not pass through here and closes without asking.
+    override func performClose(_ sender: Any?) {
+        // Closing mid-export would cut the export off; the overlay already
+        // says the editor closes on its own when it is done.
+        if coordinator.isExporting {
+            NSSound.beep()
+            return
+        }
+        // A finished export closes the window by code, never through here, so every
+        // pass through this method means the recording has not been saved. The source
+        // file is deleted when the editor closes, hence always ask.
+        let hasEdits = !coordinator.project.trimRegions.isEmpty || !coordinator.project.effectSegments.isEmpty
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        if hasEdits {
+            alert.messageText = String(localized: "Discard your edits?")
+            alert.informativeText = String(localized: "Your cuts and effects haven't been exported and will be lost.")
+        } else {
+            alert.messageText = String(localized: "Discard this recording?")
+            alert.informativeText = String(localized: "The recording hasn't been saved and will be lost.")
+        }
+        alert.addButton(withTitle: String(localized: "Discard"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        super.performClose(sender)
+    }
+
     /// The red close button closes the window directly, bypassing
     /// `EditorCoordinator.onClose`: stop playback and tear down here too
     /// (audit E8, 21.11.).

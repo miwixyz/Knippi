@@ -77,7 +77,9 @@ enum S3CompatibleHTTP {
         )
 
         do {
-            let (body, response) = try await URLSession.shared.upload(for: request, fromFile: file)
+            let (body, response) = try await URLSession.shared.upload(
+                for: request, fromFile: file, delegate: NoRedirectDelegate.shared
+            )
             try validate(response: response, body: body)
         } catch let error as ShareError {
             throw error
@@ -99,7 +101,7 @@ enum S3CompatibleHTTP {
             secretAccessKey: secretAccessKey
         )
         do {
-            let (body, response) = try await URLSession.shared.data(for: request)
+            let (body, response) = try await URLSession.shared.data(for: request, delegate: NoRedirectDelegate.shared)
             try validate(response: response, body: body)
         } catch let error as ShareError {
             throw error

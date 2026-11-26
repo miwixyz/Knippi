@@ -242,6 +242,7 @@ struct RecordingToolbarView: View {
         .background(micEnabled ? .white.opacity(0.15) : .clear)
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .help("Microphone")
+        .accessibilityLabel("Microphone")
     }
 
     private func restoreMicSelection() {
@@ -278,6 +279,7 @@ struct RecordingToolbarView: View {
         }
         .buttonStyle(.plain)
         .help("Camera")
+        .accessibilityLabel("Camera")
         .popover(isPresented: $showCameraPanel, arrowEdge: .bottom) {
             cameraPanel
         }
@@ -304,7 +306,10 @@ struct RecordingToolbarView: View {
                 set: { settings.cameraShape = $0; cameraSettingsChanged() }
             )) {
                 ForEach(CameraShape.allCases, id: \.rawValue) { shape in
-                    Image(systemName: shape.iconName).help(shape.displayName).tag(shape)
+                    Image(systemName: shape.iconName)
+                        .help(shape.displayName)
+                        .accessibilityLabel(Text(shape.displayName))
+                        .tag(shape)
                 }
             }
             .pickerStyle(.segmented)
@@ -367,6 +372,8 @@ struct RecordingToolbarView: View {
         }
         .buttonStyle(.plain)
         .help(tooltip)
+        .accessibilityLabel(Text(tooltip))
+        .accessibilityAddTraits(isOn.wrappedValue ? .isSelected : [])
     }
 
     private func shortcutKey(_ text: String) -> some View {

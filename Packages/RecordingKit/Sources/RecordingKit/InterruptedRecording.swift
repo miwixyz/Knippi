@@ -20,6 +20,18 @@ public enum InterruptedRecording {
         defaults.removeObject(forKey: key)
     }
 
+    /// Returns the file left behind by an unfinished recording without
+    /// forgetting it, so the marker survives until the file is safely saved
+    /// (`clear(ifMarking:)`). A marker whose file is gone is dropped.
+    public static func pending(defaults: UserDefaults = .standard) -> URL? {
+        guard let path = defaults.string(forKey: key) else { return nil }
+        guard FileManager.default.fileExists(atPath: path) else {
+            defaults.removeObject(forKey: key)
+            return nil
+        }
+        return URL(fileURLWithPath: path)
+    }
+
     /// Returns the file left behind by an unfinished recording, if it still
     /// exists, and forgets it so recovery runs at most once.
     public static func take(defaults: UserDefaults = .standard) -> URL? {

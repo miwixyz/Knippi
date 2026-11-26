@@ -58,6 +58,13 @@ public final class CameraManager {
     private var captureSession: AVCaptureSession?
     private var videoOutput: AVCaptureVideoDataOutput?
     private var frameDelegate: CameraFrameDelegate?
+    private var sessionObservers: [NSObjectProtocol] = []
+
+    /// Called once when the running session fails or is interrupted (camera
+    /// unplugged, taken by another app). The picture is already cleared; the
+    /// owner should hide the camera and tell the user.
+    @ObservationIgnored
+    public var onInterrupted: (@MainActor () -> Void)?
     /// startRunning/stopRunning block for hundreds of ms; Apple asks to keep them off the
     /// main thread (audit R9, 21.11.).
     private let sessionQueue = DispatchQueue(label: "dev.mwlr.knippi.camera.session")
@@ -126,11 +133,27 @@ public final class CameraManager {
         captureSession = session
         videoOutput = output
         frameDelegate = delegate
+        let sessionID = ObjectIdentifier(session)
+        sessionObservers = [
+            AVCaptureSession.runtimeErrorNotification,
+            AVCaptureSession.wasInterruptedNotification,
+        ].map { name in
+            NotificationCenter.default.addObserver(forName: name, object: session, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    guard let self, self.isRunning,
+                          self.captureSession.map(ObjectIdentifier.init) == sessionID else { return }
+                    self.stop()
+                    self.onInterrupted?()
+                }
+            }
+        }
         sessionQueue.async { session.startRunning() }
         isRunning = true
     }
 
     public func stop() {
+        sessionObservers.forEach { NotificationCenter.default.removeObserver($0) }
+        sessionObservers = []
         if let session = captureSession {
             sessionQueue.async { session.stopRunning() }
         }

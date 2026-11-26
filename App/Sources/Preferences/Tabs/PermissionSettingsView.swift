@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import SharedKit
 
@@ -62,6 +63,10 @@ struct PermissionSettingsView: View {
         .task {
             await viewModel.refreshPermissions()
         }
+        // Back from System Settings: show the new state without pressing Refresh.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            refresh()
+        }
     }
 
     private func permissionRow(
@@ -74,15 +79,19 @@ struct PermissionSettingsView: View {
         SettingRow(label: title, sublabel: subtitle, showDivider: showDivider) {
             HStack(spacing: 10) {
                 statusBadge(isGranted)
-                Button(action: { request(kind) }) {
-                    Label(actionTitle(for: kind, isGranted: isGranted), systemImage: actionIcon(for: kind, isGranted: isGranted))
+                // Granted: the badge says it all, no buttons. Missing: ask or open settings.
+                if !isGranted {
+                    Button(action: { request(kind) }) {
+                        Label(actionTitle(for: kind), systemImage: actionIcon(for: kind))
+                    }
+                    .controlSize(.small)
+                    Button(action: { viewModel.openPermissionSettings(kind) }) {
+                        Image(systemName: "arrow.up.forward.app")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Open System Settings")
+                    .accessibilityLabel(Text("Open System Settings"))
                 }
-                .controlSize(.small)
-                Button(action: { viewModel.openPermissionSettings(kind) }) {
-                    Image(systemName: "arrow.up.forward.app")
-                }
-                .buttonStyle(.borderless)
-                .help("Open System Settings")
             }
         }
     }
@@ -90,7 +99,7 @@ struct PermissionSettingsView: View {
     private func statusBadge(_ isGranted: Bool) -> some View {
         HStack(spacing: 5) {
             Circle()
-                .fill(isGranted ? Color.green : Color.orange)
+                .fill(isGranted ? FamilyTheme.success : FamilyTheme.warning)
                 .frame(width: 7, height: 7)
             Text(isGranted ? "Allowed" : "Needs Access")
                 .font(FamilyTheme.font(11, weight: .medium))
@@ -99,8 +108,7 @@ struct PermissionSettingsView: View {
         .frame(width: 96, alignment: .leading)
     }
 
-    private func actionTitle(for kind: PermissionKind, isGranted: Bool) -> LocalizedStringKey {
-        if isGranted { return "Open" }
+    private func actionTitle(for kind: PermissionKind) -> LocalizedStringKey {
         switch kind {
         case .camera, .microphone:
             return "Request"
@@ -109,8 +117,7 @@ struct PermissionSettingsView: View {
         }
     }
 
-    private func actionIcon(for kind: PermissionKind, isGranted: Bool) -> String {
-        if isGranted { return "gearshape" }
+    private func actionIcon(for kind: PermissionKind) -> String {
         switch kind {
         case .camera, .microphone:
             return "hand.tap"

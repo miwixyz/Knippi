@@ -393,6 +393,9 @@ private struct InlineAnnotationEditorView: View {
 
     private func handleLineWidthChange(oldValue: CGFloat, newValue: CGFloat) {
         updateSelectedStyle("lineWidth")
+        // While a text is edited the slider is its font size; that is saved
+        // once when editing ends, not as the tool's width.
+        guard !isEditingText else { return }
         persistWidth(newValue, for: currentTool)
     }
 
@@ -567,6 +570,9 @@ private struct InlineAnnotationEditorView: View {
 
     private func persistWidth(_ width: CGFloat, for tool: AnnotationTool) {
         switch tool {
+        // The select tool owns no width: its slider shows the selected object's
+        // value (a text's font size, too), which must not become the shape width.
+        case .select: return
         case .pixelate: savedBlockSize = Double(width)
         case .counter: savedCounterSize = Double(width)
         case .highlighter: savedHighlighterWidth = Double(width)
@@ -586,29 +592,16 @@ private struct InlineAnnotationEditorView: View {
                     document.discardUnchangedStep()
                 }
             }
-            if let pixelate = obj as? PixelateObject {
-                // The slider only means "block size" while the pixelate tool is active;
-                // otherwise it is the line width (audit A1).
-                pixelate.restyle(
-                    blockSize: currentTool == .pixelate ? lineWidth : pixelate.blockSize,
-                    mode: redactionMode
-                )
-                pixelate.style = currentStyle
-            } else if let counter = obj as? CounterObject {
-                counter.radius = lineWidth
-                counter.style = AnnotationKit.StrokeStyle(
-                    color: currentColor,
-                    lineWidth: lineWidth,
-                    filled: filled
-                )
-            } else if let text = obj as? TextObject {
-                text.fillColor = textFillColor
-                text.outlineColor = textOutlineColor
-                text.glyphStrokeColor = textGlyphStrokeColor
-                text.style = currentStyle
-            } else {
-                obj.style = currentStyle
-            }
+            SelectedObjectRestyle.apply(
+                property,
+                to: obj,
+                controls: currentStyle,
+                currentTool: currentTool,
+                redactionMode: redactionMode,
+                textFill: textFillColor,
+                textOutline: textOutlineColor,
+                textStroke: textGlyphStrokeColor
+            )
             refreshTrigger += 1
         }
     }
@@ -801,7 +794,8 @@ private struct InlineAnnotationToolbar: View {
             iconButton(
                 systemName: "arrow.uturn.backward",
                 help: "Undo",
-                isEnabled: canUndo,
+                // Off while a text is edited: ⌘Z then belongs to the text field.
+                isEnabled: canUndo && !isEditingText,
                 action: onUndo
             )
             .keyboardShortcut("z", modifiers: .command)
@@ -809,7 +803,7 @@ private struct InlineAnnotationToolbar: View {
             iconButton(
                 systemName: "arrow.uturn.forward",
                 help: "Redo",
-                isEnabled: canRedo,
+                isEnabled: canRedo && !isEditingText,
                 action: onRedo
             )
             .keyboardShortcut("z", modifiers: [.command, .shift])
@@ -962,6 +956,8 @@ private struct InlineAnnotationToolbar: View {
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.35)
         .help(help)
+        .accessibilityLabel(Text(help))
+        .accessibilityAddTraits(isActive ? .isSelected : [])
     }
 
     private func buttonBackground(isActive: Bool, isPrimary: Bool, isEnabled: Bool) -> Color {

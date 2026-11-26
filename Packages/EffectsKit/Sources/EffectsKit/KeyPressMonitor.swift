@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import CoreGraphics
 
 /// Monitors global keyboard events during screen recording and emits
@@ -11,7 +12,6 @@ import CoreGraphics
 ///
 /// KeyCastr is BSD-3-Clause; see `KeystrokeFormatter` and `THIRD_PARTY_NOTICES.md`.
 public final class KeyPressMonitor: @unchecked Sendable {
-    public var onKeyDisplay: (@Sendable (String) -> Void)?
     /// Emits `true` for command-ish keystrokes (⌘/⌃) so the UI can break bezel lines.
     public var onKeyDisplayDetailed: (@Sendable (_ label: String, _ isCommand: Bool) -> Void)?
 
@@ -19,17 +19,12 @@ public final class KeyPressMonitor: @unchecked Sendable {
     private var runLoopSource: CFRunLoopSource?
     private var globalMonitor: Any?
     private var localMonitor: Any?
-    private var useEventTap = false
 
     public init() {}
 
     public func start() {
         guard eventTap == nil, globalMonitor == nil, localMonitor == nil else { return }
-        if installEventTap() {
-            useEventTap = true
-            return
-        }
-        useEventTap = false
+        if installEventTap() { return }
         installNSEventMonitors()
     }
 
@@ -134,9 +129,10 @@ public final class KeyPressMonitor: @unchecked Sendable {
     private func emit(from event: NSEvent) {
         // Use the NSEvent overload so autorepeats (`isARepeat`) are dropped —
         // the Keystroke-only path has no repeat flag and would flood the bezel.
+        // Secure event input is on while a password field has focus: show nothing then.
+        if IsSecureEventInputEnabled() { return }
         guard let label = KeystrokeFormatter.displayString(for: event) else { return }
         let keystroke = KeystrokeFormatter.Keystroke(event: event)
         onKeyDisplayDetailed?(label, keystroke.isCommand)
-        onKeyDisplay?(label)
     }
 }

@@ -198,15 +198,21 @@ final class HistoryStore {
 
     // MARK: Selection
 
-    /// Click on a screenshot. Plain: choose only this one and copy it. With ⇧ or ⌘: add it to the
-    /// choice or take it out again, and copy nothing.
+    /// Click on a screenshot. Plain: choose only this one. With ⇧ or ⌘: add it to the choice or
+    /// take it out again. A click never copies: overwriting the clipboard just by choosing was a
+    /// surprise. Copy is ⌘C, Return or "Copy" in the menu.
     func click(_ item: HistoryScanner.Item, extend: Bool) {
         if extend {
             if selected.contains(item.url) { selected.remove(item.url) } else { selected.insert(item.url) }
         } else {
             selected = [item.url]
-            copy(item)
         }
+    }
+
+    /// ⌘C or Return on the grid: copy the chosen screenshots.
+    func copySelection() {
+        guard !selectedItems.isEmpty else { return }
+        copy(selectedItems)
     }
 
     /// What a menu or key acts on for this screenshot: the whole choice when it is part of it, else just it.
@@ -322,6 +328,13 @@ final class HistoryStore {
     func quickLook() {
         guard let target = quickLookTargets() else { return }
         HistoryQuickLook.shared.show(target.urls, at: target.index)
+    }
+
+    /// "Quick Look" in a screenshot's menu: show that one, leave the choice as it is.
+    func quickLook(_ item: HistoryScanner.Item) {
+        let urls = matches.map(\.url)
+        guard let index = urls.firstIndex(of: item.url) else { return }
+        HistoryQuickLook.shared.show(urls, at: index)
     }
 
     /// The macOS share menu for these screenshots, below the top edge of the history window.

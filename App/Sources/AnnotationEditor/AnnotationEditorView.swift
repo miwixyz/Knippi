@@ -228,6 +228,9 @@ struct AnnotationEditorView: View {
     /// still saves the user's choice.
     private func persistWidth(_ width: CGFloat, for tool: AnnotationTool) {
         switch tool {
+        // The select tool owns no width: its slider shows the selected object's
+        // value (a text's font size, too), which must not become the shape width.
+        case .select: return
         case .pixelate: savedBlockSize = Double(width)
         case .counter: savedCounterSize = Double(width)
         case .highlighter: savedHighlighterWidth = Double(width)
@@ -570,6 +573,16 @@ struct AnnotationEditorView: View {
             }
             .buttonStyle(.borderless)
             .keyboardShortcut("=", modifiers: .command)
+            // ⌘+ as well: on German keyboards "+" is its own key, and the menus
+            // of other apps advertise ⌘+ for zooming in.
+            .background {
+                Button(action: zoomIn) { EmptyView() }
+                    .keyboardShortcut("+", modifiers: .command)
+                    .buttonStyle(.plain)
+                    .frame(width: 0, height: 0)
+                    .opacity(0)
+                    .accessibilityHidden(true)
+            }
 
             Button("Fit", action: refitToCurrentWindow)
                 .buttonStyle(.borderless)
@@ -737,6 +750,9 @@ struct AnnotationEditorView: View {
         textStrokeEnabled = preset.textStroke
         if preset.annotationTool == currentTool {
             lineWidth = CGFloat(preset.lineWidth)
+            // A preset restyles the selection as a whole, in one undo step; the
+            // per-control onChange calls that follow then change nothing.
+            updateSelectedStyle(SelectedObjectRestyle.allProperties)
         } else {
             pendingPresetWidth = CGFloat(preset.lineWidth)
             currentTool = preset.annotationTool
@@ -749,6 +765,9 @@ struct AnnotationEditorView: View {
 
     private func handleLineWidthChange(oldValue: CGFloat, newValue: CGFloat) {
         updateSelectedStyle("lineWidth")
+        // While a text is edited the slider is its font size; that is saved
+        // once when editing ends, not as the tool's width.
+        guard !isEditingText else { return }
         persistWidth(newValue, for: currentTool)
     }
 
@@ -844,33 +863,24 @@ struct AnnotationEditorView: View {
             let before = AnnotationStyleState(of: obj)
             let bookedStep = document.beginStyleChange(for: obj.id, property: property)
             defer {
-                // A preset sets up to 8 controls; the first onChange applies them all, the
-                // others change nothing. Dropping those empty steps makes a preset one undo
+                // A preset sets up to 8 controls; `applyPreset` applies them all at once, the
+                // onChange calls change nothing. Dropping those empty steps makes a preset one undo
                 // step, and a no-op restyle (secure pixelation, text editing start) none
                 // (audit undo granularity, 21.11.).
                 if bookedStep, AnnotationStyleState(of: obj) == before {
                     document.discardUnchangedStep()
                 }
             }
-            if let pixelate = obj as? PixelateObject {
-                // The slider only means "block size" while the pixelate tool is active;
-                // otherwise it is the line width (audit A1).
-                pixelate.restyle(
-                    blockSize: currentTool == .pixelate ? lineWidth : pixelate.blockSize,
-                    mode: redactionMode
-                )
-                pixelate.style = currentStyle
-            } else if let counter = obj as? CounterObject {
-                counter.radius = lineWidth
-                counter.style = AnnotationKit.StrokeStyle(color: currentColor, lineWidth: lineWidth, filled: filled)
-            } else if let text = obj as? TextObject {
-                text.fillColor = textFillColor
-                text.outlineColor = textOutlineColor
-                text.glyphStrokeColor = textGlyphStrokeColor
-                text.style = currentStyle
-            } else {
-                obj.style = currentStyle
-            }
+            SelectedObjectRestyle.apply(
+                property,
+                to: obj,
+                controls: currentStyle,
+                currentTool: currentTool,
+                redactionMode: redactionMode,
+                textFill: textFillColor,
+                textOutline: textOutlineColor,
+                textStroke: textGlyphStrokeColor
+            )
             refreshTrigger += 1
             invalidateDragCache()
         }
@@ -1102,5 +1112,91 @@ struct AnnotationEditorView: View {
     private func showRenderFailure() {
         guard !sensitiveSuggestions.isScanning else { return }
         Self.showBeautifyWarning(String(localized: "Could not prepare the image"))
+    }
+}
+
+/// Carries one toolbar control over to the selected object. Before, every change wrote the
+/// whole toolbar style: a colour change also reset the selection's width or radius (and a
+/// highlighter's transparency when another tool was active). Shared by both editors.
+@MainActor
+enum SelectedObjectRestyle {
+    /// Applies every control at once, as a preset does.
+    static let allProperties = "all"
+
+    static func apply(
+        _ property: String,
+        to obj: any AnnotationObject,
+        controls: AnnotationKit.StrokeStyle,
+        currentTool: AnnotationTool,
+        redactionMode: RedactionMode,
+        textFill: AnnotationColor?,
+        textOutline: AnnotationColor?,
+        textStroke: AnnotationColor?
+    ) {
+        guard property != allProperties else {
+            applyAll(to: obj, controls: controls, currentTool: currentTool, redactionMode: redactionMode,
+                     textFill: textFill, textOutline: textOutline, textStroke: textStroke)
+            return
+        }
+        var style = obj.style
+        switch property {
+        case "color": style.color = controls.color
+        case "lineWidth": style.lineWidth = controls.lineWidth
+        case "filled": style.filled = controls.filled
+        // Counters draw neither patterns nor arrow heads.
+        case "pattern" where !(obj is CounterObject): style.pattern = controls.pattern
+        case "arrowHead" where !(obj is CounterObject): style.arrowHead = controls.arrowHead
+        default: break
+        }
+        if let pixelate = obj as? PixelateObject {
+            // The slider only means "block size" while the pixelate tool is active;
+            // otherwise it is the line width (audit A1).
+            if property == "lineWidth", currentTool == .pixelate {
+                pixelate.restyle(blockSize: controls.lineWidth, mode: pixelate.mode)
+            } else if property == "redactionMode" {
+                pixelate.restyle(blockSize: pixelate.blockSize, mode: redactionMode)
+            }
+        } else if let counter = obj as? CounterObject {
+            if property == "lineWidth" { counter.radius = controls.lineWidth }
+        } else if let text = obj as? TextObject {
+            switch property {
+            case "textFill": text.fillColor = textFill
+            case "textOutline": text.outlineColor = textOutline
+            case "textStroke": text.glyphStrokeColor = textStroke
+            default: break
+            }
+        }
+        obj.style = style
+    }
+
+    /// The former behaviour: the whole toolbar style.
+    private static func applyAll(
+        to obj: any AnnotationObject,
+        controls: AnnotationKit.StrokeStyle,
+        currentTool: AnnotationTool,
+        redactionMode: RedactionMode,
+        textFill: AnnotationColor?,
+        textOutline: AnnotationColor?,
+        textStroke: AnnotationColor?
+    ) {
+        if let pixelate = obj as? PixelateObject {
+            pixelate.restyle(
+                blockSize: currentTool == .pixelate ? controls.lineWidth : pixelate.blockSize,
+                mode: redactionMode
+            )
+            pixelate.style = controls
+        } else if let counter = obj as? CounterObject {
+            counter.radius = controls.lineWidth
+            counter.style = AnnotationKit.StrokeStyle(
+                color: controls.color, lineWidth: controls.lineWidth, filled: controls.filled
+            )
+        } else if let text = obj as? TextObject {
+            text.fillColor = textFill
+            text.outlineColor = textOutline
+            text.glyphStrokeColor = textStroke
+            text.style = controls
+        } else {
+            obj.style = controls
+        }
     }
 }

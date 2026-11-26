@@ -218,6 +218,18 @@ final class AnnotationCanvasNSView: NSView {
 
     private let handleRadius: CGFloat = 5  // in image coords (adjusted by zoom in drawing)
 
+    /// Grab radius for handles, in image coordinates. Handles are drawn at a fixed
+    /// on-screen size, so both values are divided by the zoom; the unscaled
+    /// `handleRadius + 4` used to make them hard to hit when zoomed out.
+    private var handleHitRadius: CGFloat {
+        max(10, handleRadius + 4) / max(zoomScale, 0.1)
+    }
+
+    /// Hit tolerance for clicking an object, a constant 8 points on screen.
+    private var objectHitThreshold: CGFloat {
+        8 / max(zoomScale, 0.1)
+    }
+
     override var isFlipped: Bool { true }
     override var acceptsFirstResponder: Bool { true }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -316,7 +328,7 @@ final class AnnotationCanvasNSView: NSView {
             return pathHandleHitTest(point: point, object: pathObject)
         }
 
-        let r = max(10 / max(zoomScale, 0.1), handleRadius + 4)
+        let r = handleHitRadius
         for (handle, corner) in selectionHandleCenters(for: object.bounds) {
             if hypot(point.x - corner.x, point.y - corner.y) <= r {
                 return handle
@@ -326,7 +338,7 @@ final class AnnotationCanvasNSView: NSView {
     }
 
     private func counterHandleHitTest(point: CGPoint, counter: CounterObject) -> ResizeHandle? {
-        let r = max(10 / max(zoomScale, 0.1), handleRadius + 4)
+        let r = handleHitRadius
         let center = counterTipHandleCenter(for: counter)
         if hypot(point.x - center.x, point.y - center.y) <= r {
             return .counterTip
@@ -335,7 +347,7 @@ final class AnnotationCanvasNSView: NSView {
     }
 
     private func pathHandleHitTest(point: CGPoint, object: any PathEditableAnnotation) -> ResizeHandle? {
-        let r = max(10 / max(zoomScale, 0.1), handleRadius + 4)
+        let r = handleHitRadius
         for (handle, center) in pathHandleCenters(for: object) {
             if hypot(point.x - center.x, point.y - center.y) <= r {
                 return handle
@@ -384,7 +396,7 @@ final class AnnotationCanvasNSView: NSView {
             }
         }
 
-        if currentTool == .select, doc.objectAt(point: point) != nil {
+        if currentTool == .select, doc.objectAt(point: point, threshold: objectHitThreshold) != nil {
             NSCursor.openHand.set()
         } else if currentTool == .select {
             NSCursor.arrow.set()
@@ -993,7 +1005,7 @@ final class AnnotationCanvasNSView: NSView {
 
         if currentTool == .select {
             // Double-click a TextObject → enter inline edit mode.
-            if event.clickCount == 2, let obj = doc.objectAt(point: point),
+            if event.clickCount == 2, let obj = doc.objectAt(point: point, threshold: objectHitThreshold),
                let text = obj as? TextObject {
                 isDragging = false
                 beginTextEditing(at: text.origin, existing: text)
@@ -1001,7 +1013,7 @@ final class AnnotationCanvasNSView: NSView {
             }
 
             // Then check object body for move
-            if let obj = doc.objectAt(point: point) {
+            if let obj = doc.objectAt(point: point, threshold: objectHitThreshold) {
                 doc.selectObject(id: obj.id)
                 dragObjectID = obj.id
                 doc.beginDrag()

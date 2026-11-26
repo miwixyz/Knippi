@@ -218,9 +218,9 @@ struct EffectsTrackView: View {
                     }
                     .onEnded { _ in activeDrag = nil }
             )
-            .onHover { hovering in
-                if hovering { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
-            }
+            // pointerStyle instead of NSCursor push/pop: a pop missed when the
+            // view goes away mid-hover left the resize cursor stuck.
+            .pointerStyle(.columnResize)
     }
 
     private func cutDragGesture(cut: TrimRegion, trackWidth: Double) -> some Gesture {
@@ -256,9 +256,9 @@ struct EffectsTrackView: View {
                     }
                     .onEnded { _ in activeDrag = nil }
             )
-            .onHover { hovering in
-                if hovering { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
-            }
+            // pointerStyle instead of NSCursor push/pop: a pop missed when the
+            // view goes away mid-hover left the resize cursor stuck.
+            .pointerStyle(.columnResize)
     }
 
     private func dragToMoveGesture(segment: RecordingEffectSegment, trackWidth: Double) -> some Gesture {
