@@ -48,6 +48,13 @@ struct AnnotationToolbar: View {
     var onApplyPreset: (AnnotationStylePreset) -> Void = { _ in }
     var onSavePreset: () -> Void = {}
     var onRemovePreset: (AnnotationStylePreset) -> Void = { _ in }
+    /// Meldet die Höhe der oberen Kapselzeile (ohne Zweitreihe), damit das Bild darunter beginnt.
+    var onMainRowHeight: (CGFloat) -> Void = { _ in }
+
+    /// Abstand der Kapselzeile zur Fensteroberkante (Titelleiste ist unsichtbar).
+    static let topPadding: CGFloat = 10
+    /// Platz links für die Ampelknöpfe: die Leiste liegt nie darüber.
+    static let trafficLightReserve: CGFloat = 68
 
     /// The size slider serves multiple tools: in text / editing mode it means
     /// font size; for other tools it retains its existing role.
@@ -67,11 +74,16 @@ struct AnnotationToolbar: View {
     private static let baseColors: [AnnotationColor] = [.red, .orange, .yellow, .green, .blue]
 
     var body: some View {
-        // macOS 26: schwebende Liquid-Glass-Kapseln über der Arbeitsfläche. Ein Container,
-        // damit benachbarte Kapseln wie ein Glas wirken (gemeinsame Lichtbrechung).
+        // Glas-Umbau Phase 2: schwebende Liquid-Glass-Kapseln über der Arbeitsfläche, kein Streifen.
+        // Links (neben den Ampelknöpfen) Rückgängig, mittig die Werkzeuge, rechts Hintergrund und
+        // die Aktionskapsel. Ein Container, damit benachbarte Kapseln wie ein Glas wirken.
         GlassEffectContainer(spacing: 10) {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: 8) {
             HStack(alignment: .top, spacing: 10) {
+                Color.clear
+                    .frame(width: Self.trafficLightReserve, height: 1)
+                    .accessibilityHidden(true)
+                undoGroup.toolbarGlassPill().fixedSize()
                 // Only the editing area adapts. Undo, Background and the actions stay
                 // pinned so Save/Copy/Close never slide out of reach (issue #236).
                 // No keyboard shortcuts live inside the adaptive part: ViewThatFits
@@ -86,10 +98,9 @@ struct AnnotationToolbar: View {
                     // Last resort on very narrow windows: the two rows scroll.
                     ScrollView(.horizontal, showsIndicators: false) { twoRowEditingArea }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity)
 
                 HStack(spacing: 10) {
-                    undoGroup.toolbarGlassPill()
                     // Pinned like the actions: in a narrow editor the scrolling row hid
                     // them without any hint (Michael, 21.11.: "wo kann ich den Hintergrund ändern?").
                     HStack(spacing: 2) {
@@ -101,24 +112,33 @@ struct AnnotationToolbar: View {
                 }
                 .fixedSize()
             }
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { toolbarWidth = $0 }
-
-            if isFontSizeMode {
-                textEffectsGroup
-                    .fixedSize()
-                    .toolbarGlassPill()
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            } else if currentTool == .pixelate {
-                redactionModeGroup
-                    .fixedSize()
-                    .toolbarGlassPill()
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
+                toolbarWidth = size.width
+                onMainRowHeight(size.height)
             }
+
+            // Zweitreihe (Text-Effekte, Schwärzen) gleitet weich unter den Werkzeugen ein und
+            // schwebt über dem Bild – deshalb getöntes Glas, damit die Beschriftung lesbar bleibt.
+            Group {
+                if isFontSizeMode {
+                    textEffectsGroup
+                        .fixedSize()
+                        .toolbarGlassPill(readable: true)
+                } else if currentTool == .pixelate {
+                    redactionModeGroup
+                        .fixedSize()
+                        .toolbarGlassPill(readable: true)
+                }
+            }
+            .transition(.asymmetric(
+                insertion: .opacity.combined(with: .offset(y: -10)).combined(with: .scale(scale: 0.96, anchor: .top)),
+                removal: .opacity.combined(with: .offset(y: -6))))
         }
         }
         .familyAnimation(FamilyTheme.Motion.select, value: currentTool)
+        .familyAnimation(FamilyTheme.Motion.select, value: isEditingText)
         .padding(.horizontal, 12)
-        .padding(.top, 10)
+        .padding(.top, Self.topPadding)
         .padding(.bottom, 6)
         .onHover { hovering in
             if hovering {
@@ -276,7 +296,9 @@ struct AnnotationToolbar: View {
             if let index = Self.toolOrder.firstIndex(of: currentTool) {
                 Capsule()
                     .fill(FamilyTheme.accentFill)
-                    .shadow(color: FamilyTheme.accentFill.opacity(0.35), radius: 4, y: 1)
+                    .overlay(Capsule().strokeBorder(.white.opacity(0.22), lineWidth: 0.6))
+                    // Leichtes Glühen um die aktive Pille.
+                    .shadow(color: FamilyTheme.accentFill.opacity(0.55), radius: 8, y: 1)
                     .frame(width: Self.toolButtonSize.width, height: Self.toolButtonSize.height)
                     .offset(x: CGFloat(index) * (Self.toolButtonSize.width + Self.toolSpacing))
                     .familyAnimation(FamilyTheme.Motion.select, value: index)
@@ -732,13 +754,19 @@ private struct ToolbarHoverModifier: ViewModifier {
     var isEnabled: Bool
     @State private var isHovered = false
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     func body(content: Content) -> some View {
+        let lifted = isEnabled && isHovered
         content
             .background {
                 Capsule()
-                    .fill(Color.primary.opacity(isEnabled && isHovered ? 0.09 : 0))
+                    .fill(Color.primary.opacity(lifted ? 0.10 : 0))
             }
             .contentShape(Capsule())
+            // Knöpfe heben sich beim Überfahren leicht an (ohne bei „Bewegung reduzieren“).
+            .scaleEffect(lifted && !reduceMotion ? 1.08 : 1)
+            .offset(y: lifted && !reduceMotion ? -1 : 0)
             .onHover { isHovered = $0 }
             .familyAnimation(FamilyTheme.Motion.hover, value: isHovered)
     }
@@ -751,10 +779,10 @@ private extension View {
     }
 
     /// Schwebende Glas-Kapsel um eine Knopfgruppe der Werkzeugleiste.
-    func toolbarGlassPill() -> some View {
+    func toolbarGlassPill(readable: Bool = false) -> some View {
         padding(.horizontal, 5)
             .padding(.vertical, 4)
-            .familyLiquidGlass(in: Capsule())
+            .familyLiquidGlass(in: Capsule(), tint: readable ? FamilyTheme.glassReadableTint : nil)
     }
 }
 

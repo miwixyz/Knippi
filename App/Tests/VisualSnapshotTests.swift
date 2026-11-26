@@ -368,7 +368,11 @@ final class VisualSnapshotTests: XCTestCase {
 
         let statusItem = Mirror(reflecting: controller).children
             .first { $0.label == "statusItem" }?.value as? NSStatusItem
-        let menu = try XCTUnwrap(statusItem?.menu, "Status-Item-Menü nicht erreichbar")
+        // Seit dem Glas-Popover (Phase 2) hängt das klassische Menü nicht mehr dauerhaft am Status-Item,
+        // sondern öffnet sich per Rechtsklick/⌥-Klick und über „Mehr“.
+        XCTAssertNil(statusItem?.menu, "Linksklick soll das Popover öffnen, nicht das Menü")
+        let classic = Mirror(reflecting: controller).children.first { $0.label == "classicMenu" }?.value as? NSMenu
+        let menu = try XCTUnwrap(classic, "Klassisches Menü nicht erreichbar")
         menu.delegate?.menuWillOpen?(menu)
 
         var lines: [String] = ["# Knippi Menüleisten-Menü (Zustand nach menuWillOpen, ohne Pins/Quick Access)",

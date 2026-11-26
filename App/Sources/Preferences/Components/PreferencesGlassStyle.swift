@@ -4,10 +4,17 @@ import SwiftUI
 // Deshalb feste Flächen aus der Schiefer-Familie statt Glas (Namen der
 // Modifier bleiben, damit die Aufrufer unverändert bleiben).
 extension View {
-    func preferencesGlassCard(cornerRadius: CGFloat = FamilyTheme.Radius.field) -> some View {
+    /// Feste Familien-Karte (Radius 20) mit weicher Tiefe nach Familien-Regel (Radius 18, y 8,
+    /// Schieferblau 10 % hell, Schwarz dunkel) – liegt auf dem lebenden Hintergrund.
+    func preferencesGlassCard(cornerRadius: CGFloat = FamilyTheme.Radius.tile) -> some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         return self
-            .background(FamilyTheme.card, in: shape)
+            .clipShape(shape)
+            .background {
+                shape.fill(FamilyTheme.card)
+                    .shadow(color: Color(light: 0x1E2846, dark: 0x000000).opacity(0.10), radius: 18, y: 8)
+                    .shadow(color: Color(light: 0x1E2846, dark: 0x000000).opacity(0.06), radius: 2, y: 1)
+            }
             .overlay(shape.strokeBorder(FamilyTheme.cardStroke, lineWidth: 0.8))
     }
 

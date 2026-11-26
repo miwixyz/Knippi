@@ -8,8 +8,7 @@ struct PermissionSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
-                Text("Permissions")
-                    .font(FamilyTheme.font(20, weight: .semibold))
+                PreferencesTabHeader(tab: .permissions)
                 Spacer()
                 Button(action: refresh) {
                     Label("Refresh", systemImage: "arrow.clockwise")

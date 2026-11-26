@@ -2,6 +2,116 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {},
+    "Startup, sounds and automation" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start, Töne und Automatisierung"
+          }
+        }
+      }
+    },
+    "What Knippi may access on this Mac" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Worauf Knippi auf diesem Mac zugreifen darf"
+          }
+        }
+      }
+    },
+    "What happens during and after a capture" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was bei und nach einer Aufnahme passiert"
+          }
+        }
+      }
+    },
+    "Cursor, behavior and format of recordings" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeiger, Verhalten und Format von Aufzeichnungen"
+          }
+        }
+      }
+    },
+    "Where the preview card appears and when it closes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wo die Vorschaukarte erscheint und wann sie schließt"
+          }
+        }
+      }
+    },
+    "Share links through your own storage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links über deinen eigenen Speicher teilen"
+          }
+        }
+      }
+    },
+    "Quality, save location and file names" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qualität, Speicherort und Dateinamen"
+          }
+        }
+      }
+    },
+    "Copy text straight from a capture" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text direkt aus einer Aufnahme kopieren"
+          }
+        }
+      }
+    },
+    "Keys for every capture mode" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tastenkürzel für jede Aufnahmeart"
+          }
+        }
+      }
+    },
+    "Zoom Out" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verkleinern"
+          }
+        }
+      }
+    },
+    "Zoom In" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergrößern"
+          }
+        }
+      }
+    },
     ":" : {},
     "**Right-click** to open the preset picker" : {
       "localizations" : {
@@ -54389,6 +54499,126 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nötig für Bildschirmfotos und Aufzeichnungen. Nach dem Erlauben Knippi beenden und neu öffnen."
+          }
+        }
+      }
+    },
+    "Read Text" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text erkennen"
+          }
+        }
+      }
+    },
+    "Video" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video"
+          }
+        }
+      }
+    },
+    "Recent Screenshots" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuletzt aufgenommen"
+          }
+        }
+      }
+    },
+    "Show All" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle zeigen"
+          }
+        }
+      }
+    },
+    "History" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlauf"
+          }
+        }
+      }
+    },
+    "All functions (also with a right-click on the menu bar icon)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Funktionen (auch per Rechtsklick auf das Menüleistensymbol)"
+          }
+        }
+      }
+    },
+    "History is off. Turn it on to see your latest screenshots here." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Verlauf ist aus. Schalte ihn ein, dann siehst du hier deine letzten Bildschirmfotos."
+          }
+        }
+      }
+    },
+    "Today" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute"
+          }
+        }
+      }
+    },
+    "Yesterday" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestern"
+          }
+        }
+      }
+    },
+    "Open Settings…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen öffnen …"
+          }
+        }
+      }
+    },
+    "Knippi: click for the main actions, right-click for all functions" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knippi: Klick für die Hauptaktionen, Rechtsklick für alle Funktionen"
+          }
+        }
+      }
+    },
+    "Turn On" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einschalten"
           }
         }
       }

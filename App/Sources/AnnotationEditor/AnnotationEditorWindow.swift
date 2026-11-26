@@ -20,8 +20,11 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
     /// Injectable so tests never present a real modal alert.
     var confirmDiscard: () -> Bool = { false }
 
-    private static let style: NSWindow.StyleMask = [.titled, .closable, .resizable, .miniaturizable]
-    private static let chromeHeight: CGFloat = 110
+    /// `.fullSizeContentView`: die Arbeitsfläche reicht bis unter die (unsichtbare) Titelleiste.
+    private static let style: NSWindow.StyleMask = [.titled, .closable, .resizable, .miniaturizable, .fullSizeContentView]
+    /// Platz über und unter dem Bild: schwebende Kapselzeile oben, Zoom-Pille unten, Luft für den
+    /// Kartenschatten.
+    private static let chromeHeight: CGFloat = 130
 
     init(
         image: CGImage,
@@ -73,8 +76,10 @@ final class AnnotationEditorWindow: NSPanel, NSWindowDelegate {
         identifier = DockPresenceController.windowIdentifier
 
         self.title = String(localized: "Annotate")
-        // Titelleiste geht nahtlos in die Arbeitsfläche über; darunter schweben die Glas-Kapseln.
+        // Glas-Umbau Phase 2: Titelleiste unsichtbar, die Arbeitsfläche füllt das ganze Fenster,
+        // die Glas-Kapseln schweben darüber (neben den Ampelknöpfen, nie darauf).
         self.titlebarAppearsTransparent = true
+        self.titleVisibility = .hidden
         self.titlebarSeparatorStyle = .none
         self.backgroundColor = FamilyTheme.canvasBackdropNS
         self.isReleasedWhenClosed = false

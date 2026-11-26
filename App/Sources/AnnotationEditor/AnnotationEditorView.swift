@@ -97,6 +97,10 @@ struct AnnotationEditorView: View {
     @State private var isEditingText = false
     @State private var beautifySettings = BeautifySettings.saved()
     @State private var showBeautifyPanel = false
+    /// Höhe der oberen Werkzeugzeile (ohne Zweitreihe) bzw. der ganzen schwebenden Kopfzone
+    /// samt Hintergrund-Panel: daraus folgt, wie weit das Bild unter den Glas-Kapseln beginnt.
+    @State private var toolbarRowHeight: CGFloat = 34
+    @State private var chromeStackHeight: CGFloat = 0
     /// Size of the canvas area, so the zoom can be refitted when the picture or
     /// the space for it changes (background panel, format, margin).
     @State private var canvasAreaSize: CGSize = .zero
@@ -368,22 +372,54 @@ struct AnnotationEditorView: View {
         )
     }
 
+    /// Glas-Umbau Phase 2: Die Arbeitsfläche füllt das ganze Fenster (Titelleiste unsichtbar), darunter
+    /// der lebende Hintergrund. Das Bild liegt als feste Karte darauf; Werkzeuge, Aktionen und Zoom
+    /// schweben als Liquid-Glass-Kapseln darüber.
     private var editorContent: some View {
-        VStack(spacing: 0) {
-            // Glas-Kapseln schweben auf derselben Arbeitsfläche wie das Bild – keine Trennlinie,
-            // keine feste Leiste (macOS-26-Muster wie Vorschau/Freeform).
-            toolbar
-
-            if showBeautifyPanel {
-                BeautifyPanel(settings: beautifySettingsBinding)
-                Divider()
-            }
-
+        ZStack(alignment: .top) {
             canvasArea
-            zoomBar
+                .padding(.top, canvasTopInset)
+                .padding(.bottom, Self.canvasBottomInset)
+                .mask(canvasEdgeFade)
+
+            VStack(spacing: 10) {
+                toolbar
+                if showBeautifyPanel {
+                    BeautifyPanel(settings: beautifySettingsBinding)
+                        .frame(maxWidth: 760)
+                        .familyTintedGlass(in: RoundedRectangle(cornerRadius: FamilyTheme.Radius.tile, style: .continuous))
+                        .padding(.horizontal, 16)
+                        .transition(.opacity.combined(with: .offset(y: -10)))
+                }
+            }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { chromeStackHeight = $0 }
+            .familyAnimation(FamilyTheme.Motion.appear, value: showBeautifyPanel)
+
+            zoomPill
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .padding(.bottom, 12)
         }
-        .background(FamilyTheme.canvasBackdrop)
+        .background(EditorAmbience().ignoresSafeArea())
+        .ignoresSafeArea()
         .annotationToolShortcuts(currentTool: $currentTool, isEnabled: !isEditingText)
+    }
+
+    /// Bild beginnt unter der oberen Kapselzeile (Zweitreihe für Text/Schwärzen schwebt über dem
+    /// Bild), mit offenem Hintergrund-Panel unter dem ganzen Kopf.
+    private var canvasTopInset: CGFloat {
+        showBeautifyPanel ? chromeStackHeight + 8 : AnnotationToolbar.topPadding + toolbarRowHeight + 6
+    }
+
+    private static let canvasBottomInset: CGFloat = 52
+
+    /// Weicher Auslauf oben und unten, damit ein vergrößertes Bild nicht hart an einer
+    /// unsichtbaren Kante endet.
+    private var canvasEdgeFade: some View {
+        VStack(spacing: 0) {
+            LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom).frame(height: 14)
+            Color.black
+            LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom).frame(height: 14)
+        }
     }
 
     private var toolbar: some View {
@@ -423,7 +459,8 @@ struct AnnotationEditorView: View {
             presets: presets,
             onApplyPreset: applyPreset,
             onSavePreset: saveCurrentStyleAsPreset,
-            onRemovePreset: removePreset
+            onRemovePreset: removePreset,
+            onMainRowHeight: { toolbarRowHeight = $0 }
         )
     }
 
@@ -435,7 +472,6 @@ struct AnnotationEditorView: View {
             ) {
                 previewCanvas
             }
-            .background(FamilyTheme.canvasBackdrop)
             .overlay(alignment: .top) {
                 if sensitiveSuggestions.isShowing {
                     SensitiveSuggestionsBar(model: sensitiveSuggestions, onPixelateAll: pixelateSensitiveData)
@@ -494,6 +530,9 @@ struct AnnotationEditorView: View {
         // Only with a visible background: without it nothing may be clipped
         // (selection handles can reach past the image edge).
         .modifier(OuterCornerClip(radius: previewOuterCornerRadius))
+        // Mit Hintergrund ist die ganze Vorschau die Karte: weicher Familien-Schatten darunter.
+        .shadow(color: Color(light: 0x1E2846, dark: 0x000000).opacity(previewOuterCornerRadius > 0 || beautifySettings.isEnabled ? 0.20 : 0),
+                radius: 18, y: 8)
     }
 
     private struct OuterCornerClip: ViewModifier {
@@ -557,24 +596,36 @@ struct AnnotationEditorView: View {
         .padding(.vertical, previewInsets.vertical)
     }
 
-    private var zoomBar: some View {
-        HStack(spacing: 8) {
+    /// Zoom als kleine Glas-Pille unten mittig (statt Statuszeile). Tastenkürzel bleiben:
+    /// ⌘− / ⌘= / ⌘+ / ⌘0.
+    private var zoomPill: some View {
+        HStack(spacing: 2) {
             Button(action: zoomOut) {
-                Image(systemName: "minus.magnifyingglass")
+                Image(systemName: "minus")
+                    .font(.system(size: 11, weight: .semibold))
+                    .frame(width: 26, height: 24)
+                    .contentShape(Capsule())
             }
-            .buttonStyle(.borderless)
             .keyboardShortcut("-", modifiers: .command)
+            .help(Text("Zoom Out"))
+            .accessibilityLabel(Text("Zoom Out"))
 
-            Text("\(Int(zoomScale * 100))%")
-                .font(.system(size: 11, design: .monospaced))
-                .foregroundStyle(.secondary)
-                .frame(width: 44)
+            Text(verbatim: "\(Int((zoomScale * 100).rounded())) %")
+                .font(FamilyTheme.font(11, weight: .semibold))
+                .monospacedDigit()
+                .foregroundStyle(FamilyTheme.textPrimary)
+                .frame(minWidth: 44)
+                .contentTransition(.numericText())
 
             Button(action: zoomIn) {
-                Image(systemName: "plus.magnifyingglass")
+                Image(systemName: "plus")
+                    .font(.system(size: 11, weight: .semibold))
+                    .frame(width: 26, height: 24)
+                    .contentShape(Capsule())
             }
-            .buttonStyle(.borderless)
             .keyboardShortcut("=", modifiers: .command)
+            .help(Text("Zoom In"))
+            .accessibilityLabel(Text("Zoom In"))
             // ⌘+ as well: on German keyboards "+" is its own key, and the menus
             // of other apps advertise ⌘+ for zooming in.
             .background {
@@ -586,31 +637,51 @@ struct AnnotationEditorView: View {
                     .accessibilityHidden(true)
             }
 
-            Button("Fit", action: refitToCurrentWindow)
-                .buttonStyle(.borderless)
-                .keyboardShortcut("0", modifiers: .command)
+            Capsule().fill(FamilyTheme.textPrimary.opacity(0.14)).frame(width: 1, height: 14)
+                .padding(.horizontal, 4)
 
-            Spacer()
+            Button(action: refitToCurrentWindow) {
+                Text("Fit")
+                    .font(FamilyTheme.font(11, weight: .semibold))
+                    .foregroundStyle(isZoomFitted ? FamilyTheme.accent : FamilyTheme.textPrimary)
+                    .padding(.horizontal, 8)
+                    .frame(height: 24)
+                    .contentShape(Capsule())
+            }
+            .keyboardShortcut("0", modifiers: .command)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
-        .background(FamilyTheme.canvasBackdrop)
+        .buttonStyle(.plain)
+        .foregroundStyle(FamilyTheme.textPrimary)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .familyLiquidGlass(in: Capsule(), tint: FamilyTheme.glassLightTint)
+        .familyAnimation(FamilyTheme.Motion.hover, value: zoomScale)
     }
 
+    /// Ohne Hintergrund liegt das Bild als feste Karte auf der Arbeitsfläche: leicht gerundete
+    /// Ecken (nur Ansicht, der Export bleibt eckig) und weicher Familien-Schatten.
+    private static let plainCardRadius: CGFloat = 6
+
     private var canvasCornerRadius: CGFloat {
-        beautifySettings.isEnabled ? beautifySettings.clampedCornerRadius * zoomScale : 0
+        beautifySettings.isEnabled ? beautifySettings.clampedCornerRadius * zoomScale : Self.plainCardRadius
     }
 
     private var canvasShadowColor: Color {
-        .black.opacity(beautifySettings.isEnabled && beautifySettings.shadowEnabled ? 0.25 : 0)
+        if beautifySettings.isEnabled {
+            return .black.opacity(beautifySettings.shadowEnabled ? 0.25 : 0)
+        }
+        return Color(light: 0x1E2846, dark: 0x000000).opacity(0.22)
     }
 
     private var canvasShadowRadius: CGFloat {
-        beautifySettings.clampedShadowRadius * zoomScale
+        beautifySettings.isEnabled ? beautifySettings.clampedShadowRadius * zoomScale : 18
     }
 
     private var canvasShadowOffsetY: CGFloat {
-        beautifySettings.isEnabled && beautifySettings.shadowEnabled ? 6 * zoomScale : 0
+        if beautifySettings.isEnabled {
+            return beautifySettings.shadowEnabled ? 6 * zoomScale : 0
+        }
+        return 8
     }
 
     private var beautifySettingsBinding: Binding<BeautifySettings> {
@@ -837,7 +908,8 @@ struct AnnotationEditorView: View {
 
     private func fitScale(for size: CGSize) -> CGFloat {
         guard previewContentWidth > 0, previewContentHeight > 0 else { return 1 }
-        let viewportPadding: CGFloat = 20
+        // Luft rund um die Bildkarte, damit ihr Schatten und der Hintergrund sichtbar bleiben.
+        let viewportPadding: CGFloat = 56
         let scaleX = (size.width - viewportPadding) / previewContentWidth
         let scaleY = (size.height - viewportPadding) / previewContentHeight
         return min(scaleX, scaleY, 1.0) // Never zoom above 100%
@@ -1200,5 +1272,38 @@ enum SelectedObjectRestyle {
         } else {
             obj.style = controls
         }
+    }
+}
+
+/// Hintergrund des Editors: lebender Mesh-Verlauf mit stärkerem Glühen plus zwei weiche
+/// Akzent-Lichter in den Ecken, damit das Leuchten auch neben dem Bild sichtbar bleibt
+/// (die Mitte deckt die Bildkarte meist ab). Bei „Transparenz reduzieren“/„Kontrast erhöhen“
+/// zeichnet AmbientBackdrop selbst den festen Verlauf, die Lichter entfallen.
+private struct EditorAmbience: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        ZStack {
+            AmbientBackdrop(glow: 1.6)
+            if !reduceTransparency && contrast != .increased {
+                let strength = colorScheme == .dark ? 0.34 : 0.26
+                Ellipse()
+                    .fill(FamilyTheme.accent.opacity(strength))
+                    .frame(width: 520, height: 360)
+                    .blur(radius: 110)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .offset(x: -160, y: -120)
+                Ellipse()
+                    .fill(FamilyTheme.iris.opacity(strength * 0.9))
+                    .frame(width: 560, height: 380)
+                    .blur(radius: 120)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .offset(x: 160, y: 140)
+            }
+        }
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
     }
 }

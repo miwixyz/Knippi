@@ -37,32 +37,27 @@ final class PreferencesWindow {
         )
         window.identifier = DockPresenceController.windowIdentifier
         window.title = String(localized: "Knippi Settings")
-        // macOS-26-Einstellungsfenster: durchsichtige Titelleiste, Inhalt bis oben, die
-        // Glas-Seitenleiste schwebt unter den Ampel-Knöpfen (wie die Systemeinstellungen).
-        // Der Titel steht als Überschrift im Inhalt; der Fenstertitel bleibt für Fenster-Menü
-        // und Bedienungshilfen gesetzt.
+        // Glas-Umbau Phase 2: keine sichtbare Titelleiste, der lebende Hintergrund reicht über die
+        // ganze Fläche, die Ampelknöpfe liegen über der schwebenden Glas-Insel. Der Fenstertitel
+        // bleibt für Fenster-Menü und Bedienungshilfen gesetzt.
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
-        // Keine Werkzeugleiste: sie brachte nur einen leeren Streifen über der Seitenleiste.
-        // Die Seitenleiste zeichnet AppKit wie in Schriftsammlung/Finder (verglichen 26.11.).
+        window.titlebarSeparatorStyle = .none
+        // Leere Werkzeugleiste nur für die höhere Titelzone: die Ampelknöpfe rücken dadurch nach
+        // innen und sitzen IN der Glas-Insel statt auf ihrer Kante (wie Finder/Systemeinstellungen).
+        let toolbar = NSToolbar(identifier: "KnippiSettingsToolbar")
+        toolbar.showsBaselineSeparator = false
+        window.toolbar = toolbar
+        window.toolbarStyle = .unified
+        window.backgroundColor = FamilyTheme.canvasBackdropNS
         window.isReleasedWhenClosed = false
 
         let viewModel = PreferencesViewModel(settings: settings, permissionManager: permissionManager)
-        let navigation = PreferencesNavigation(selectedTab: tab ?? .general)
-        // NSSplitViewController mit Seitenleisten-Element: macOS 26 zeichnet die Seitenleiste
-        // dann selbst als schwebendes Liquid Glass (wie Systemeinstellungen/Finder).
-        let split = NSSplitViewController()
-        let sidebarItem = NSSplitViewItem(sidebarWithViewController:
-            NSHostingController(rootView: PreferencesSidebarView(navigation: navigation)))
-        sidebarItem.minimumThickness = PreferencesView.sidebarWidth
-        sidebarItem.maximumThickness = PreferencesView.sidebarWidth
-        sidebarItem.canCollapse = false
-        let detail = NSHostingController(rootView: PreferencesDetailView(
-            navigation: navigation, viewModel: viewModel, updateManager: updateManager))
-        let detailItem = NSSplitViewItem(viewController: detail)
-        split.addSplitViewItem(sidebarItem)
-        split.addSplitViewItem(detailItem)
-        window.contentViewController = split
+        let hosting = NSHostingController(rootView: PreferencesView(
+            viewModel: viewModel, updateManager: updateManager, initialTab: tab))
+        // Größe kommt fest vom Fenster, nicht aus der SwiftUI-Wunschgröße.
+        hosting.sizingOptions = []
+        window.contentViewController = hosting
         window.setContentSize(PreferencesView.windowSize)
         window.contentMinSize = PreferencesView.windowSize
         window.contentMaxSize = PreferencesView.windowSize

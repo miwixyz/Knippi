@@ -728,14 +728,13 @@ private struct InlineAnnotationToolbar: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.white.opacity(0.18), lineWidth: 0.5)
-        )
-        .shadow(color: .black.opacity(0.32), radius: 18, y: 8)
+        // Glas-Umbau Phase 2: dieselbe Liquid-Glass-Sprache wie der Editor. Die Leiste liegt über
+        // dem wechselnden Bildschirminhalt, deshalb kräftig dunkel getönt (Schrift bleibt lesbar).
+        .familyLiquidGlass(in: RoundedRectangle(cornerRadius: 20, style: .continuous),
+                           tint: Color(light: 0x161A25, dark: 0x161A25).opacity(0.72))
+        .shadow(color: .black.opacity(0.30), radius: 18, y: 8)
         .environment(\.colorScheme, .dark)
+        .familyAnimation(FamilyTheme.Motion.select, value: currentTool)
     }
 
     private var primaryControls: some View {
@@ -929,8 +928,13 @@ private struct InlineAnnotationToolbar: View {
             }
             .foregroundStyle(.white)
             .frame(width: 29, height: 28)
-            .background(currentTool == tool ? FamilyTheme.accentFill.opacity(0.45) : Color.white.opacity(0.001))
-            .clipShape(RoundedRectangle(cornerRadius: 7))
+            .background {
+                // Aktives Werkzeug: Akzent-Pille mit leichtem Glühen (wie im Editor).
+                Capsule()
+                    .fill(currentTool == tool ? AnyShapeStyle(FamilyTheme.accentFill) : AnyShapeStyle(Color.white.opacity(0.001)))
+                    .shadow(color: FamilyTheme.accentFill.opacity(currentTool == tool ? 0.6 : 0), radius: 7, y: 1)
+            }
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .help(tool.localizedShortcutHelpTitle)
@@ -949,8 +953,7 @@ private struct InlineAnnotationToolbar: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 30, height: 28)
-                .background(buttonBackground(isActive: isActive, isPrimary: isPrimary, isEnabled: isEnabled))
-                .clipShape(RoundedRectangle(cornerRadius: 7))
+                .background(buttonBackground(isActive: isActive, isPrimary: isPrimary, isEnabled: isEnabled), in: Capsule())
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled)
@@ -962,9 +965,9 @@ private struct InlineAnnotationToolbar: View {
 
     private func buttonBackground(isActive: Bool, isPrimary: Bool, isEnabled: Bool) -> Color {
         if !isEnabled { return Color.white.opacity(0.06) }
-        if isPrimary { return FamilyTheme.accentFill.opacity(0.82) }
-        if isActive { return FamilyTheme.accentFill.opacity(0.45) }
-        return Color.white.opacity(0.10)
+        if isPrimary { return FamilyTheme.accentFill }
+        if isActive { return FamilyTheme.accentFill.opacity(0.55) }
+        return Color.white.opacity(0.08)
     }
 
     private func iconName(for tool: AnnotationTool) -> String {
