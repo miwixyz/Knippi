@@ -26,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var ocrCoordinator: OCRCoordinator?
     private(set) var shareCoordinator: ShareCoordinator?
     private var preferencesWindow: PreferencesWindow?
+    private let welcomeWindow = WelcomeWindow()
     private var dockPresenceController: DockPresenceController?
     private var automationURLRequestBuffer = AutomationURLRequestBuffer()
     private var imageFileOpenBuffer = ImageFileOpenBuffer()
@@ -66,6 +67,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             forEventClass: AEEventClass(kCoreEventClass), andEventID: AEEventID(kAEReopenApplication)
         )
         DiagnosticLogger.installUncaughtExceptionHandler()
+
+        // Read before the line below writes the launch marker (WelcomeGate).
+        let hasLaunchedBefore = WelcomeGate.hasLaunchedBefore()
+        WelcomeGate.keepPreviousDefaults(settings: settings, hasLaunchedBefore: hasLaunchedBefore)
 
         // Show tooltips faster (default is ~2s, reduce to 0.3s)
         UserDefaults.standard.set(300, forKey: "NSInitialToolTipDelay")
@@ -140,6 +145,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         Task {
             await permissionManager.checkScreenRecordingPermission()
+            if WelcomeGate.shouldShow(settings: settings, hasLaunchedBefore: hasLaunchedBefore) {
+                // Marked when shown, not when closed: quitting with the window open must not
+                // bring it back on every launch.
+                settings.welcomeShown = true
+                welcomeWindow.show(
+                    settings: settings,
+                    screenRecordingGranted: permissionManager.screenRecordingGranted,
+                    onOpenSettings: { [weak self] in self?.showPreferences() }
+                )
+            }
         }
         // Load Vision's OCR models off the critical path so the first
         // "Capture Text" of a session doesn't stall on one-time model setup.

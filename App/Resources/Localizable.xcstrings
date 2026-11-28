@@ -54662,6 +54662,166 @@
           }
         }
       }
+    },
+    "Welcome to Knippi" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Willkommen bei Knippi"
+          }
+        }
+      }
+    },
+    "Screenshots from the menu bar, quick and simple." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmfotos aus der Menüleiste, schnell und einfach."
+          }
+        }
+      }
+    },
+    "Take a screenshot" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmfoto aufnehmen"
+          }
+        }
+      }
+    },
+    "Everything else" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alles andere"
+          }
+        }
+      }
+    },
+    "The Knippi icon in the menu bar has all capture modes, your recent screenshots and the settings." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Knippi-Symbol in der Menüleiste hat alle Aufnahmearten, deine letzten Bildschirmfotos und die Einstellungen."
+          }
+        }
+      }
+    },
+    "Where screenshots go" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wo Bildschirmfotos landen"
+          }
+        }
+      }
+    },
+    "Get Started" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los geht’s"
+          }
+        }
+      }
+    },
+    "Press %@ and drag over the area you want." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drück %@ und zieh über den gewünschten Bereich."
+          }
+        }
+      }
+    },
+    "Click the Knippi icon in the menu bar and choose an area." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klick auf das Knippi-Symbol in der Menüleiste und wähl einen Bereich."
+          }
+        }
+      }
+    },
+    "Every screenshot is saved to %@ and copied to the clipboard." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedes Bildschirmfoto wird in %@ gesichert und in die Zwischenablage kopiert."
+          }
+        }
+      }
+    },
+    "Every screenshot is saved to %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedes Bildschirmfoto wird in %@ gesichert."
+          }
+        }
+      }
+    },
+    "Every screenshot is copied to the clipboard. Click Save in the preview to keep it in %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedes Bildschirmfoto wird in die Zwischenablage kopiert. Klick in der Vorschau auf „Sichern“, um es in %@ zu behalten."
+          }
+        }
+      }
+    },
+    "Click Save in the preview to keep a screenshot in %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klick in der Vorschau auf „Sichern“, um ein Bildschirmfoto in %@ zu behalten."
+          }
+        }
+      }
+    },
+    "Granted. Knippi can capture your screen." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erteilt. Knippi kann den Bildschirm aufnehmen."
+          }
+        }
+      }
+    },
+    "macOS asks for it on your first screenshot. Knippi only looks at the screen when you capture." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS fragt beim ersten Bildschirmfoto danach. Knippi sieht den Bildschirm nur an, wenn du aufnimmst."
+          }
+        }
+      }
+    },
+    "Screen & System Audio Recording permission" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigabe „Bildschirm- und Systemaudioaufnahme“"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

@@ -896,4 +896,19 @@ struct AppSettingsTests {
         defaults.set(-3, forKey: "historyKeepCount")
         #expect(AppSettings(defaults: defaults).historyKeepCount == 0)
     }
+
+    @Test("Screenshot auto-save defaults on and keeps a stored choice")
+    func screenshotAutoSaveDefaultsOn() {
+        let suite = "test.screenshotAutoSave"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+
+        // New installs save every screenshot as a file, so the history has something to show.
+        let first = AppSettings(defaults: defaults)
+        #expect(first.screenshotAutoSave)
+
+        // An existing install that turned it off keeps it off.
+        first.screenshotAutoSave = false
+        #expect(!AppSettings(defaults: defaults).screenshotAutoSave)
+    }
 }

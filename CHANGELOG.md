@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.8.0] — 2026-11-28
+
+### Neu
+
+- **Begrüßungsfenster beim ersten Start.** Einmal, nur bei neuen Installationen: das Kürzel für ein Bildschirmfoto, das
+  Knippi-Symbol in der Menüleiste, wo Bildschirmfotos landen und ob die Freigabe „Bildschirm- und Systemaudioaufnahme“ schon erteilt ist. Wer
+  von einer älteren Knippi aktualisiert, sieht es nicht.
+
+### Geändert
+
+- **„Automatisch sichern“ ist ab Werk an.** Neue Installationen sichern jedes Bildschirmfoto als Datei im Ablageordner, damit
+  der Verlauf etwas zeigen kann. Bestehende Installationen behalten ihre bisherige Einstellung.
+
 ## [0.7.1] — 2026-11-28
 
 ### Behoben

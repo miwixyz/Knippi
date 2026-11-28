@@ -570,7 +570,7 @@ public final class AppSettings: @unchecked Sendable {
     }
 
     public var screenshotAutoSave: Bool {
-        get { defaults.object(forKey: "screenshotAutoSave") as? Bool ?? false }
+        get { defaults.object(forKey: "screenshotAutoSave") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "screenshotAutoSave") }
     }
 
@@ -887,6 +887,12 @@ public final class AppSettings: @unchecked Sendable {
     public var ocrOnboardingShown: Bool {
         get { defaults.object(forKey: "ocrOnboardingShown") as? Bool ?? false }
         set { defaults.set(newValue, forKey: "ocrOnboardingShown") }
+    }
+
+    /// The welcome window was closed once (see `WelcomeGate`).
+    public var welcomeShown: Bool {
+        get { defaults.object(forKey: "welcomeShown") as? Bool ?? false }
+        set { defaults.set(newValue, forKey: "welcomeShown") }
     }
 
     // MARK: Export Location

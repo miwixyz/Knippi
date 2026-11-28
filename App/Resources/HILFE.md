@@ -6,6 +6,8 @@ Beim Auslösen spielt Knippi einen kurzen, leisen Ton („Tock“). Abschalten u
 
 ## Erste Schritte
 
+Beim allerersten Start zeigt Knippi einmal ein Begrüßungsfenster: das Kürzel für ein Bildschirmfoto, wo Bildschirmfotos landen, und ob die Freigabe schon erteilt ist. Danach erscheint es nicht wieder.
+
 Beim ersten Bildschirmfoto fragt macOS nach der Freigabe **Bildschirm- und Systemaudioaufnahme**. Ohne sie kann Knippi nichts aufnehmen und zeigt einen Hinweis mit „Einstellungen öffnen“. Die Freigabe findest du unter Systemeinstellungen → Datenschutz & Sicherheit → Bildschirm- und Systemaudioaufnahme.
 
 ## Tastenkürzel ab Werk
@@ -36,7 +38,7 @@ Unter Einstellungen → Bildschirmfotos → „Nach der Aufnahme“ wählst du:
 - **Editor öffnen:** Das Bildschirmfoto öffnet sich sofort im Editor.
 - **Still:** Knippi kopiert in die Zwischenablage und sichert im Ablageordner, ohne etwas anzuzeigen.
 
-Ab Werk kopiert Knippi jedes Bildschirmfoto in die Zwischenablage. Als Datei landet es im Ablageordner (ab Werk Bilder/Knippi), wenn du in der Vorschau „Sichern“ klickst oder unter Einstellungen → Bildschirmfotos „Automatisch sichern“ einschaltest.
+Ab Werk kopiert Knippi jedes Bildschirmfoto in die Zwischenablage und sichert es als Datei im Ablageordner (ab Werk Bilder/Knippi). Ist unter Einstellungen → Bildschirmfotos „Automatisch sichern“ aus, landet es dort nur, wenn du in der Vorschau „Sichern“ klickst. Wer Knippi vor Version 0.8.0 installiert hat, behält seine bisherige Einstellung.
 
 ## Video und GIF
 
