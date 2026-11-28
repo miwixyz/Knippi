@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an Knippi.
 
+## [0.7.1] — 2026-11-28
+
+### Behoben
+
+- **GIF-Aufnahmen fehlten im Finder und im Verlauf.** Lag der Speicherort in iCloud Drive, wurde jedes GIF als versteckte Datei
+  gesichert: Im Finder war es nur bei eingeblendeten versteckten Dateien zu sehen, im Verlauf gar nicht. Neue GIFs sind wieder
+  sichtbar. Schon gesicherte GIFs holt im Terminal
+  `chflags nohidden ~/Library/Mobile\ Documents/com~apple~CloudDocs/Screenshots/Knippi\ Recording*.gif` zurück
+  (Pfad an den eigenen Speicherort anpassen).
+
+### Intern
+
+- GIF-Export schreibt in eine lokale Arbeitsdatei und verschiebt das fertige GIF an den Speicherort (gemessen: direkt in iCloud
+  4 von 4 versteckt, über die Arbeitsdatei 0 von 8, auch auf einem anderen Laufwerk).
+
 ## [0.7.0] — 2026-11-26
 
 Neue Optik: Knippi sieht jetzt aus wie eine aktuelle macOS-App, mit Liquid Glass, Tiefe und ruhiger Bewegung.

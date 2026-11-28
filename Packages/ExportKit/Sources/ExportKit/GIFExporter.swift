@@ -104,6 +104,14 @@ enum GIFExporter {
             throw ExportError.frameExtractionFailed
         }
 
+        // Encode into a local work file and put the finished GIF in place at the end.
+        // Written directly into iCloud Drive, the finished GIF always carried the
+        // "hidden" flag, so it was missing from Finder and the history (measured
+        // 28.11.2026: 4 of 4 hidden direct, 0 of 4 when written locally and moved).
+        let workURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("knippi-gif-\(UUID().uuidString).gif")
+        defer { try? FileManager.default.removeItem(at: workURL) }
+
         // Open the GIF destination.
         let fileProperties: [String: Any] = [
             kCGImagePropertyGIFDictionary as String: [
@@ -111,7 +119,7 @@ enum GIFExporter {
             ]
         ]
         guard let dest = CGImageDestinationCreateWithURL(
-            destination as CFURL,
+            workURL as CFURL,
             UTType.gif.identifier as CFString,
             estimatedFrameCount,
             nil
@@ -177,6 +185,16 @@ enum GIFExporter {
         guard emittedCount > 0 else { throw ExportError.frameExtractionFailed }
 
         guard CGImageDestinationFinalize(dest) else {
+            throw ExportError.gifCreationFailed
+        }
+        do {
+            // The recording flow reserves the name with an empty file: remove it first
+            // (like MP4Exporter). `replaceItemAt` fails across volumes ("Cross-device
+            // link", measured with an export folder on another drive); `moveItem` copies.
+            try? FileManager.default.removeItem(at: destination)
+            try FileManager.default.moveItem(at: workURL, to: destination)
+        } catch {
+            NSLog("[Knippi] GIF could not be moved to %@: %@", destination.path, String(describing: error))
             throw ExportError.gifCreationFailed
         }
 
