@@ -6,6 +6,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Knippi</title>
         <item>
+            <title>0.8.0</title>
+            <pubDate>Sat, 28 Nov 2026 12:02:22 +0100</pubDate>
+            <link>https://github.com/miwixyz/Knippi</link>
+            <sparkle:version>575</sparkle:version>
+            <sparkle:shortVersionString>0.8.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<meta charset="utf-8"><h3>Neu</h3><ul><li><b>Begrüßungsfenster beim ersten Start.</b> Einmal, nur bei neuen Installationen: das Kürzel für ein Bildschirmfoto, das Knippi-Symbol in der Menüleiste, wo Bildschirmfotos landen und ob die Freigabe „Bildschirm- und Systemaudioaufnahme“ schon erteilt ist. Wer von einer älteren Knippi aktualisiert, sieht es nicht.</li></ul><h3>Geändert</h3><ul><li><b>„Automatisch sichern“ ist ab Werk an.</b> Neue Installationen sichern jedes Bildschirmfoto als Datei im Ablageordner, damit der Verlauf etwas zeigen kann. Bestehende Installationen behalten ihre bisherige Einstellung.</li></ul>]]></description>
+            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.8.0/Knippi-0.8.0.zip" length="6171082" type="application/octet-stream" sparkle:edSignature="ApaieO5gTYNHHaklewQm6E7na/jVeJFMex78R0X435dClTHBaVz9orObN7J86yPGi+I/NaGJ7QPHhaBQcO+ICg=="/>
+        </item>
+        <item>
             <title>0.7.1</title>
             <pubDate>Sat, 28 Nov 2026 11:39:31 +0100</pubDate>
             <link>https://github.com/miwixyz/Knippi</link>
@@ -27,20 +38,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <description><![CDATA[<meta charset="utf-8"><p>Neue Optik: Knippi sieht jetzt aus wie eine aktuelle macOS-App, mit Liquid Glass, Tiefe und ruhiger Bewegung.</p><h3>Neu</h3><ul><li><b>Knippi-Fenster in der Menüleiste.</b> Ein Klick auf das Symbol öffnet ein Glas-Fenster mit den Aufnahmearten als runden Knöpfen (Bereich, Vollbild, Fenster, Scrollen, Text erkennen, Video) und den letzten sechs Bildschirmfotos als Kacheln, zum Öffnen oder Ziehen. Während einer Aufzeichnung steht oben ein Block mit Zeit, Pause und Stopp. Das vollständige Menü öffnet ein Rechtsklick oder option-Klick auf das Symbol.</li><li><b>Eigener Auslöser-Ton „Tock“:</b> kurz, leise und dunkel statt des macOS-Bildschirmfoto-Tons.</li></ul><h3>Geändert</h3><ul><li><b>Liquid Glass überall, wo etwas schwebt:</b> Werkzeugleisten, Vorschaukarte, Hinweise, Aufzeichnungsleiste, Scroll-Aufnahme, Selbstauslöser, angeheftete Bilder (mit Glas-Knöpfen beim Überfahren) und die Leisten bei der Aufnahme.</li><li><b>Einstellungen:</b> schwebende Glas-Seitenleiste mit gleitender Auswahl, große Überschriften, ruhig lebender Hintergrund.</li><li><b>Editor:</b> Das Bild füllt das Fenster, die Werkzeuge schweben als Glas-Kapseln darüber, der Zoom ist eine Glas-Pille unten.</li><li><b>Verlauf:</b> Glas-Suchleiste, Bilder nach Tagen gruppiert, Karten heben sich beim Überfahren und zeigen Kopieren, Im Finder zeigen und Papierkorb.</li><li><b>Video-Editor, Cloud-Assistent und Hilfe</b> im selben Stil.</li><li>„Transparenz reduzieren“, „Bewegung reduzieren“ und „Kontrast erhöhen“ werden berücksichtigt. Der bewegte Hintergrund ruht, solange Knippi nicht im Vordergrund ist (gemessen: unter 0,5 % CPU im Hintergrund).</li></ul>]]></description>
             <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.7.0/Knippi-0.7.0.zip" length="6157804" type="application/octet-stream" sparkle:edSignature="y98Zt0ZxiDO34BYjgz02Ig76qGn+W7smSAsyWswKqCWZMbId8FCjCyNkY7ZOgTft2J1WaooENgeZmiiYwo2yCw=="/>
         </item>
-        <item>
-            <title>0.6.2</title>
-            <pubDate>Thu, 26 Nov 2026 13:31:39 +0100</pubDate>
-            <link>https://github.com/miwixyz/Knippi</link>
-            <sparkle:version>563</sparkle:version>
-            <sparkle:shortVersionString>0.6.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description><![CDATA[<meta charset="utf-8"><p>Zweiter Prüfdurchgang mit Schwerpunkt Datensicherheit, Bedienung und Optik.</p><h3>Neu</h3><ul><li><b>Hochgeladene Bildschirmfotos wieder löschen.</b> Knippi merkt sich jeden Cloud-Upload (nur Dateiname und Ziel, keine Zugangsdaten oder Links). Im Vorschaubild: „…“ → „Link löschen“. In den Einstellungen → Cloud-Freigabe → „Hochgeladen“: einzeln oder alle löschen, mit Rückfrage. Gelöscht wird nur beim eingerichteten Ziel; Uploads zu einem anderen Ziel bleiben in der Liste markiert. Schlägt das Löschen fehl, bleibt der Eintrag und die Ursache steht dabei.</li><li><b>Aufzeichnung stoppen per Tastenkürzel und Menü.</b> Das Aufzeichnungs-Kürzel stoppt eine laufende Aufzeichnung. Im Menü stehen währenddessen oben „Aufzeichnung stoppen“ und „Aufzeichnung pausieren/fortsetzen“.</li><li><b>Nach dem Sichern</b> zeigt ein Hinweis, in welchem Ordner das Bildschirmfoto liegt.</li></ul><h3>Geändert</h3><ul><li><b>Neue Optik nach dem Design der App-Familie:</b> Vorschaukarte, Aufzeichnungsleiste, Hinweise und Scroll-Aufnahme mit weichem Schatten und getöntem Glas, Cloud-Assistent und Video-Editor in Hell und Dunkel, die Werkzeugleiste im Editor passt sich der Fensterbreite an (Stil und weitere Farben im Aufklappfenster). Die Seitenleiste der Einstellungen bricht keine Wörter mehr um.</li><li><b>Einheitliche Begriffe:</b> Bildschirmfoto (Standbild), Aufzeichnung (Video), Ablageordner, Tastenkürzel. Hilfe korrigiert, unter anderem: Ab Werk wird ein Bildschirmfoto nur kopiert; als Datei landet es erst mit „Sichern“ oder „Automatisch sichern“.</li><li><b>Menü neu geordnet:</b> Bildschirmfotos, Video, Werkzeuge, Verlauf. Esc schließt den Verlauf, wenn nichts ausgewählt ist.</li></ul><h3>Behoben</h3><ul><li><b>Beenden mit offenem Editor verlor die Arbeit:</b> Knippi fragt jetzt nach, bevor ungesicherte Bearbeitungen oder eine noch nicht gesicherte Aufzeichnung im Video-Editor verloren gehen.</li><li><b>Zwei Video-Editoren:</b> Schloss man den ersten, wurde der zweite samt Aufzeichnung mitgeschlossen.</li><li><b>Beenden mitten in der Aufzeichnung:</b> Knippi stoppt und sichert zuerst (höchstens 10 Sekunden), statt eine unfertige Datei liegen zu lassen.</li><li><b>Pause:</b> Mauszeiger, Klicks und Auto-Zoom im Editor liegen nach einer Pause nicht mehr um die Pausenlänge daneben. In der Pause nimmt der Bildschirmstrom nur noch 1 Bild pro Sekunde auf.</li><li><b>macOS fragte wiederholt nach der Bildschirmaufnahme-Freigabe</b>, wenn sie fehlte (beim Öffnen der Einstellungen). Knippi prüft die Freigabe jetzt ohne Nebenwirkung.</li><li><b>Nach dem Schwärzen</b> lag das ungeschwärzte Bild noch in der Zwischenablage und sein Text im Suchindex. Beides wird jetzt ersetzt.</li><li>Zwei Exporte in derselben Sekunde überschrieben einander nicht mehr; die Wiederherstellung nach einem Absturz bleibt bis zum echten Sichern erhalten; „Sichern unter“ schreibt atomar; der Editor bleibt offen, wenn das Sichern scheitert.</li></ul>]]></description>
-            <enclosure url="https://github.com/miwixyz/Knippi/releases/download/v0.6.2/Knippi-0.6.2.zip" length="5838744" type="application/octet-stream" sparkle:edSignature="ZZbgA3feEi70dE3Ou/TdytLNUZJWWJ8asgGX2A4/Qd6NLjaFSKZG7KIVMrZjXEWHcrsrFh+OiXrVNkMWiWkmAw=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: 4tZ6OlNhT4Dyc45ETkgCtIooc7Bt0oshDp/fNtI96IGw0/0mCD3Itev4DU6kvC8bvS0SpH8M7MiMuubn3zLmBA==
-length: 8058
+edSignature: xFDzqYQ93EBaihjywuNvyczKU7rPFpvY3U3F7lDH5uAFrkRllMHxIyDXZ03YF9uKu0KsaH3z0mhOADPVrBG9Ag==
+length: 5661
 -->
